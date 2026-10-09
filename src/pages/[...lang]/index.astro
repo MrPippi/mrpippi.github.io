@@ -2,7 +2,7 @@
 import Banner from '../../components/Banner.astro';
 import TitleLogo from '../../components/TitleLogo.astro';
 import { PROFILE } from '../../consts';
-import { langFromPath, langStaticPaths, localizePath, t } from '../../i18n';
+import { TIME_ZONE, langFromPath, langStaticPaths, localizePath, t } from '../../i18n';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPublishedPosts } from '../../lib/posts';
 
@@ -14,7 +14,10 @@ const lang = langFromPath(Astro.url.pathname);
 const dict = t(lang);
 const hasPosts = (await getPublishedPosts()).length > 0;
 const now = new Date();
-const version = [now.getFullYear(), now.getMonth() + 1, now.getDate()].join('.');
+// 版本號 = 建置日期（台灣時間），例如 2026.10.10
+const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: 'numeric', day: 'numeric' })
+	.format(now)
+	.replaceAll('-', '.');
 ---
 
 <BaseLayout>

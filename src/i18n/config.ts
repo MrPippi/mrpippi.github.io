@@ -11,6 +11,8 @@ export const DEFAULT_LANG: Lang = 'zh-TW';
 export const HTML_LANG: Record<Lang, string> = { 'zh-TW': 'zh-Hant-TW', en: 'en' };
 /** 日期格式用的 locale */
 export const DATE_LOCALE: Record<Lang, string> = { 'zh-TW': 'zh-TW', en: 'en-US' };
+/** 日期一律用台灣時間顯示，不受建置主機時區影響（GitHub Actions 是 UTC） */
+export const TIME_ZONE = 'Asia/Taipei';
 export const OG_LOCALE: Record<Lang, string> = { 'zh-TW': 'zh_TW', en: 'en_US' };
 
 /** 兩種語言都有的頁面（不含語系前綴） */

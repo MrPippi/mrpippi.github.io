@@ -1,5 +1,5 @@
 ---
-import { DATE_LOCALE, langFromPath } from '../i18n';
+import { DATE_LOCALE, TIME_ZONE, langFromPath } from '../i18n';
 
 interface Props {
 	date: Date;
@@ -10,5 +10,5 @@ const locale = DATE_LOCALE[langFromPath(Astro.url.pathname)];
 ---
 
 <time datetime={date.toISOString()}>
-	{date.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}
+	{date.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', timeZone: TIME_ZONE })}
 </time>
