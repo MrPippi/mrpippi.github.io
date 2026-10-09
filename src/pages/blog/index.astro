@@ -1,0 +1,45 @@
+---
+import PostList from '../../components/PostList.astro';
+import TagChip from '../../components/TagChip.astro';
+import { t } from '../../i18n';
+import MenuLayout from '../../layouts/MenuLayout.astro';
+import { collectTags, getPublishedPosts } from '../../lib/posts';
+
+const posts = await getPublishedPosts();
+const tags = collectTags(posts);
+const dict = t('zh-TW').blog;
+---
+
+<MenuLayout heading={dict.heading} description={dict.description}>
+	{
+		posts.length === 0 ? (
+			<p class="empty">{dict.empty}</p>
+		) : (
+			<>
+				{tags.length > 0 && (
+					<nav class="tags" aria-label={dict.tagsLabel}>
+						{tags.map(({ tag, count }) => (
+							<TagChip tag={tag} count={count} />
+						))}
+					</nav>
+				)}
+				<PostList posts={posts} />
+			</>
+		)
+	}
+</MenuLayout>
+
+<style>
+	.empty {
+		margin: 0;
+		color: var(--text-muted);
+		text-align: center;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-bottom: 1.25rem;
+	}
+</style>

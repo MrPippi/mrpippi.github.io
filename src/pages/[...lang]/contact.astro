@@ -1,0 +1,82 @@
+---
+import Icon from '../../components/Icon.astro';
+import Banner from '../../components/Banner.astro';
+import { CONTACTS, DISCORD } from '../../consts';
+import MenuLayout from '../../layouts/MenuLayout.astro';
+import { langFromPath, langStaticPaths, t } from '../../i18n';
+
+export function getStaticPaths() {
+	return langStaticPaths();
+}
+
+const lang = langFromPath(Astro.url.pathname);
+const dict = t(lang);
+---
+
+<MenuLayout heading={dict.contact.heading} description={dict.contact.description}>
+	<p class="lead">{dict.contact.lead}</p>
+	<div class="links">
+		{
+			CONTACTS.map((link) => (
+				<Banner href={link.href} tone={link.tone} sub={link.sub} size="md" external>
+					<Icon name={link.icon} slot="icon" />
+					{link.label}
+				</Banner>
+			))
+		}
+		<Banner tone="blurple" size="md" sub={dict.contact.discordSub(DISCORD.username)} data-copy-discord data-username={DISCORD.username}>
+			<Icon name="discord" slot="icon" />
+			Discord
+		</Banner>
+	</div>
+	<p class="hint">
+		{dict.contact.hintBefore}<a href={DISCORD.profileUrl} target="_blank" rel="noopener noreferrer">{dict.contact.hintLink}</a
+		>{dict.contact.hintAfter}
+	</p>
+</MenuLayout>
+
+<style>
+	.lead {
+		margin: 0 0 1.25rem;
+		color: var(--text-dim);
+		text-align: center;
+	}
+
+	.links {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 16px;
+	}
+
+	.hint {
+		margin: 1.5rem 0 0;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+		text-align: center;
+	}
+</style>
+
+<script>
+	import { langFromDocument, t } from '../../i18n';
+	import { unlock } from '../../lib/advancements';
+	import { showToast } from '../../lib/toast';
+
+	async function copyDiscord(button: HTMLButtonElement): Promise<void> {
+		const username = button.dataset.username ?? '';
+		try {
+			await navigator.clipboard.writeText(username);
+			const { contact } = t(langFromDocument());
+			showToast(contact.copied, contact.copiedBody(username));
+			unlock('social');
+		} catch {
+			const { contact } = t(langFromDocument());
+			showToast(contact.copyFailed, contact.copyFailedBody(username));
+		}
+	}
+
+	// ClientRouter 換頁後按鈕是新的元素，每次進到這頁都重新綁定
+	document.addEventListener('astro:page-load', () => {
+		const button = document.querySelector<HTMLButtonElement>('[data-copy-discord]');
+		button?.addEventListener('click', () => void copyDiscord(button));
+	});
+</script>

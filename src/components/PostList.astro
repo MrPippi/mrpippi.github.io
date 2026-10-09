@@ -1,0 +1,140 @@
+---
+// 文章清單（仿選擇世界清單）：書本縮圖、標題、摘要、日期、閱讀時間與標籤。
+import { t } from '../i18n';
+import { type Post, readingMinutes } from '../lib/posts';
+import FormattedDate from './FormattedDate.astro';
+import TagChip from './TagChip.astro';
+
+interface Props {
+	posts: readonly Post[];
+}
+
+const { posts } = Astro.props;
+// 文章只有中文
+const dict = t('zh-TW').blog;
+---
+
+<ul class="list">
+	{
+		posts.map((post) => (
+			<li>
+				<a class="row" href={`/blog/${post.id}/`}>
+					<span class="thumb">
+						<img class="book pixelated" src="/mc/item/writable_book.png" alt="" width="32" height="32" />
+						<img class="join pixelated" src="/mc/gui/join.png" alt="" width="64" height="64" />
+					</span>
+					<span class="text">
+						<span class="title mc-text">
+							{post.data.title}
+							{post.data.draft && <span class="draft">{dict.draft}</span>}
+						</span>
+						<span class="desc">{post.data.description}</span>
+						<span class="date">
+							<FormattedDate date={post.data.pubDate} /> · {dict.minutes(readingMinutes(post))}
+						</span>
+					</span>
+				</a>
+				{
+					post.data.tags.length > 0 && (
+						<div class="tags">
+							{post.data.tags.map((tag) => (
+								<TagChip tag={tag} />
+							))}
+						</div>
+					)
+				}
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.list {
+		display: grid;
+		gap: 4px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	li {
+		position: relative;
+	}
+
+	.row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.6rem 0.9rem;
+		border: 2px solid transparent;
+		color: var(--text);
+		text-decoration: none;
+		line-height: 1.5;
+	}
+
+	.row:hover,
+	.row:focus-visible {
+		outline: none;
+		border-color: #fff;
+		background: rgb(0 0 0 / 0.35);
+	}
+
+	/* 仿世界清單的縮圖格：滑過時蓋上原版「進入」箭頭 */
+	.thumb {
+		position: relative;
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 64px;
+		height: 64px;
+		background: rgb(0 0 0 / 0.4);
+	}
+
+	.join {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+	}
+
+	.row:hover .join,
+	.row:focus-visible .join {
+		opacity: 1;
+	}
+
+	.row:hover .book,
+	.row:focus-visible .book {
+		opacity: 0.35;
+	}
+
+	.text {
+		display: grid;
+		min-width: 0;
+	}
+
+	.title {
+		font-size: 18px;
+	}
+
+	.draft {
+		margin-left: 0.5rem;
+		color: var(--yellow);
+		font-size: 13px;
+	}
+
+	.desc {
+		color: var(--text-dim);
+		font-size: 0.9rem;
+	}
+
+	.date {
+		color: var(--text-muted);
+		font-size: 0.8rem;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		padding: 0 0.9rem 0.6rem calc(0.9rem + 64px + 1rem + 2px);
+	}
+</style>

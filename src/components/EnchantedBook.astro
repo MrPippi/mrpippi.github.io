@@ -1,0 +1,137 @@
+---
+// 附魔書彩蛋：文字以附魔台的銀河字母顯示，點一下逐字「解讀」成看得懂的字，並達成「附魔師」進度。
+import { ENCHANTED_MESSAGE } from '../consts';
+import { langFromPath, t } from '../i18n';
+
+const hint = t(langFromPath(Astro.url.pathname)).enchant.hint;
+
+const chars = [...ENCHANTED_MESSAGE];
+---
+
+<button type="button" class="book" data-enchanted-book aria-pressed="false" aria-label={`${hint}: ${ENCHANTED_MESSAGE}`}>
+	<span class="icon">
+		<img src="/mc/item/enchanted_book.png" alt="" width="48" height="48" class="pixelated" />
+	</span>
+	<span class="body">
+		<span class="hint mc-text">{hint}</span>
+		<span class="glyphs" aria-hidden="true">
+			{chars.map((ch) => <span class="ch">{ch}</span>)}
+		</span>
+	</span>
+</button>
+
+<style>
+	.book {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		width: 100%;
+		margin: 0;
+		padding: 0.9rem 1.1rem;
+		overflow: hidden;
+		border: 2px solid #2a1a4a;
+		background: linear-gradient(135deg, #1e1433, #2c1b4e);
+		color: #d9c8ff;
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	/*
+	 * 附魔光澤：一道紫色亮光從左掃到右。背景不重複鋪排（no-repeat），
+	 * 光帶在每輪開始與結束時都完全在畫面外，所以循環時不會跳。
+	 */
+	.book::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(105deg, transparent 35%, rgb(190 120 255 / 0.35) 50%, transparent 65%) no-repeat;
+		background-size: 250% 100%;
+		animation: glint 3.2s linear infinite;
+		pointer-events: none;
+	}
+
+	.book:hover,
+	.book:focus-visible {
+		outline: none;
+		border-color: #fff;
+	}
+
+	.icon {
+		flex-shrink: 0;
+		width: 48px;
+		height: 48px;
+	}
+
+	.icon img {
+		display: block;
+		width: 48px;
+		height: 48px;
+	}
+
+	.body {
+		display: grid;
+		gap: 0.3rem;
+		min-width: 0;
+	}
+
+	.hint {
+		color: #c49df2;
+		font-size: 13px;
+	}
+
+	.glyphs {
+		display: flex;
+		flex-wrap: wrap;
+		font-size: 18px;
+		line-height: 1.5;
+		letter-spacing: 0.04em;
+	}
+
+	.ch {
+		font-family: 'Minecraft SGA', var(--font-ui);
+		white-space: pre;
+		transition: color 200ms ease;
+	}
+
+	.ch.read {
+		font-family: var(--font-ui);
+		color: #fff;
+		text-shadow: var(--mc-px) var(--mc-px) 0 #3a1f5f;
+	}
+
+	/* 背景寬 250%：150% → -100% 讓光帶從畫面左外側移到右外側 */
+	@keyframes glint {
+		from {
+			background-position: 150% 0;
+		}
+		to {
+			background-position: -100% 0;
+		}
+	}
+</style>
+
+<script>
+	import { unlock } from '../lib/advancements';
+
+	const STEP_MS = 30;
+
+	function setup(): void {
+		const book = document.querySelector<HTMLButtonElement>('[data-enchanted-book]');
+		if (!book) return;
+		const chars = [...book.querySelectorAll<HTMLElement>('.ch')];
+		let timers: readonly number[] = [];
+
+		book.addEventListener('click', () => {
+			const reading = book.getAttribute('aria-pressed') !== 'true';
+			book.setAttribute('aria-pressed', String(reading));
+			timers.forEach((t) => window.clearTimeout(t));
+			// 逐字切換字型，看起來像在解讀
+			timers = chars.map((ch, i) => window.setTimeout(() => ch.classList.toggle('read', reading), i * STEP_MS));
+			if (reading) window.setTimeout(() => unlock('enchanter'), chars.length * STEP_MS);
+		});
+	}
+
+	document.addEventListener('astro:page-load', setup);
+</script>

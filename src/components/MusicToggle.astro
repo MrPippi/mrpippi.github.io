@@ -1,0 +1,265 @@
+---
+// 音樂與音效設定：點音符按鈕打開面板（仿原版「音樂與音效」選項畫面）。
+// 面板內有正在播放的曲名、音樂／音效音量滑桿、音樂開關與下一首。
+import McButton from './McButton.astro';
+import McSlider from './McSlider.astro';
+import PixelGlyph from './PixelGlyph.astro';
+---
+
+<div class="music-control" data-music-control>
+	<McButton
+		size="square"
+		class="music-toggle"
+		data-music-toggle
+		aria-pressed="false"
+		aria-expanded="false"
+		aria-controls="music-panel"
+	>
+		<PixelGlyph name="music" size={20} />
+	</McButton>
+
+	<div id="music-panel" class="panel" data-music-panel hidden>
+		<p class="now">
+			<img src="/mc/gui/music_notes.png" alt="" width="16" height="16" class="notes pixelated" />
+			<span class="now-text">
+				<span class="now-label mc-text" data-now-label></span>
+				<span class="now-title mc-text" data-now-title></span>
+			</span>
+		</p>
+		<McSlider id="music-volume" value={35} label="" />
+		<McSlider id="sound-volume" value={100} label="" />
+		<div class="row">
+			<McButton data-music-power></McButton>
+			<McButton data-music-next></McButton>
+		</div>
+	</div>
+</div>
+
+<style is:global>
+	/* 音樂關閉時：音符變暗並加一條斜線 */
+	.music-toggle[aria-pressed='false'] svg {
+		opacity: 0.45;
+	}
+
+	.music-toggle[aria-pressed='false']::after {
+		content: '';
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 26px;
+		height: 3px;
+		background: #ff5555;
+		box-shadow: 1px 1px 0 #3f1515;
+		transform: translate(-50%, -50%) rotate(-45deg);
+	}
+</style>
+
+<style>
+	.music-control {
+		position: relative;
+	}
+
+	.panel {
+		position: absolute;
+		top: calc(100% + 8px);
+		right: -96px; /* 對齊右上角整排按鈕的右緣 */
+		display: grid;
+		gap: 8px;
+		width: min(320px, calc(100vw - 24px));
+		padding: 12px;
+		border: 2px solid #000;
+		background: url('/mc/gui/menu_list_background.png') repeat, rgb(16 16 16 / 0.92);
+		background-size: 32px, auto;
+		image-rendering: pixelated;
+		box-shadow:
+			inset 0 0 0 2px rgb(255 255 255 / 0.15),
+			0 6px 0 rgb(0 0 0 / 0.35);
+	}
+
+	.panel[hidden] {
+		display: none;
+	}
+
+	.now {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin: 0 0 4px;
+	}
+
+	/* 原版音符圖示是 16×128 的 8 格動畫，播放時逐格跑 */
+	.notes {
+		width: 32px;
+		height: 32px;
+		object-fit: cover;
+		object-position: 0 0;
+		flex-shrink: 0;
+	}
+
+	:global(.music-control[data-playing='true']) .notes {
+		animation: notes 0.8s steps(8, jump-none) infinite;
+	}
+
+	.now-text {
+		display: grid;
+		min-width: 0;
+		line-height: 1.3;
+	}
+
+	.now-label {
+		color: #d6b8ff;
+		font-size: 13px;
+		text-shadow: var(--mc-px) var(--mc-px) 0 #35234f;
+	}
+
+	.now-title {
+		overflow: hidden;
+		color: var(--text);
+		font-size: 18px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+
+	.row :global(.mc-btn) {
+		width: 100%;
+		font-size: 15px;
+	}
+
+	@keyframes notes {
+		to {
+			object-position: 0 100%;
+		}
+	}
+
+	@media (max-width: 420px) {
+		.panel {
+			position: fixed;
+			top: 60px;
+			right: 12px;
+		}
+	}
+</style>
+
+<script>
+	import { langFromDocument, t } from '../i18n';
+	import { unlock } from '../lib/advancements';
+	import {
+		ARTIST,
+		MUSIC_EVENT,
+		type MusicChange,
+		currentTitle,
+		getMusicVolume,
+		initMusic,
+		isMusicOn,
+		isPlaying,
+		nextTrack,
+		setMusicOn,
+		setMusicVolume,
+	} from '../lib/music';
+	import { getSoundVolume, setSoundVolume } from '../lib/sound';
+	import { showToast } from '../lib/toast';
+
+	const root = document.querySelector<HTMLElement>('[data-music-control]');
+	const toggle = root?.querySelector<HTMLButtonElement>('[data-music-toggle]');
+	const panel = root?.querySelector<HTMLElement>('[data-music-panel]');
+	const power = root?.querySelector<HTMLButtonElement>('[data-music-power]');
+	const next = root?.querySelector<HTMLButtonElement>('[data-music-next]');
+	const musicSlider = root?.querySelector<HTMLInputElement>('#music-volume');
+	const soundSlider = root?.querySelector<HTMLInputElement>('#sound-volume');
+	const nowLabel = root?.querySelector('[data-now-label]');
+	const nowTitle = root?.querySelector('[data-now-title]');
+
+	const dict = () => t(langFromDocument());
+	const percent = (input: HTMLInputElement | null | undefined) => Number(input?.value ?? 0);
+
+	function setSliderLabel(input: HTMLInputElement | null | undefined, text: string): void {
+		const label = input?.parentElement?.querySelector('[data-slider-label]');
+		if (label) label.textContent = text;
+		input?.setAttribute('aria-label', text);
+		input?.setAttribute('aria-valuetext', text);
+	}
+
+	/** 依目前狀態與語言更新面板上所有文字 */
+	function render(): void {
+		const { music, controls } = dict();
+		const on = isMusicOn();
+		const playing = isPlaying();
+		root?.setAttribute('data-playing', String(playing));
+		toggle?.setAttribute('aria-pressed', String(on));
+		toggle?.setAttribute('aria-label', controls.music);
+		if (toggle) toggle.title = controls.music;
+		if (power) power.textContent = on ? music.stateOn : music.stateOff;
+		if (next) next.textContent = music.next;
+		if (nowLabel) nowLabel.textContent = playing ? music.nowPlaying : music.stopped;
+		if (nowTitle) nowTitle.textContent = playing ? `${ARTIST} - ${currentTitle() ?? ''}` : '—';
+		setSliderLabel(musicSlider, music.musicVolume(percent(musicSlider)));
+		setSliderLabel(soundSlider, music.soundVolume(percent(soundSlider)));
+	}
+
+	function setOpen(open: boolean): void {
+		if (!panel || !toggle) return;
+		panel.hidden = !open;
+		toggle.setAttribute('aria-expanded', String(open));
+	}
+
+	async function turnOn(action: () => Promise<boolean>): Promise<void> {
+		const wasOn = isMusicOn();
+		const ok = await action();
+		render();
+		const { music } = dict();
+		if (!ok) showToast(music.unsupportedTitle, music.unsupportedBody, '/mc/item/music_disc_cat.png');
+		else if (!wasOn) unlock('dj');
+	}
+
+	if (musicSlider) musicSlider.value = String(Math.round(getMusicVolume() * 100));
+	if (soundSlider) soundSlider.value = String(Math.round(getSoundVolume() * 100));
+
+	// hidden 在新版 DOM 型別可能是 'until-found'，所以用「不是 false」判斷目前是否收起
+	toggle?.addEventListener('click', () => setOpen(panel?.hidden !== false));
+	power?.addEventListener('click', () => {
+		if (isMusicOn()) void setMusicOn(false).then(render);
+		else void turnOn(() => setMusicOn(true));
+	});
+	next?.addEventListener('click', () => void turnOn(nextTrack));
+	musicSlider?.addEventListener('input', () => {
+		setMusicVolume(percent(musicSlider) / 100);
+		render();
+	});
+	soundSlider?.addEventListener('input', () => {
+		setSoundVolume(percent(soundSlider) / 100);
+		render();
+	});
+
+	// 點面板外面或按 Esc 關閉
+	document.addEventListener('pointerdown', (event) => {
+		if (panel?.hidden === false && event.target instanceof Node && !root?.contains(event.target)) setOpen(false);
+	});
+	document.addEventListener('keydown', (event) => {
+		if (event.key === 'Escape' && panel?.hidden === false) {
+			setOpen(false);
+			toggle?.focus();
+		}
+	});
+
+	// 每換一首新曲目，跳出原版風格的「正在播放」通知（不出聲）
+	document.addEventListener(MUSIC_EVENT, (event) => {
+		const { newTrack, title } = (event as CustomEvent<MusicChange>).detail;
+		render();
+		if (newTrack && title) {
+			showToast(dict().music.nowPlaying, `${ARTIST} - ${title}`, '/mc/item/music_disc_cat.png', {
+				variant: 'music',
+				silent: true,
+			});
+		}
+	});
+
+	// 換頁（含切換語言）時更新文字
+	document.addEventListener('astro:page-load', render);
+	initMusic();
+</script>

@@ -1,0 +1,128 @@
+---
+// 全頁固定背景。
+// - 有真正的全景圖（public/mc/panorama/panorama_0–3.png，四個側面）時：旋轉全景，同遊戲標題畫面。
+// - 沒有時：天空漸層 + 原版太陽／月亮 + 原版雲層（以 3D 透視鋪成頭頂上的雲面，緩慢飄移）。
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import Panorama from './Panorama.astro';
+
+const hasPanorama = [0, 1, 2, 3].every((i) =>
+	existsSync(join(process.cwd(), 'public', 'mc', 'panorama', `panorama_${i}.png`)),
+);
+
+/** 星星：[left %, top %, 大小 px, 閃爍延遲 s]，用固定公式產生，每次建置一致 */
+const STARS = Array.from({ length: 48 }, (_, i) => {
+	const left = (i * 37.7 + 11) % 100;
+	const top = (i * 23.3 + 7) % 60;
+	const size = i % 5 === 0 ? 4 : 2;
+	const delay = (i % 7) * 0.6;
+	return [left, top, size, delay] as const;
+});
+---
+
+<div class="sky" aria-hidden="true">
+	{
+		hasPanorama ? (
+			<Panorama />
+		) : (
+			<>
+				<div class="night only-dark">
+					{STARS.map(([left, top, size, delay]) => (
+						<span class="star" style={`left:${left}%;top:${top}%;width:${size}px;height:${size}px;--delay:${delay}s`} />
+					))}
+				</div>
+				<img class="celestial only-light pixelated" src="/mc/sky/sun.png" alt="" width="32" height="32" />
+				<img class="celestial only-dark pixelated" src="/mc/sky/moon.png" alt="" width="32" height="32" />
+				<div class="cloud-layer">
+					<div class="clouds" />
+				</div>
+			</>
+		)
+	}
+</div>
+
+<style>
+	.sky {
+		position: fixed;
+		inset: 0;
+		z-index: -1;
+		overflow: hidden;
+		background: linear-gradient(var(--sky-top), var(--sky-bottom));
+	}
+
+	.night {
+		position: absolute;
+		inset: 0;
+	}
+
+	.star {
+		position: absolute;
+		background: #fff;
+		opacity: 0.8;
+		animation: twinkle 3.2s steps(2, jump-none) var(--delay) infinite alternate;
+	}
+
+	/* 材質 32×32（本體在中間），放大 6 倍 */
+	.celestial {
+		position: absolute;
+		top: 4%;
+		right: 8%;
+		width: 192px;
+		height: 192px;
+	}
+
+	/* 雲面：一張很大的平面，以頂端為軸往後倒，看起來像在頭頂上延伸到地平線 */
+	.cloud-layer {
+		position: absolute;
+		inset: 0 0 45%;
+		perspective: 320px;
+		perspective-origin: 50% 100%;
+		-webkit-mask-image: linear-gradient(#000 40%, transparent);
+		mask-image: linear-gradient(#000 40%, transparent);
+	}
+
+	.clouds {
+		position: absolute;
+		left: -150%;
+		right: -150%;
+		top: 0;
+		height: 320%;
+		background: url('/mc/sky/clouds.png') repeat;
+		background-size: 1536px;
+		image-rendering: pixelated;
+		opacity: 0.85;
+		transform-origin: 50% 0;
+		transform: rotateX(-78deg);
+		animation: cloud-drift 240s linear infinite;
+	}
+
+	:global(:root[data-theme='dark']) .clouds {
+		opacity: 0.12;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:global(:root:not([data-theme='light'])) .clouds {
+			opacity: 0.12;
+		}
+	}
+
+	@keyframes cloud-drift {
+		to {
+			background-position: 1536px 0;
+		}
+	}
+
+	@keyframes twinkle {
+		to {
+			opacity: 0.25;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.celestial {
+			width: 128px;
+			height: 128px;
+			right: 2%;
+		}
+	}
+</style>

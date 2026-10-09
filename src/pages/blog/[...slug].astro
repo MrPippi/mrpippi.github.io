@@ -1,0 +1,71 @@
+---
+import { render } from 'astro:content';
+import FormattedDate from '../../components/FormattedDate.astro';
+import TagChip from '../../components/TagChip.astro';
+import { t } from '../../i18n';
+import MenuLayout from '../../layouts/MenuLayout.astro';
+import { getPublishedPosts, type Post, readingMinutes } from '../../lib/posts';
+
+export async function getStaticPaths() {
+	const posts = await getPublishedPosts();
+	return posts.map((post) => ({
+		params: { slug: post.id },
+		props: post,
+	}));
+}
+
+type Props = Post;
+
+const post = Astro.props;
+const { title, description, pubDate, updatedDate, draft, tags } = post.data;
+const { Content } = await render(post);
+const dict = t('zh-TW');
+---
+
+<MenuLayout heading={title} title={`${title}${dict.site.titleSuffix}`} description={description} backHref="/blog/" backLabel={dict.back.blog}>
+	<p class="meta">
+		<FormattedDate date={pubDate} />
+		{
+			updatedDate && (
+				<span>
+					{' · '}{dict.blog.updated} <FormattedDate date={updatedDate} />
+				</span>
+			)
+		}
+		<span>{' · '}{dict.blog.minutes(readingMinutes(post))}</span>
+		{draft && <span class="draft">{' · '}{dict.blog.draft}</span>}
+	</p>
+	{
+		tags.length > 0 && (
+			<div class="tags">
+				{tags.map((tag) => (
+					<TagChip tag={tag} />
+				))}
+			</div>
+		)
+	}
+	<article class="prose">
+		<Content />
+	</article>
+</MenuLayout>
+
+<style>
+	.meta {
+		margin: 0 0 1.5rem;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+		text-align: center;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+		margin: -0.75rem 0 1.75rem;
+	}
+
+	.draft {
+		color: var(--yellow);
+	}
+</style>

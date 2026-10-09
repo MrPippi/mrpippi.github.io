@@ -1,0 +1,341 @@
+---
+// 彩色像素橫幅按鈕：深色外框 + 底部厚度 + 內側亮邊，左側大圖示超出邊框，粗描邊白字，右側閃爍星點。
+// 給 href 渲染成連結，否則是 <button>。圖示用 icon（物品圖路徑）或 slot="icon"（SVG）。
+import type { HTMLAttributes } from 'astro/types';
+
+export type BannerTone = 'green' | 'teal' | 'yellow' | 'purple' | 'red' | 'blurple' | 'gray';
+
+type Props = Omit<HTMLAttributes<'button'>, 'class'> & {
+	href?: string;
+	tone: BannerTone;
+	icon?: string;
+	/** 標題下方的小字 */
+	sub?: string;
+	/** 右上角的小標籤，例如「施工中」 */
+	tag?: string;
+	disabled?: boolean;
+	external?: boolean;
+	size?: 'lg' | 'md';
+	class?: string;
+};
+
+const {
+	href,
+	tone,
+	icon,
+	sub,
+	tag,
+	disabled = false,
+	external = false,
+	size = 'lg',
+	class: className,
+	...rest
+} = Astro.props;
+const classes = ['banner', `banner--${disabled ? 'gray' : tone}`, `banner--${size}`, className];
+const Tag = href && !disabled ? 'a' : 'button';
+const linkProps =
+	Tag === 'a'
+		? { href, target: external ? '_blank' : undefined, rel: external ? 'noopener noreferrer' : undefined }
+		: { type: 'button' as const, disabled, ...rest };
+---
+
+<Tag class:list={classes} {...linkProps}>
+	<span class="art" aria-hidden="true">
+		{icon ? <img src={icon} alt="" width="16" height="16" class="pixelated" /> : <slot name="icon" />}
+	</span>
+	<span class="label">
+		<span class="title"><slot /></span>
+		{sub && <span class="sub">{sub}</span>}
+	</span>
+	{tag && <span class="tag">{tag}</span>}
+	<span class="spark spark--a" aria-hidden="true"></span>
+	<span class="spark spark--b" aria-hidden="true"></span>
+	<span class="chevron" aria-hidden="true">»</span>
+</Tag>
+
+<style>
+	.banner {
+		/* 色票：fill 主色、dark 外框與厚度、light 內側亮邊、ink 文字描邊 */
+		--fill: #5aa83c;
+		--dark: #2e6b1f;
+		--light: #8fd16a;
+		--ink: #1f4d16;
+
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+		margin: 0;
+		padding: 0 3.25rem 0 6.5rem;
+		border: 4px solid var(--dark);
+		border-bottom-width: 10px;
+		background: var(--fill);
+		box-shadow:
+			inset 0 4px 0 var(--light),
+			inset 4px 0 0 var(--light),
+			inset -4px 0 0 var(--light);
+		/* 四角各切掉 4px，做出像素圓角 */
+		clip-path: polygon(
+			4px 0,
+			calc(100% - 4px) 0,
+			calc(100% - 4px) 4px,
+			100% 4px,
+			100% calc(100% - 4px),
+			calc(100% - 4px) calc(100% - 4px),
+			calc(100% - 4px) 100%,
+			4px 100%,
+			4px calc(100% - 4px),
+			0 calc(100% - 4px),
+			0 4px,
+			4px 4px
+		);
+		color: #fff;
+		font: inherit;
+		text-align: left;
+		text-decoration: none;
+		cursor: pointer;
+		user-select: none;
+		transition:
+			transform 80ms ease,
+			filter 120ms ease;
+	}
+
+	.banner--lg {
+		min-height: 96px;
+	}
+
+	.banner--md {
+		min-height: 80px;
+	}
+
+	.banner--teal {
+		--fill: #3f9fc4;
+		--dark: #1c5a74;
+		--light: #86d3ef;
+		--ink: #15465b;
+	}
+
+	.banner--yellow {
+		--fill: #e6ac2e;
+		--dark: #94620c;
+		--light: #ffd776;
+		--ink: #6e4806;
+	}
+
+	.banner--purple {
+		--fill: #8c5ccb;
+		--dark: #4a2a78;
+		--light: #c49df2;
+		--ink: #38205c;
+	}
+
+	.banner--red {
+		--fill: #d94a3f;
+		--dark: #7d1f19;
+		--light: #f79086;
+		--ink: #5e1611;
+	}
+
+	.banner--blurple {
+		--fill: #5b67e8;
+		--dark: #2a3290;
+		--light: #a2a9ff;
+		--ink: #1f2570;
+	}
+
+	.banner--gray {
+		--fill: #6e7279;
+		--dark: #34373c;
+		--light: #9fa4ac;
+		--ink: #2a2c30;
+	}
+
+	.banner:hover:not(:disabled),
+	.banner:focus-visible {
+		outline: none;
+		filter: brightness(1.1);
+		transform: translateY(-2px);
+	}
+
+	.banner:focus-visible {
+		box-shadow:
+			inset 0 0 0 4px #fff,
+			inset 0 4px 0 var(--light);
+	}
+
+	/* 按下：底部厚度變薄、整體下沉 */
+	.banner:active:not(:disabled) {
+		border-bottom-width: 4px;
+		transform: translateY(6px);
+	}
+
+	.banner:disabled {
+		cursor: not-allowed;
+		filter: saturate(0.4);
+	}
+
+	.art {
+		position: absolute;
+		left: 1rem;
+		top: 50%;
+		display: grid;
+		place-items: center;
+		width: 72px;
+		height: 72px;
+		transform: translateY(-52%);
+		filter: drop-shadow(4px 4px 0 rgb(0 0 0 / 0.28));
+	}
+
+	.art img {
+		width: 64px;
+		height: 64px;
+	}
+
+	.art :global(svg) {
+		width: 52px;
+		height: 52px;
+	}
+
+	.banner--md .art {
+		width: 60px;
+		height: 60px;
+	}
+
+	.banner--md .art img {
+		width: 48px;
+		height: 48px;
+	}
+
+	.banner--md .art :global(svg) {
+		width: 40px;
+		height: 40px;
+	}
+
+	.label {
+		position: relative;
+		display: grid;
+		gap: 0.15rem;
+		min-width: 0;
+	}
+
+	/* 粗描邊白字：八方向描邊 + 往下的厚度 */
+	.title {
+		font-family: var(--font-ui);
+		font-weight: 900;
+		font-synthesis: none;
+		font-size: 27px;
+		line-height: 1.15;
+		text-shadow:
+			3px 0 0 var(--ink),
+			-3px 0 0 var(--ink),
+			0 3px 0 var(--ink),
+			0 -3px 0 var(--ink),
+			3px 3px 0 var(--ink),
+			-3px 3px 0 var(--ink),
+			3px -3px 0 var(--ink),
+			-3px -3px 0 var(--ink),
+			0 6px 0 var(--ink);
+	}
+
+	.banner--md .title {
+		font-size: 22px;
+	}
+
+	.sub {
+		overflow: hidden;
+		color: rgb(255 255 255 / 0.92);
+		font-family: var(--font-ui);
+		font-weight: 700;
+		font-synthesis: none;
+		font-size: 15px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		text-shadow: 2px 2px 0 var(--ink);
+	}
+
+	.tag {
+		position: absolute;
+		top: 8px;
+		right: 10px;
+		padding: 2px 8px;
+		background: var(--dark);
+		color: #fff;
+		font-family: var(--font-ui);
+		font-weight: 700;
+		font-synthesis: none;
+		font-size: 13px;
+	}
+
+	/* 閃爍星點：中心一格 + 上下左右四格，組成像素十字 */
+	.spark {
+		position: absolute;
+		width: 4px;
+		height: 4px;
+		background: var(--light);
+		box-shadow:
+			4px 0 0 var(--light),
+			-4px 0 0 var(--light),
+			0 4px 0 var(--light),
+			0 -4px 0 var(--light);
+		opacity: 0.85;
+		animation: sparkle 1.6s steps(2, jump-none) infinite alternate;
+	}
+
+	.spark--a {
+		top: 22%;
+		right: 2.2rem;
+	}
+
+	.spark--b {
+		bottom: 26%;
+		right: 4.4rem;
+		animation-delay: -0.8s;
+	}
+
+	.chevron {
+		position: absolute;
+		right: 0.9rem;
+		top: 50%;
+		color: var(--light);
+		font-family: var(--font-ui);
+		font-size: 27px;
+		line-height: 1;
+		opacity: 0.7;
+		transform: translateY(-50%);
+	}
+
+	.banner:hover:not(:disabled) .chevron {
+		animation: nudge 0.6s steps(2, jump-none) infinite alternate;
+	}
+
+	.banner:disabled .spark,
+	.banner:disabled .chevron {
+		display: none;
+	}
+
+	@keyframes sparkle {
+		to {
+			opacity: 0.2;
+		}
+	}
+
+	@keyframes nudge {
+		to {
+			transform: translate(4px, -50%);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.banner {
+			padding-left: 5.5rem;
+		}
+
+		.title {
+			font-size: 22px;
+		}
+
+		.art {
+			left: 0.6rem;
+		}
+	}
+</style>

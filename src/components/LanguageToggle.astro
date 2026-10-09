@@ -1,0 +1,37 @@
+---
+// 語言切換：原版「語言」地球圖示。用 ClientRouter 換頁，所以切換語言時音樂也不會中斷。
+import McButton from './McButton.astro';
+---
+
+<McButton size="square" data-lang-toggle aria-label="English" title="English">
+	<img src="/mc/gui/language.png" alt="" width="15" height="15" class="pixelated lang-icon" />
+</McButton>
+
+<style>
+	.lang-icon {
+		width: 22px;
+		height: 22px;
+	}
+</style>
+
+<script>
+	import { navigate } from 'astro:transitions/client';
+	import { langFromDocument, switchLangPath, t } from '../i18n';
+
+	const button = document.querySelector<HTMLButtonElement>('[data-lang-toggle]');
+
+	/** 按鈕文字顯示「要切換過去的語言」 */
+	function sync(): void {
+		if (!button) return;
+		const label = t(langFromDocument()).controls.language;
+		button.setAttribute('aria-label', label);
+		button.title = label;
+	}
+
+	button?.addEventListener('click', () => {
+		const target = langFromDocument() === 'en' ? 'zh-TW' : 'en';
+		void navigate(switchLangPath(location.pathname, target));
+	});
+
+	document.addEventListener('astro:page-load', sync);
+</script>

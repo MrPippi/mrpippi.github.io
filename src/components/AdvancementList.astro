@@ -1,0 +1,129 @@
+---
+// 進度清單：伺服器端先全部畫成「未達成」，瀏覽器載入後依 localStorage 標示已達成的項目。
+import { langFromPath, t } from '../i18n';
+import { ADVANCEMENTS } from '../lib/advancements';
+
+const dict = t(langFromPath(Astro.url.pathname)).advancements;
+---
+
+<section aria-labelledby="advancements-title">
+	<h2 id="advancements-title" class="mc-text">
+		{dict.heading} <span class="count" data-adv-count>0 / {ADVANCEMENTS.length}</span>
+	</h2>
+	<ul class="grid">
+		{
+			ADVANCEMENTS.map((a) => (
+				<li class="item" data-adv={a.id}>
+					<span class="frame">
+						<img src={a.icon} alt="" width="32" height="32" class="pixelated" />
+					</span>
+					<span class="text">
+						<span class="title mc-text">{dict.items[a.id].title}</span>
+						<span class="desc">{dict.items[a.id].description}</span>
+					</span>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<style>
+	h2 {
+		margin: 2.5rem 0 0.75rem;
+		font-size: 18px;
+	}
+
+	.count {
+		margin-left: 0.5rem;
+		color: var(--yellow);
+		text-shadow: var(--mc-px) var(--mc-px) 0 #3f3f15;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.5rem 0.7rem;
+		border: 2px solid rgb(255 255 255 / 0.12);
+		background: rgb(0 0 0 / 0.35);
+	}
+
+	/* 原版進度框：未達成是灰框、達成是金框 */
+	.frame {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 44px;
+		height: 44px;
+		border: 3px solid #555;
+		background: #2a2a2a;
+	}
+
+	.frame img {
+		width: 32px;
+		height: 32px;
+		filter: brightness(0) opacity(0.5);
+	}
+
+	.text {
+		display: grid;
+		min-width: 0;
+		line-height: 1.4;
+	}
+
+	.title {
+		color: var(--text-muted);
+		font-size: 15px;
+	}
+
+	.desc {
+		color: var(--text-muted);
+		font-size: 0.78rem;
+	}
+
+	.item.done {
+		border-color: rgb(255 214 90 / 0.45);
+	}
+
+	.item.done .frame {
+		border-color: #e5b13a;
+		background: #3d3215;
+	}
+
+	.item.done .frame img {
+		filter: none;
+	}
+
+	.item.done .title {
+		color: var(--yellow);
+	}
+
+	.item.done .desc {
+		color: var(--text-dim);
+	}
+</style>
+
+<script>
+	import { ADVANCEMENT_EVENT, ADVANCEMENTS, unlockedIds } from '../lib/advancements';
+
+	function render(): void {
+		const unlocked = unlockedIds();
+		document.querySelectorAll<HTMLElement>('[data-adv]').forEach((el) => {
+			el.classList.toggle('done', unlocked.includes(el.dataset.adv ?? ''));
+		});
+		const count = document.querySelector('[data-adv-count]');
+		if (count) count.textContent = `${unlocked.length} / ${ADVANCEMENTS.length}`;
+	}
+
+	document.addEventListener('astro:page-load', render);
+	document.addEventListener(ADVANCEMENT_EVENT, render);
+</script>

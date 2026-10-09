@@ -1,0 +1,47 @@
+---
+import PostList from '../../../components/PostList.astro';
+import TagChip from '../../../components/TagChip.astro';
+import { t } from '../../../i18n';
+import MenuLayout from '../../../layouts/MenuLayout.astro';
+import { collectTags, getPublishedPosts, type Post } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+	const posts = await getPublishedPosts();
+	const tags = collectTags(posts);
+	return tags.map(({ tag }) => ({
+		params: { tag },
+		props: { tag, posts: posts.filter((p) => p.data.tags.includes(tag)), tags },
+	}));
+}
+
+interface Props {
+	tag: string;
+	posts: readonly Post[];
+	tags: ReturnType<typeof collectTags>;
+}
+
+const { tag, posts, tags } = Astro.props;
+const dict = t('zh-TW');
+---
+
+<MenuLayout
+	heading={`#${tag}`}
+	title={dict.blog.tagTitle(tag)}
+	description={dict.blog.tagDescription(tag)}
+	backHref="/blog/"
+	backLabel={dict.back.blog}
+>
+	<nav class="tags" aria-label={dict.blog.tagsLabel}>
+		{tags.map((entry) => <TagChip tag={entry.tag} count={entry.count} active={entry.tag === tag} />)}
+	</nav>
+	<PostList posts={posts} />
+</MenuLayout>
+
+<style>
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-bottom: 1.25rem;
+	}
+</style>

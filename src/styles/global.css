@@ -1,0 +1,199 @@
+/* ---------- Fonts ---------- */
+/* 英數：由 Minecraft 點陣字型圖 ascii.png 轉成（scripts/mc-font.py），1 em = 9 遊戲像素 */
+@font-face {
+	font-family: 'Minecraft';
+	src: url('/fonts/minecraft-ascii.woff2') format('woff2');
+	unicode-range: U+0020-007E;
+	font-display: swap;
+}
+
+/* 附魔台的標準銀河字母（ascii_sga.png），只有英文字母 */
+@font-face {
+	font-family: 'Minecraft SGA';
+	src: url('/fonts/minecraft-sga.woff2') format('woff2');
+	font-display: block;
+}
+
+/* 中文：Chiron GoRound TC（SIL OFL 1.1），由 Google Fonts 載入（見 BaseLayout） */
+
+/* ---------- Tokens ---------- */
+/* 介面一律是「天空 + 半透明深色面板 + 白字」，主題只切換白天／夜晚的天空與面板濃度 */
+:root {
+	--sky-top: #6f9dfc;
+	--sky-bottom: #a3c4ff;
+	--panel-strong: rgb(0 0 0 / 0.68);
+	--panel-line: rgb(255 255 255 / 0.18);
+
+	--text: #ffffff;
+	--text-dim: #c6c6c6;
+	--text-muted: #a0a0a0;
+	--yellow: #ffff55;
+	--link: #8fd8ff;
+	--shadow-ink: #3f3f3f;
+
+
+	--font-ui: 'Minecraft', 'Chiron GoRound TC', 'Noto Sans TC', sans-serif;
+	--font-body: 'Noto Sans TC', system-ui, -apple-system, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+	--gutter: 16px;
+	/* 遊戲像素：Minecraft 字型 1 em = 9 像素，字級用 9 的倍數最銳利（18px = 2 倍、27px = 3 倍） */
+	--mc-px: calc(1em / 9);
+
+	color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--sky-top: #05081a;
+		--sky-bottom: #1b2246;
+		--panel-strong: rgb(0 0 0 / 0.75);
+	}
+}
+
+:root[data-theme='dark'] {
+	--sky-top: #05081a;
+	--sky-bottom: #1b2246;
+	--panel-strong: rgb(0 0 0 / 0.75);
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	min-height: 100dvh;
+	background: var(--sky-bottom);
+	color: var(--text);
+	font-family: var(--font-body);
+	font-size: 1rem;
+	line-height: 1.8;
+	overflow-x: hidden;
+}
+
+a {
+	color: var(--link);
+	text-underline-offset: 3px;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+:focus-visible {
+	outline: 2px solid var(--yellow);
+	outline-offset: 2px;
+}
+
+::selection {
+	background: rgb(255 255 85 / 0.35);
+}
+
+/* ---------- Utilities ---------- */
+
+/* Minecraft 介面字：像素字型 + 右下 1 像素陰影 */
+.mc-text {
+	font-family: var(--font-ui);
+	font-weight: 700;
+	/* Minecraft 字型只有一種粗細，禁止瀏覽器替它合成粗體（中文圓體才用 700） */
+	font-synthesis: none;
+	/* 遊戲文字陰影：往右下偏移 1 個遊戲像素 */
+	text-shadow: var(--mc-px) var(--mc-px) 0 var(--shadow-ink);
+}
+
+.pixelated {
+	image-rendering: pixelated;
+}
+
+/* 依主題顯示：only-light 只在淺色出現、only-dark 只在深色出現 */
+.only-dark {
+	display: none;
+}
+:root[data-theme='dark'] .only-dark {
+	display: revert;
+}
+:root[data-theme='dark'] .only-light {
+	display: none;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) .only-dark {
+		display: revert;
+	}
+	:root:not([data-theme='light']) .only-light {
+		display: none;
+	}
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+/* ---------- Article prose ---------- */
+.prose {
+	color: var(--text-dim);
+}
+
+.prose > * + * {
+	margin-top: 1.1em;
+}
+
+.prose h2,
+.prose h3 {
+	margin-top: 2em;
+	color: var(--text);
+	font-family: var(--font-ui);
+	font-weight: 700;
+	font-synthesis: none;
+	line-height: 1.4;
+}
+
+.prose strong {
+	color: var(--text);
+}
+
+.prose code {
+	font-size: 0.9em;
+	padding: 0.1em 0.35em;
+	background: rgb(255 255 255 / 0.1);
+}
+
+.prose pre {
+	padding: 1em;
+	overflow-x: auto;
+	border: 1px solid var(--panel-line);
+	font-size: 0.9rem;
+	line-height: 1.6;
+}
+
+.prose pre code {
+	padding: 0;
+	background: none;
+}
+
+.prose blockquote {
+	margin-left: 0;
+	padding-left: 1em;
+	border-left: 4px solid var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation: none !important;
+		transition: none !important;
+	}
+}

@@ -1,0 +1,102 @@
+---
+import { PROFILE } from '../consts';
+import { langFromPath, t } from '../i18n';
+
+const dict = t(langFromPath(Astro.url.pathname));
+const splashes = dict.splashes;
+---
+
+<h1 class="logo">
+	<span class="visually-hidden">{dict.profile.name} </span>
+	<span class="wordmark-box" aria-hidden="true">
+		<span class="wordmark">{PROFILE.handle.toUpperCase()}</span>
+		<!-- 黃色標語釘在 Logo 右下角，和遊戲一樣斜放並脈動 -->
+		<span class="splash mc-text" data-splash data-splashes={JSON.stringify(splashes)}>{splashes[0]}</span>
+	</span>
+</h1>
+
+<style>
+	.logo {
+		margin: 0;
+		font-weight: 400;
+		line-height: 1;
+		text-align: center;
+	}
+
+	.wordmark-box {
+		position: relative;
+		display: inline-block;
+	}
+
+	/* 石材字：上亮下暗漸層 + 黑色描邊 + 往下的厚度，皆以遊戲像素（--mc-px）為單位 */
+	.wordmark {
+		--mc-px: calc(1em / 9);
+		display: block;
+		font-family: var(--font-ui);
+		font-size: 108px; /* 12 倍 */
+		background: linear-gradient(#ffffff, #c8c8c8 55%, #8a8a8a);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		filter: drop-shadow(var(--outline) 0 0 #000) drop-shadow(calc(var(--outline) * -1) 0 0 #000)
+			drop-shadow(0 var(--outline) 0 #000) drop-shadow(0 calc(var(--outline) * -1) 0 #000)
+			drop-shadow(0 calc(var(--mc-px) * 0.75) 0 #2e2e2e);
+		--outline: calc(var(--mc-px) / 4);
+	}
+
+	.splash {
+		position: absolute;
+		top: 78%;
+		left: 92%;
+		color: var(--yellow);
+		font-size: 18px;
+		line-height: 1;
+		text-shadow: var(--mc-px) var(--mc-px) 0 #3f3f15;
+		white-space: nowrap;
+		transform: translate(-50%, -50%) rotate(-20deg);
+		animation: splash-pulse 0.45s ease-in-out infinite alternate;
+		pointer-events: none;
+	}
+
+	@keyframes splash-pulse {
+		to {
+			transform: translate(-50%, -50%) rotate(-20deg) scale(1.1);
+		}
+	}
+
+	@media (max-width: 720px) {
+		.wordmark {
+			font-size: 72px; /* 8 倍 */
+		}
+	}
+
+	@media (max-width: 480px) {
+		.wordmark {
+			font-size: 54px; /* 6 倍 */
+		}
+
+		.splash {
+			left: 80%;
+			top: 100%;
+		}
+	}
+</style>
+
+<script>
+	// 每次進到標題畫面（含 ClientRouter 換頁）都重新抽一句標語
+	function pickSplash(): void {
+		const splash = document.querySelector<HTMLElement>('[data-splash]');
+		if (!splash) return;
+		try {
+			const options: unknown = JSON.parse(splash.dataset.splashes ?? '[]');
+			if (Array.isArray(options) && options.length > 0) {
+				const pick = options[Math.floor(Math.random() * options.length)];
+				if (typeof pick === 'string') splash.textContent = pick;
+			}
+		} catch {
+			// 解析失敗就保留預設標語
+		}
+	}
+
+	document.addEventListener('astro:page-load', pickSplash);
+</script>

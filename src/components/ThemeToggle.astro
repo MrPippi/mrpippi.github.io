@@ -1,0 +1,69 @@
+---
+import McButton from './McButton.astro';
+import PixelGlyph from './PixelGlyph.astro';
+---
+
+<!-- 只顯示「下一個」主題的圖示：白天顯示月亮、夜晚顯示太陽 -->
+<McButton size="square" data-theme-toggle>
+	<PixelGlyph name="moon" size={20} class="only-light" />
+	<PixelGlyph name="sun" size={20} class="only-dark" />
+</McButton>
+
+<script>
+	import { langFromDocument, t } from '../i18n';
+	import { unlock } from '../lib/advancements';
+
+	type Theme = 'light' | 'dark';
+
+	const STORAGE_KEY = 'theme';
+	const media = window.matchMedia('(prefers-color-scheme: dark)');
+	const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+
+	function effectiveTheme(): Theme {
+		const explicit = document.documentElement.dataset.theme;
+		if (explicit === 'light' || explicit === 'dark') return explicit;
+		return media.matches ? 'dark' : 'light';
+	}
+
+	function syncLabel(): void {
+		if (!button) return;
+		const { controls } = t(langFromDocument());
+		const label = effectiveTheme() === 'dark' ? controls.themeToLight : controls.themeToDark;
+		button.setAttribute('aria-label', label);
+		button.title = label;
+	}
+
+	function apply(next: Theme): void {
+		document.documentElement.dataset.theme = next;
+		try {
+			localStorage.setItem(STORAGE_KEY, next);
+		} catch {
+			// 無法儲存時只在本次瀏覽生效
+		}
+		syncLabel();
+		if (next === 'dark') unlock('night-owl');
+	}
+
+	function toggle(): void {
+		const next: Theme = effectiveTheme() === 'dark' ? 'light' : 'dark';
+		const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (!document.startViewTransition || reduced) {
+			apply(next);
+			return;
+		}
+		document.startViewTransition(() => apply(next));
+	}
+
+	// 換語言（ClientRouter 換頁）時也要更新文字
+	document.addEventListener('astro:page-load', syncLabel);
+	media.addEventListener('change', syncLabel);
+	button?.addEventListener('click', toggle);
+</script>
+
+<style is:global>
+	/* 日夜切換：整頁淡入淡出 */
+	::view-transition-old(root),
+	::view-transition-new(root) {
+		animation-duration: 400ms;
+	}
+</style>

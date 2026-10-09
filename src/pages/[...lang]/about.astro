@@ -1,0 +1,188 @@
+---
+import AdvancementList from '../../components/AdvancementList.astro';
+import EnchantedBook from '../../components/EnchantedBook.astro';
+import { PROFILE, SKILLS } from '../../consts';
+import MenuLayout from '../../layouts/MenuLayout.astro';
+import { langFromPath, langStaticPaths, t } from '../../i18n';
+
+export function getStaticPaths() {
+	return langStaticPaths();
+}
+
+const lang = langFromPath(Astro.url.pathname);
+const dict = t(lang);
+---
+
+<MenuLayout heading={dict.about.heading} description={dict.about.description}>
+	<section class="profile" aria-label={dict.about.profileLabel}>
+		<div class="portrait">
+			<img src={PROFILE.avatar} alt={dict.about.avatarAlt} width="112" height="112" class="pixelated" />
+		</div>
+		<dl class="meta">
+			<div>
+				<dt>{dict.about.nameLabel}</dt>
+				<dd class="mc-text name">{dict.profile.name}</dd>
+			</div>
+			<div>
+				<dt>{dict.about.idLabel}</dt>
+				<dd class="mc-text">{PROFILE.handle}</dd>
+			</div>
+			<div>
+				<dt>{dict.about.locationLabel}</dt>
+				<dd class="mc-text">{dict.profile.location}</dd>
+			</div>
+		</dl>
+	</section>
+
+	<section class="bio" aria-label={dict.about.bioLabel}>
+		{dict.about.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+	</section>
+
+	<section aria-labelledby="stats-title">
+		<h2 id="stats-title" class="mc-text">{dict.about.stats}</h2>
+		<dl class="stats">
+			{
+				SKILLS.map((row) => (
+					<div class="stat">
+						<dt>
+							<img src={row.icon} alt="" width="32" height="32" class="pixelated" />
+							{dict.about.skills[row.key]}
+						</dt>
+						<dd>{row.value}</dd>
+					</div>
+				))
+			}
+		</dl>
+	</section>
+
+	<div class="enchant">
+		<EnchantedBook />
+	</div>
+
+	<AdvancementList />
+</MenuLayout>
+
+<style>
+	.profile {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	/* 原版物品欄格子材質（18×18，九宮格放大 4 倍）當作頭像框 */
+	.portrait {
+		flex-shrink: 0;
+		padding: 4px;
+		border: 4px solid transparent;
+		border-image: url('/mc/gui/slot.png') 1 fill / 4px / 0 stretch;
+		image-rendering: pixelated;
+	}
+
+	.portrait img {
+		display: block;
+		width: 112px;
+		height: 112px;
+		object-fit: cover;
+	}
+
+	.meta {
+		display: grid;
+		gap: 0.35rem;
+		margin: 0;
+	}
+
+	.meta div {
+		display: flex;
+		align-items: baseline;
+		gap: 0.75rem;
+	}
+
+	.meta dt {
+		width: 3.5em;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+	}
+
+	.meta dd {
+		margin: 0;
+		font-size: 18px;
+	}
+
+	.meta .name {
+		color: var(--yellow);
+		text-shadow: var(--mc-px) var(--mc-px) 0 #3f3f15;
+		font-size: 27px;
+	}
+
+	.bio {
+		margin: 2rem 0 2.5rem;
+		color: var(--text-dim);
+	}
+
+	.bio p {
+		margin: 0;
+	}
+
+	.bio p + p {
+		margin-top: 1rem;
+	}
+
+	.enchant {
+		margin-top: 2.5rem;
+	}
+
+	h2 {
+		margin: 0 0 0.75rem;
+		font-size: 18px;
+	}
+
+	/* 仿統計畫面：左標籤右數值，隔行加深 */
+	.stats {
+		margin: 0;
+		border: 1px solid var(--panel-line);
+	}
+
+	.stat {
+		display: grid;
+		grid-template-columns: 12rem 1fr;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.55rem 0.9rem;
+	}
+
+	.stat:nth-child(odd) {
+		background: rgb(255 255 255 / 0.06);
+	}
+
+	.stat dt {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		color: var(--text);
+		font-family: var(--font-ui);
+		font-weight: 700;
+		font-synthesis: none;
+	}
+
+	.stat dt img {
+		width: 32px;
+		height: 32px;
+	}
+
+	.stat dd {
+		margin: 0;
+		color: var(--text-dim);
+	}
+
+	@media (max-width: 520px) {
+		.profile {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.stat {
+			grid-template-columns: 1fr;
+			gap: 0;
+		}
+	}
+</style>

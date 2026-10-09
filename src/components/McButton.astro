@@ -1,0 +1,87 @@
+---
+// Minecraft 石材按鈕。給 href 會渲染成連結，否則是 <button>。
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = Omit<HTMLAttributes<'button'>, 'class'> & {
+	href?: string;
+	disabled?: boolean;
+	/** square：與按鈕同高的正方形，放圖示用 */
+	size?: 'full' | 'square';
+	external?: boolean;
+	class?: string;
+};
+
+const { href, disabled = false, size = 'full', external = false, class: className, ...rest } = Astro.props;
+const classes = ['mc-btn', 'mc-text', `mc-btn--${size}`, className];
+---
+
+{
+	href && !disabled ? (
+		<a
+			class:list={classes}
+			href={href}
+			target={external ? '_blank' : undefined}
+			rel={external ? 'noopener noreferrer' : undefined}
+		>
+			<slot />
+		</a>
+	) : (
+		<button class:list={classes} type="button" disabled={disabled} {...rest}>
+			<slot />
+		</button>
+	)
+}
+
+<style>
+	/* 原版按鈕材質（200×20）以九宮格放大 2 倍：邊框 3 像素 → 6px，中間重複鋪 */
+	.mc-btn {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.6rem;
+		height: 40px;
+		padding: 0 1rem;
+		border: 6px solid transparent;
+		border-image: url('/mc/gui/button.png') 3 fill / 6px / 0 repeat;
+		background: none;
+		image-rendering: pixelated;
+		color: var(--text);
+		font-size: 18px;
+		line-height: 1;
+		text-decoration: none;
+		white-space: nowrap;
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.mc-btn--full {
+		width: 100%;
+	}
+
+	.mc-btn--square {
+		width: 40px;
+		padding: 0;
+	}
+
+	/* 遊戲裡滑過按鈕：白框材質 + 淡黃字 */
+	.mc-btn:hover:not(:disabled),
+	.mc-btn:focus-visible {
+		outline: none;
+		border-image-source: url('/mc/gui/button_highlighted.png');
+		color: #ffffa0;
+		text-shadow: var(--mc-px) var(--mc-px) 0 #3f3f28;
+	}
+
+	.mc-btn:disabled {
+		border-image-source: url('/mc/gui/button_disabled.png');
+		color: var(--text-muted);
+		text-shadow: none;
+		cursor: not-allowed;
+	}
+
+	.mc-btn :global(svg) {
+		flex-shrink: 0;
+		filter: drop-shadow(2px 2px 0 var(--shadow-ink));
+	}
+</style>

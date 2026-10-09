@@ -1,0 +1,109 @@
+---
+import Banner from '../../components/Banner.astro';
+import Icon from '../../components/Icon.astro';
+import McButton from '../../components/McButton.astro';
+import VideoCard from '../../components/VideoCard.astro';
+import { TWITCH, YOUTUBE } from '../../consts';
+import { langFromPath, langStaticPaths, t } from '../../i18n';
+import MenuLayout from '../../layouts/MenuLayout.astro';
+import { fetchLatestVideos } from '../../lib/youtube';
+
+export function getStaticPaths() {
+	return langStaticPaths();
+}
+
+const lang = langFromPath(Astro.url.pathname);
+const dict = t(lang);
+const videos = await fetchLatestVideos(YOUTUBE.channelId, YOUTUBE.latestCount);
+
+const CHANNELS = [
+	{
+		name: 'YouTube',
+		handle: '@Mr_Pippi',
+		note: dict.media.youtubeNote,
+		href: YOUTUBE.url,
+		icon: 'youtube',
+		tone: 'red',
+	},
+	{
+		name: 'Twitch',
+		handle: TWITCH.handle,
+		note: dict.media.twitchNote,
+		href: TWITCH.url,
+		icon: 'twitch',
+		tone: 'purple',
+	},
+] as const;
+---
+
+<MenuLayout heading={dict.media.heading} description={dict.media.description}>
+	<section class="channels" aria-label={dict.media.channelsLabel}>
+		{
+			CHANNELS.map((ch) => (
+				<Banner href={ch.href} tone={ch.tone} sub={`${ch.handle} · ${ch.note}`} size="md" external>
+					<Icon name={ch.icon} slot="icon" />
+					{ch.name}
+				</Banner>
+			))
+		}
+	</section>
+
+	<section aria-labelledby="latest-title">
+		<h2 id="latest-title" class="mc-text">{dict.media.latest}</h2>
+		{
+			videos.length > 0 ? (
+				<div class="grid">
+					{videos.map((video) => (
+						<VideoCard video={video} />
+					))}
+				</div>
+			) : (
+				<div class="empty">
+					<p>{dict.media.empty}</p>
+					<McButton href={YOUTUBE.url} external>
+						<Icon name="youtube" />
+						{dict.media.goToYoutube}
+					</McButton>
+				</div>
+			)
+		}
+	</section>
+</MenuLayout>
+
+<style>
+	.channels {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 16px;
+		margin-bottom: 2.5rem;
+	}
+
+	h2 {
+		margin: 0 0 1rem;
+		font-size: 18px;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 1.25rem 1rem;
+	}
+
+	.empty {
+		display: grid;
+		justify-items: center;
+		gap: 1rem;
+		padding: 2rem 1rem;
+		border: 1px dashed var(--panel-line);
+		color: var(--text-dim);
+		text-align: center;
+	}
+
+	.empty p {
+		margin: 0;
+	}
+
+	.empty :global(.mc-btn) {
+		width: min(300px, 100%);
+	}
+</style>

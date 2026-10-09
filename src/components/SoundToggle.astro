@@ -1,0 +1,60 @@
+---
+import McButton from './McButton.astro';
+import PixelGlyph from './PixelGlyph.astro';
+---
+
+<!-- 顯示目前狀態：有聲顯示喇叭、靜音顯示喇叭加叉（由 html[data-sound] 控制） -->
+<McButton size="square" data-sound-toggle aria-pressed="false">
+	<PixelGlyph name="soundOn" size={20} class="sound-on" />
+	<PixelGlyph name="soundOff" size={20} class="sound-off" />
+</McButton>
+
+<style is:global>
+	.sound-off {
+		display: none;
+	}
+	:root[data-sound='off'] .sound-on {
+		display: none;
+	}
+	:root[data-sound='off'] .sound-off {
+		display: block;
+	}
+</style>
+
+<script>
+	import { langFromDocument, t } from '../i18n';
+	import { isMuted, playClick, playPling, setMuted } from '../lib/sound';
+
+	const button = document.querySelector<HTMLButtonElement>('[data-sound-toggle]');
+
+	function sync(): void {
+		const muted = isMuted();
+		document.documentElement.dataset.sound = muted ? 'off' : 'on';
+		if (!button) return;
+		const { controls } = t(langFromDocument());
+		const label = muted ? controls.soundOff : controls.soundOn;
+		button.setAttribute('aria-pressed', String(muted));
+		button.setAttribute('aria-label', label);
+		button.title = label;
+	}
+
+	button?.addEventListener('click', () => {
+		setMuted(!isMuted());
+		sync();
+		if (!isMuted()) playPling();
+	});
+
+	// 所有石材按鈕按下時發出「喀」聲；pointerdown 比 click 早，換頁前來得及播完
+	document.addEventListener('pointerdown', (event) => {
+		const target = event.target instanceof Element ? event.target.closest('.mc-btn, .banner') : null;
+		if (!target || target === button || target.matches(':disabled')) return;
+		playClick();
+	});
+	document.addEventListener('keydown', (event) => {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		const target = event.target instanceof Element ? event.target.closest('.mc-btn, .banner') : null;
+		if (target && target !== button && !target.matches(':disabled')) playClick();
+	});
+
+	document.addEventListener('astro:page-load', sync);
+</script>

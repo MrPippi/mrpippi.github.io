@@ -1,0 +1,42 @@
+---
+import { tagHref } from '../lib/posts';
+
+interface Props {
+	tag: string;
+	count?: number;
+	active?: boolean;
+}
+
+const { tag, count, active = false } = Astro.props;
+---
+
+<a class:list={['chip', 'mc-text', { active }]} href={tagHref(tag)} aria-current={active ? 'page' : undefined}>
+	#{tag}{count !== undefined && <span class="count">{count}</span>}
+</a>
+
+<style>
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 2px 8px;
+		border: 2px solid rgb(255 255 255 / 0.25);
+		background: rgb(0 0 0 / 0.35);
+		color: var(--text-dim);
+		font-size: 13px;
+		line-height: 1.4;
+		text-decoration: none;
+	}
+
+	.chip:hover,
+	.chip:focus-visible,
+	.chip.active {
+		outline: none;
+		border-color: #fff;
+		color: var(--yellow);
+	}
+
+	.count {
+		color: var(--text-muted);
+	}
+</style>

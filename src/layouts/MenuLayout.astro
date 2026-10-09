@@ -1,0 +1,107 @@
+---
+// 子頁面版型：仿 Minecraft 選單畫面——上方標題、中間深色清單面板、下方按鈕列。
+import McButton from '../components/McButton.astro';
+import { langFromPath, localizePath, t } from '../i18n';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+	/** 畫面上方的標題 */
+	heading: string;
+	title?: string;
+	description?: string;
+	backHref?: string;
+	backLabel?: string;
+}
+
+const lang = langFromPath(Astro.url.pathname);
+const dict = t(lang);
+const { heading, title, description, backHref = localizePath('/', lang), backLabel = dict.back.title } = Astro.props;
+---
+
+<BaseLayout title={title ?? `${heading}${dict.site.titleSuffix}`} description={description}>
+	<div class="screen">
+		<header class="bar">
+			<h1 class="mc-text">{heading}</h1>
+		</header>
+		<main class="panel">
+			<div class="inner">
+				<slot />
+			</div>
+		</main>
+		<footer class="bar actions">
+			<slot name="actions" />
+			<McButton href={backHref}>{backLabel}</McButton>
+		</footer>
+	</div>
+</BaseLayout>
+
+<style>
+	.screen {
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		min-height: 100vh;
+		min-height: 100dvh;
+	}
+
+	.bar {
+		display: flex;
+		justify-content: center;
+		padding: 1rem var(--gutter);
+	}
+
+	h1 {
+		margin: 0;
+		padding: 0 196px; /* 避開右上角的四顆按鈕 */
+		font-size: 27px;
+		line-height: 40px;
+		text-align: center;
+	}
+
+	/* 原版選單清單區：半透明深色材質鋪底（放大 2 倍），上下用原版分隔線；背景天空模糊化 */
+	.panel {
+		position: relative;
+		background: url('/mc/gui/menu_list_background.png') repeat;
+		background-size: 32px;
+		image-rendering: pixelated;
+		-webkit-backdrop-filter: blur(6px);
+		backdrop-filter: blur(6px);
+	}
+
+	.panel::before,
+	.panel::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background-size: 64px 4px;
+		background-repeat: repeat-x;
+		image-rendering: pixelated;
+	}
+
+	.panel::before {
+		top: 0;
+		background-image: url('/mc/gui/header_separator.png');
+	}
+
+	.panel::after {
+		bottom: 0;
+		background-image: url('/mc/gui/footer_separator.png');
+	}
+
+	.inner {
+		width: 100%;
+		max-width: calc(720px + var(--gutter) * 2);
+		margin: 0 auto;
+		padding: 2rem var(--gutter) 2.5rem;
+	}
+
+	.actions {
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+
+	.actions > :global(*) {
+		width: min(300px, 100%);
+	}
+</style>

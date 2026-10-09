@@ -1,0 +1,130 @@
+---
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import LanguageToggle from '../components/LanguageToggle.astro';
+import MusicToggle from '../components/MusicToggle.astro';
+import Sky from '../components/Sky.astro';
+import SoundToggle from '../components/SoundToggle.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import Toast from '../components/Toast.astro';
+import { ANALYTICS, PROFILE } from '../consts';
+import { BILINGUAL_PATHS, HTML_LANG, LANGS, OG_LOCALE, langFromPath, localizePath, stripLang, t } from '../i18n';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const lang = langFromPath(Astro.url.pathname);
+const dict = t(lang);
+const { title = dict.site.title, description = dict.site.description } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// 兩種語言都有的頁面，告訴搜尋引擎彼此的對應網址
+const basePath = stripLang(Astro.url.pathname);
+const alternates = BILINGUAL_PATHS.includes(basePath)
+	? LANGS.map((l) => ({ hreflang: HTML_LANG[l], href: new URL(localizePath(basePath, l), Astro.site) }))
+	: [];
+---
+
+<!doctype html>
+<html lang={HTML_LANG[lang]}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalURL} />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+		<link rel="alternate" type="application/rss+xml" title={t('zh-TW').site.title} href={new URL('rss.xml', Astro.site)} />
+		{alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
+		<meta name="generator" content={Astro.generator} />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:locale" content={OG_LOCALE[lang]} />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={PROFILE.avatar} />
+		<meta name="twitter:card" content="summary" />
+
+		<meta name="theme-color" content="#6f9dfc" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#05081a" media="(prefers-color-scheme: dark)" />
+
+		<link rel="preload" href="/fonts/minecraft-ascii.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@700;900&family=Noto+Sans+TC:wght@400;700&display=swap" />
+
+		{
+			ANALYTICS.cloudflareToken && (
+				<script
+					is:inline
+					defer
+					src="https://static.cloudflareinsights.com/beacon.min.js"
+					data-cf-beacon={JSON.stringify({ token: ANALYTICS.cloudflareToken, spa: true })}
+				/>
+			)
+		}
+
+		<!--
+			換頁不重新載入（ClientRouter）：天空、右上角按鈕與背景音樂播放器都留在原地，音樂不會中斷。
+		-->
+		<ClientRouter />
+
+		<!--
+			繪製前套用使用者選的主題與音效設定，避免圖示閃爍（主題沒選過就跟隨系統）。
+			ClientRouter 換頁時會換掉 <html> 的屬性，所以在換頁前也對新頁面套用一次。
+		-->
+		<script is:inline>
+			(() => {
+				const apply = (root) => {
+					try {
+						const theme = localStorage.getItem('theme');
+						if (theme === 'light' || theme === 'dark') root.dataset.theme = theme;
+						root.dataset.sound = localStorage.getItem('sound') === 'off' ? 'off' : 'on';
+					} catch {
+						/* storage 不可用時沿用預設 */
+					}
+				};
+				apply(document.documentElement);
+				document.addEventListener('astro:before-swap', (event) => apply(event.newDocument.documentElement));
+			})();
+		</script>
+	</head>
+	<body>
+		<!-- transition:persist：換頁時保留這些元素（含其中的播放狀態與動畫） -->
+		<div transition:persist="sky">
+			<Sky />
+		</div>
+		<div class="controls" transition:persist="controls">
+			<LanguageToggle />
+			<MusicToggle />
+			<SoundToggle />
+			<ThemeToggle />
+		</div>
+		<div transition:persist="toast">
+			<Toast />
+		</div>
+		<slot />
+	</body>
+</html>
+
+<script>
+	// 進度：記錄每次進入的頁面（含 ClientRouter 換頁）
+	import { recordVisit } from '../lib/advancements';
+
+	document.addEventListener('astro:page-load', () => recordVisit(location.pathname));
+</script>
+
+<style>
+	/* 右上角：語言、音樂設定、音效、主題切換 */
+	.controls {
+		position: fixed;
+		top: 12px;
+		right: 12px;
+		z-index: 10;
+		display: flex;
+		gap: 8px;
+	}
+</style>
