@@ -29,10 +29,10 @@ export const YOUTUBE = {
 	url: 'https://www.youtube.com/@Mr_Pippi',
 	/**
 	 * 頻道 ID（UC 開頭），用來在建置時抓最新影片 RSS。
-	 * 查詢：YouTube → 設定 → 進階設定，或 https://www.youtube.com/account_advanced
-	 * 留空時影片區只顯示「前往頻道」。
+	 * 留空時會在建置時從上面的 url 自動查出來（建置紀錄會印出查到的 ID，可以貼回這裡省掉查詢）。
+	 * 自己查：YouTube → 設定 → 進階設定，或 https://www.youtube.com/account_advanced
 	 */
-	channelId: '',
+	channelId: 'UCdcUpJOFIJWQxrKKCONv4wg',
 	latestCount: 6,
 } as const;
 

@@ -14,7 +14,7 @@ export function getStaticPaths() {
 
 const lang = langFromPath(Astro.url.pathname);
 const dict = t(lang);
-const videos = await fetchLatestVideos(YOUTUBE.channelId, YOUTUBE.latestCount);
+const videos = await fetchLatestVideos(YOUTUBE.channelId, YOUTUBE.latestCount, YOUTUBE.url);
 
 const CHANNELS = [
 	{

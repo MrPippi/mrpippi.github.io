@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseFeed } from '../../src/lib/youtube';
+import { extractChannelId, parseFeed } from '../../src/lib/youtube';
 
 const entry = (id: string, title: string, published: string) => `
 	<entry>
@@ -34,5 +34,29 @@ describe('parseFeed', () => {
 	it('空的或不是 RSS 的內容回傳空陣列', () => {
 		expect(parseFeed('')).toEqual([]);
 		expect(parseFeed('<html>error</html>')).toEqual([]);
+	});
+});
+
+describe('extractChannelId', () => {
+	const ID = 'UCabcdefghijklmnopqrstuv';
+
+	it('從 canonical 連結取出頻道 ID', () => {
+		expect(extractChannelId(`<link rel="canonical" href="https://www.youtube.com/channel/${ID}">`)).toBe(ID);
+	});
+
+	it('從頁面資料的 externalId 或 channelId 取出', () => {
+		expect(extractChannelId(`{"externalId":"${ID}","title":"x"}`)).toBe(ID);
+		expect(extractChannelId(`{"channelId":"${ID}"}`)).toBe(ID);
+	});
+
+	it('canonical 優先於頁面裡其他頻道的 channelId', () => {
+		const other = 'UCzzzzzzzzzzzzzzzzzzzzzz';
+		const html = `{"channelId":"${other}"}<link rel="canonical" href="https://www.youtube.com/channel/${ID}">`;
+		expect(extractChannelId(html)).toBe(ID);
+	});
+
+	it('找不到或格式不對時回傳 undefined', () => {
+		expect(extractChannelId('<html>consent</html>')).toBeUndefined();
+		expect(extractChannelId('{"channelId":"UCshort"}')).toBeUndefined();
 	});
 });
