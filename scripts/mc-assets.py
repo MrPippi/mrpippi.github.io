@@ -50,6 +50,13 @@ COPIES = {
     "item/compass.png": "item/compass_00.png",
     "item/bundle.png": "item/bundle.png",
     "item/knowledge_book.png": "item/knowledge_book.png",
+    "item/book.png": "item/book.png",
+    "item/clock_night.png": "item/clock_32.png",
+    "item/lead.png": "item/lead.png",
+    "item/firework_rocket.png": "item/firework_rocket.png",
+    "item/command_block_minecart.png": "item/command_block_minecart.png",
+    "item/cake.png": "item/cake.png",
+    "item/nether_star.png": "item/nether_star.png",
     "block/dirt.png": "block/dirt.png",
 }
 ADDITIVE = {

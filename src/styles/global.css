@@ -205,6 +205,16 @@ img {
 	border-left: 4px solid var(--text-muted);
 }
 
+/* 文章裡用原版物品圖代替 Emoji：<img class="mc-item" src="/mc/item/xxx.png" alt="" /> */
+.prose .mc-item {
+	display: inline-block;
+	width: 1.5em;
+	height: 1.5em;
+	margin-right: 0.25em;
+	vertical-align: -0.4em;
+	image-rendering: pixelated;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
