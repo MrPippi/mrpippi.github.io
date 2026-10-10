@@ -76,6 +76,7 @@ COPIES = {
     "block/structure_block.png": "block/structure_block.png",
     "item/skull_banner_pattern.png": "item/skull_banner_pattern.png",
     "item/gold_ingot.png": "item/gold_ingot.png",
+    "item/bell.png": "item/bell.png",
     "item/phantom_membrane.png": "item/phantom_membrane.png",
     "item/diamond.png": "item/diamond.png",
     "item/echo_shard.png": "item/echo_shard.png",

@@ -78,6 +78,15 @@ export const PORTFOLIO = {
 				en: 'Claude skills for building Minecraft Paper plugins, with a documentation site.',
 			},
 		},
+		{
+			repo: 'claude-code-release-notifier',
+			icon: '/mc/item/bell.png',
+			description: {
+				'zh-TW':
+					'自架的 GitHub Actions 機器人：追蹤 Claude Code 新版本，用 Claude API 翻成繁中、簡中、日文、韓文後發到 Discord。',
+				en: 'A self-hosted GitHub Actions bot that watches Claude Code releases, translates them with the Claude API into Chinese, Japanese and Korean, and posts them to Discord.',
+			},
+		},
 	] satisfies readonly PortfolioItem[],
 } as const;
 
