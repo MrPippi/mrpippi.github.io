@@ -324,10 +324,11 @@ img {
 
 .firework-spark {
 	position: absolute;
-	width: 6px;
-	height: 6px;
-	margin: -3px 0 0 -3px;
-	box-shadow: 0 0 6px currentColor;
+	width: 16px;
+	height: 16px;
+	margin: -8px 0 0 -8px;
+	background-repeat: no-repeat;
+	image-rendering: pixelated;
 }
 
 .beacon-beam {

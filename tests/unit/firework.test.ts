@@ -21,7 +21,7 @@ describe('planFirework', () => {
 			const reach = Math.hypot(spark.dx, spark.dy);
 			expect(reach).toBeGreaterThanOrEqual(69);
 			expect(reach).toBeLessThanOrEqual(141);
-			expect(FIREWORK_COLORS).toContain(spark.color);
+			expect(Object.values(FIREWORK_COLORS)).toContain(spark.color);
 		}
 	});
 

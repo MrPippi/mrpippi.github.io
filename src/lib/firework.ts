@@ -3,18 +3,27 @@
  * 這裡只算位置與顏色（純函式）；畫面在 firework-anim.ts。
  */
 
-/** 原版染料顏色（煙火之星用的那些） */
-export const FIREWORK_COLORS = [
-	'#B02E26',
-	'#F9801D',
-	'#FED83D',
-	'#80C71F',
-	'#3AB3DA',
-	'#3C44AA',
-	'#8932B8',
-	'#C74EBD',
-	'#F9FFFE',
-] as const;
+/**
+ * 原版煙火之星的顏色（DyeColor 的 fireworkColor，和染料方塊的顏色不同）。
+ * 黑、灰、棕、綠在夜空裡幾乎看不見，沒放進來。
+ */
+export const FIREWORK_COLORS = {
+	white: '#F0F0F0',
+	orange: '#EB8844',
+	magenta: '#C354CD',
+	light_blue: '#6689D3',
+	yellow: '#DECF2A',
+	lime: '#41CD34',
+	pink: '#D88198',
+	light_gray: '#ABABAB',
+	cyan: '#287697',
+	purple: '#7B2FBE',
+	blue: '#253192',
+	red: '#B3312C',
+} as const;
+const COLOR_LIST: readonly string[] = Object.values(FIREWORK_COLORS);
+/** 火花動畫的格數（public/mc/particle/spark.png：spark_7 到 spark_0，由大變小） */
+export const SPARK_FRAMES = 8;
 export const SPARK_COUNT = 36;
 /** 火花飛多遠（px） */
 const MIN_REACH = 70;
@@ -48,14 +57,14 @@ export function planFirework(viewport: Viewport, rand: Random, count: number = S
 	const launchX = Math.round(viewport.width * (0.25 + rand() * 0.5));
 	const burstY = Math.round(viewport.height * (0.2 + rand() * 0.2));
 	// 一發煙火用一到兩種顏色
-	const colors = [pick(FIREWORK_COLORS, rand), pick(FIREWORK_COLORS, rand)];
+	const colors = [pick(COLOR_LIST, rand), pick(COLOR_LIST, rand)];
 	const sparks = Array.from({ length: count }, (_, i) => {
 		const angle = (i / count) * Math.PI * 2 + (rand() - 0.5) * 0.2;
 		const reach = MIN_REACH + rand() * (MAX_REACH - MIN_REACH);
 		return {
 			dx: Math.round(Math.cos(angle) * reach),
 			dy: Math.round(Math.sin(angle) * reach),
-			color: colors[i % colors.length] ?? FIREWORK_COLORS[0],
+			color: colors[i % colors.length] ?? FIREWORK_COLORS.white,
 		};
 	});
 	return { launchX, burstY, sparks };
