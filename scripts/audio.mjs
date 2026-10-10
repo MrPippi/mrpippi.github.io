@@ -21,7 +21,14 @@ const FFMPEG = process.env.FFMPEG_PATH || 'ffmpeg';
 const JOBS = [
 	['menu', '40k', ['creative1', 'creative2', 'creative3', 'creative4', 'creative5', 'creative6']],
 	['ui', '64k', ['click']],
-	['random', '64k', ['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop']],
+	[
+		'random',
+		'64k',
+		['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop', 'orb', 'levelup', 'eat1', 'eat2', 'eat3', 'break', 'click'],
+	],
+	['fireworks', '64k', ['launch1', 'blast1', 'twinkle1']],
+	['mob/enderman', '64k', ['portal']],
+	['block/beacon', '64k', ['activate']],
 ];
 
 function transcode(input, output, bitrate) {

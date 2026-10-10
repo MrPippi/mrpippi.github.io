@@ -2,7 +2,8 @@
  * 介面音效。
  * - 按鈕「喀」：原版 ui/click（public/sounds/，Opus WebM）；瀏覽器無法解碼時退回合成音。
  * - 提示「叮」：Web Audio API 即時合成。
- * - 撿起物品、苦力怕點燃與爆炸：原版 random/ 音效（public/sounds/random/），用到時才下載；無法載入時退回合成音。
+ * - 其他（叮、升級、撿起物品、苦力怕、煙火、吃東西…）：原版音效（public/sounds/），用到時才下載；無法載入時退回合成音。
+ * - 山羊角目前沒有原版音檔，用合成音。
  * AudioContext 一載入就建立（此時是暫停狀態），先解碼好點擊音；第一次使用者操作時才恢復出聲。
  */
 
@@ -129,12 +130,20 @@ export function playClick(): void {
 	playTone(ctx, { type: 'triangle', from: 420, to: 180, start: 0, duration: 0.06, volume: 0.5 });
 }
 
-/** 提示「叮」聲：兩個上升的音（類似撿到經驗球） */
-export function playPling(): void {
-	const ctx = activeContext();
-	if (!ctx) return;
+/** 合成的「叮」：兩個上升的音 */
+function plingTones(ctx: AudioContext): void {
 	playTone(ctx, { type: 'sine', from: 1318, to: 1318, start: 0, duration: 0.12, volume: 0.6 });
 	playTone(ctx, { type: 'sine', from: 1760, to: 1760, start: 0.08, duration: 0.22, volume: 0.6 });
+}
+
+/** 提示「叮」聲（原版撿到經驗球 random/orb，音高隨機） */
+export function playPling(): void {
+	void playSample('orb', 0.35, randomPitch(0.35) * 1.1, plingTones);
+}
+
+/** 升級聲（原版 random/levelup）：文章讀到最後 */
+export function playLevelUp(): void {
+	void playSample('levelup', 0.5, 1, plingTones);
 }
 
 /** 原版音效（public/sounds/random/，由 scripts/audio.mjs 轉檔）：用到時才下載，載入失敗就用合成音 */
@@ -145,9 +154,25 @@ const SAMPLES = {
 	explode2: '/sounds/random/explode2.webm',
 	explode3: '/sounds/random/explode3.webm',
 	explode4: '/sounds/random/explode4.webm',
+	orb: '/sounds/random/orb.webm',
+	levelup: '/sounds/random/levelup.webm',
+	eat1: '/sounds/random/eat1.webm',
+	eat2: '/sounds/random/eat2.webm',
+	eat3: '/sounds/random/eat3.webm',
+	break: '/sounds/random/break.webm',
+	click: '/sounds/random/click.webm',
+	launch: '/sounds/fireworks/launch1.webm',
+	blast: '/sounds/fireworks/blast1.webm',
+	twinkle: '/sounds/fireworks/twinkle1.webm',
+	portal: '/sounds/mob/enderman/portal.webm',
+	beacon: '/sounds/block/beacon/activate.webm',
 } as const;
 type Sample = keyof typeof SAMPLES;
 const EXPLOSIONS: readonly Sample[] = ['explode1', 'explode2', 'explode3', 'explode4'];
+
+function pickSample(names: readonly Sample[]): Sample {
+	return names[Math.floor(Math.random() * names.length)] ?? names[0] ?? 'pop';
+}
 const samples = new Map<Sample, Promise<AudioBuffer | undefined>>();
 
 function loadSample(ctx: AudioContext, name: Sample): Promise<AudioBuffer | undefined> {
@@ -251,7 +276,7 @@ export function playHiss(ms: number): void {
 
 /** 爆炸聲：隨機挑 explode1–4 其中一個，音高約 0.7 倍並隨機變化 */
 export function playExplosion(): void {
-	const name = EXPLOSIONS[Math.floor(Math.random() * EXPLOSIONS.length)] ?? 'explode1';
+	const name = pickSample(EXPLOSIONS);
 	void playSample(name, 0.8, randomPitch(0.2) * 0.7, (ctx) =>
 		playNoise(ctx, { duration: 1.4, volume: 2.5, filter: 'lowpass', from: 1500, to: 60 }),
 	);
@@ -265,16 +290,53 @@ export function playHorn(): void {
 	playTone(ctx, { type: 'triangle', from: 466, to: 415, start: 0, duration: 1.2, volume: 0.25 });
 }
 
-/** 煙火升空的「咻——」 */
+/** 煙火升空（原版 fireworks/launch1） */
 export function playFireworkLaunch(): void {
-	const ctx = activeContext();
-	if (!ctx) return;
-	playNoise(ctx, { duration: 0.8, volume: 0.5, filter: 'bandpass', from: 600, to: 3000, attack: 0.3 });
+	void playSample('launch', 0.6, randomPitch(0.2), (ctx) =>
+		playNoise(ctx, { duration: 0.8, volume: 0.5, filter: 'bandpass', from: 600, to: 3000, attack: 0.3 }),
+	);
 }
 
-/** 煙火炸開的「碰」 */
+/** 煙火炸開（原版 fireworks/blast1），一半機率接著閃爍聲 twinkle1 */
 export function playFireworkBlast(): void {
-	const ctx = activeContext();
-	if (!ctx) return;
-	playNoise(ctx, { duration: 0.9, volume: 1.6, filter: 'lowpass', from: 2500, to: 120 });
+	void playSample('blast', 0.7, randomPitch(0.2), (ctx) =>
+		playNoise(ctx, { duration: 0.9, volume: 1.6, filter: 'lowpass', from: 2500, to: 120 }),
+	);
+	if (Math.random() < 0.5) window.setTimeout(() => void playSample('twinkle', 0.5, randomPitch(0.2), () => undefined), 500);
+}
+
+/** 吃東西（原版 random/eat1–3 隨機） */
+export function playEat(): void {
+	const name = pickSample(['eat1', 'eat2', 'eat3']);
+	void playSample(name, 0.5, randomPitch(0.2), (ctx) =>
+		playTone(ctx, { type: 'square', from: 300, to: 200, start: 0, duration: 0.08, volume: 0.3 }),
+	);
+}
+
+/** 工具壞掉（原版 random/break） */
+export function playBreak(): void {
+	void playSample('break', 0.6, 0.8 + Math.random() * 0.4, (ctx) =>
+		playNoise(ctx, { duration: 0.25, volume: 0.8, filter: 'highpass', from: 2000, to: 800 }),
+	);
+}
+
+/** 拉桿聲（原版 random/click）：開的時候音高高一點 */
+export function playLever(on: boolean): void {
+	void playSample('click', 0.4, on ? 0.6 : 0.5, (ctx) =>
+		playTone(ctx, { type: 'square', from: 900, to: 400, start: 0, duration: 0.05, volume: 0.3 }),
+	);
+}
+
+/** 傳送（原版 mob/enderman/portal） */
+export function playTeleport(): void {
+	void playSample('portal', 0.5, 1, (ctx) =>
+		playNoise(ctx, { duration: 0.6, volume: 0.6, filter: 'bandpass', from: 400, to: 2000 }),
+	);
+}
+
+/** 信標啟動（原版 block/beacon/activate） */
+export function playBeacon(): void {
+	void playSample('beacon', 0.6, 1, (ctx) =>
+		playTone(ctx, { type: 'sine', from: 440, to: 880, start: 0, duration: 1, volume: 0.4 }),
+	);
 }

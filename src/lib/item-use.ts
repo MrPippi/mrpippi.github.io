@@ -7,7 +7,7 @@ import { visitedCount } from './advancements';
 import { printToChat } from './chat';
 import { type GiveItem, TP_PAGES, type TpPage } from './commands';
 import { beaconBeam, launchFirework } from './firework-anim';
-import { playHorn, playPop } from './sound';
+import { playBeacon, playBreak, playEat, playHorn, playLever, playTeleport } from './sound';
 import { effectiveTheme, setTheme } from './theme';
 
 const pickRandom = <T>(list: readonly T[]): T | undefined => list[Math.floor(Math.random() * list.length)];
@@ -24,6 +24,7 @@ function teleport(): void {
 	const pages = (Object.keys(TP_PAGES) as TpPage[]).filter((page) => TP_PAGES[page] !== here);
 	const page = pickRandom(pages);
 	if (!page) return;
+	playTeleport();
 	printToChat(commands.tp(commands.pages[page]));
 	void navigate(pathOf(page));
 }
@@ -32,6 +33,7 @@ function teleport(): void {
 function toggleLamp(): void {
 	const { inventory } = t(langFromDocument());
 	const toLight = effectiveTheme() === 'dark';
+	playLever(toLight);
 	setTheme(toLight ? 'light' : 'dark');
 	printToChat(toLight ? inventory.redstoneOn : inventory.redstoneOff);
 }
@@ -42,10 +44,11 @@ export function useItem(item: GiveItem): void {
 	const player = commands.player;
 	switch (item) {
 		case 'cake':
-			playPop();
+			playEat();
 			printToChat(inventory.cake(player));
 			return;
 		case 'diamond_pickaxe':
+			playBreak();
 			printToChat(inventory.pickaxe(player));
 			return;
 		case 'enchanted_book':
@@ -55,6 +58,7 @@ export function useItem(item: GiveItem): void {
 			teleport();
 			return;
 		case 'nether_star':
+			playBeacon();
 			beaconBeam();
 			printToChat(inventory.beacon);
 			return;
