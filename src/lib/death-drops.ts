@@ -29,15 +29,18 @@ function takeDrops(): readonly Stack[] {
 	}
 }
 
-/** 死亡畫面：從畫面中央把東西噴到下半部各處，一直留著直到被撿走或離開 */
+/** 死亡畫面：從畫面中央把東西噴到下半部，一直留著直到被撿走或離開 */
 export function spillDeathDrops(): void {
 	const stacks = takeDrops();
 	const width = window.innerWidth;
 	const height = window.innerHeight;
 	const from = { x: width / 2, y: height * 0.6 };
-	stacks.forEach((stack) => {
+	// 平均分散在畫面寬度上（每個佔一段，在段內隨機偏一點），不會疊在一起擋住彼此
+	const lane = (width * 0.8) / Math.max(1, stacks.length);
+	stacks.forEach((stack, i) => {
+		const jitter = Math.max(0, lane - ITEM_SIZE) * Math.random();
 		const land = {
-			x: Math.round(width * 0.1 + Math.random() * (width * 0.8 - ITEM_SIZE)),
+			x: Math.round(width * 0.1 + i * lane + jitter),
 			y: Math.round(height * 0.72 + Math.random() * (height * 0.18 - ITEM_SIZE)),
 		};
 		dropStack(stack, from, { land, despawnMs: null });
