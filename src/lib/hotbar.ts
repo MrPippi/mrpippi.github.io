@@ -27,6 +27,7 @@ import {
 } from './inventory';
 import type { Point } from './item-drop';
 import { throwItem } from './item-drop-anim';
+import { refreshTooltip } from './tooltip';
 import { useItem } from './item-use';
 import { playerName } from './player';
 import { playBreak, playLevelUp } from './sound';
@@ -159,6 +160,7 @@ function render(inventory: Inventory = loadInventory()): void {
 		renderSlot(slot, inventory[index] ?? null, index);
 	});
 	el.style.setProperty('--selected', String(selected));
+	refreshTooltip();
 	const visible = !isEmpty(inventory) || Date.now() < incomingUntil;
 	el.classList.toggle('visible', visible);
 	el.toggleAttribute('inert', !visible);

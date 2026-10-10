@@ -21,6 +21,9 @@ test.describe('物品欄進階', () => {
 		await expect(tooltip).toBeVisible();
 		await expect(tooltip).toContainText('終界珍珠 × 3');
 		await expect(tooltip).toContainText('傳送到隨機頁面');
+		// 丟掉一個，提示框的數量跟著變
+		await page.keyboard.press('q');
+		await expect(tooltip).toContainText('終界珍珠 × 2');
 	});
 
 	test('丟出去的物品點一下撿回來', async ({ page }) => {
@@ -144,6 +147,8 @@ test.describe('物品欄進階', () => {
 		await page.reload();
 		await slot(page, 0).click();
 		await expect(page.locator('.xp-orb').first()).toBeAttached({ timeout: 3000 });
+		// 經驗球染成黃綠色，不是灰階的原圖
+		await expect(page.locator('.xp-orb').first()).toHaveCSS('background-image', /data:image\/png/);
 		await expect(lastChat(page)).toHaveText(/獲得了 \d+ 點經驗/, { timeout: 8000 });
 		await expect(slot(page, 0).locator('.count')).toHaveCount(0);
 	});

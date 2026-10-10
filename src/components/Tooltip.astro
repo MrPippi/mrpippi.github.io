@@ -75,6 +75,8 @@
 </style>
 
 <script>
+	import { TOOLTIP_REFRESH_EVENT } from '../lib/tooltip';
+
 	const OFFSET = 14;
 	const tooltip = document.querySelector<HTMLElement>('[data-mc-tooltip]');
 	const nameEl = tooltip?.querySelector<HTMLElement>('[data-tooltip-name]');
@@ -134,6 +136,12 @@
 		if (current) moveTo(event.clientX, event.clientY);
 	});
 	document.addEventListener('pointerleave', hide);
+	// 目標的內容變了（例如物品欄的數量）：重新讀一次，目標不再有提示框就收起來
+	document.addEventListener(TOOLTIP_REFRESH_EVENT, () => {
+		if (!current) return;
+		if (current.isConnected && current.dataset.tooltip) show(current);
+		else hide();
+	});
 
 	// 鍵盤操作：聚焦時顯示在元素旁邊
 	document.addEventListener('focusin', (event) => {

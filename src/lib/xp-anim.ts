@@ -21,6 +21,9 @@ const ORB_GAP_MS = 120;
 const ORB_FLY_MS = 350;
 /** 經驗球圖每格 16px（4×4 格） */
 const ORB_CELL = 16;
+const ORB_SPRITE = '/mc/entity/experience_orb.png';
+/** 原版經驗球貼圖是灰階，遊戲裡染成黃綠色（CSS 再讓它在黃與綠之間閃） */
+const ORB_TINT = '#E8FF40';
 
 const wait = (ms: number): Promise<void> => new Promise((resolve) => window.setTimeout(resolve, ms));
 
@@ -72,6 +75,8 @@ async function splash(sky: HTMLElement, at: Point): Promise<void> {
 async function orb(sky: HTMLElement, at: Point, value: number, delay: number, target: Point): Promise<void> {
 	const el = document.createElement('span');
 	el.className = 'xp-orb';
+	const sheet = await tintedSprite(ORB_SPRITE, ORB_TINT);
+	if (sheet) el.style.backgroundImage = `url(${sheet})`;
 	const icon = orbIcon(value);
 	el.style.left = `${at.x}px`;
 	el.style.top = `${at.y}px`;
