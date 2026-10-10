@@ -9,10 +9,12 @@
 - 太陽、月亮在遊戲裡是「疊加」混色（黑底），這裡把亮度轉成透明度，放在任何天空上都自然。
 - 雲朵圖是黑白點陣，轉成白色 + 透明。
 - 爆炸粒子的 16 格、煙火火花的 8 格動畫各接成一條橫向圖。
-- favicon 由草地方塊側面 + 染成草綠色的覆蓋層合成。
+- favicon 是玩家 Mr__Pippi 的 2D 頭像（皮膚的臉加帽子那層，從 Crafthead 下載）；下載失敗時改用草地方塊側面合成。
 需要 Pillow（pip install pillow）。
 """
+import io
 import sys
+import urllib.request
 from pathlib import Path
 
 from PIL import Image
@@ -77,6 +79,7 @@ COPIES = {
     "item/skull_banner_pattern.png": "item/skull_banner_pattern.png",
     "item/gold_ingot.png": "item/gold_ingot.png",
     "item/bell.png": "item/bell.png",
+    "item/heart_of_the_sea.png": "item/heart_of_the_sea.png",
     "block/destroy_stage_0.png": "block/destroy_stage_0.png",
     "block/destroy_stage_1.png": "block/destroy_stage_1.png",
     "block/destroy_stage_2.png": "block/destroy_stage_2.png",
@@ -92,6 +95,7 @@ COPIES = {
     "map/player.png": "map/decorations/player.png",
     "map/white_banner.png": "map/decorations/white_banner.png",
     "map/red_x.png": "map/decorations/red_x.png",
+    "map/frame.png": "map/decorations/frame.png",
     "entity/experience_orb.png": "entity/experience/experience_orb.png",
     "item/phantom_membrane.png": "item/phantom_membrane.png",
     "item/diamond.png": "item/diamond.png",
@@ -115,6 +119,9 @@ GLITTER = ("particle/glitter.png", [f"particle/glitter_{i}.png" for i in range(7
 EFFECT = ("particle/effect.png", [f"particle/effect_{i}.png" for i in range(7, -1, -1)])
 GRASS_TINT = (0x91, 0xBD, 0x59)  # 平原生態域的草地顏色
 FAVICON_SCALE = 4
+FAVICON_SIZE = 64
+FAVICON_PLAYER = "Mr__Pippi"
+FAVICON_HEAD_URL = f"https://crafthead.net/avatar/{FAVICON_PLAYER}/8"
 
 
 def load(rel: str) -> Image.Image:
@@ -172,7 +179,20 @@ def strip(frames: list[str]) -> Image.Image:
     return out
 
 
+def player_head() -> Image.Image | None:
+    """下載 FAVICON_PLAYER 的 8×8 頭像；失敗回傳 None。"""
+    try:
+        with urllib.request.urlopen(FAVICON_HEAD_URL, timeout=10) as res:
+            return Image.open(io.BytesIO(res.read())).convert("RGBA")
+    except (OSError, ValueError) as error:
+        print(f"無法下載頭像（{error}），改用草地方塊")
+        return None
+
+
 def favicon() -> Image.Image:
+    head = player_head()
+    if head is not None:
+        return head.resize((FAVICON_SIZE, FAVICON_SIZE), Image.NEAREST)
     block = load("block/grass_block_side.png")
     block.alpha_composite(tint(load("block/grass_block_side_overlay.png"), GRASS_TINT))
     return block.resize((block.width * FAVICON_SCALE, block.height * FAVICON_SCALE), Image.NEAREST)
