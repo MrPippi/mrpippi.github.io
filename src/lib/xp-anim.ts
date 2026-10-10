@@ -6,7 +6,7 @@ import { langFromDocument, t } from '../i18n';
 import { printToChat } from './chat';
 import { type Spark, sparkOpacity, sparkPath, TICK_MS } from './firework';
 import { ITEM_SIZE, type Point, throwKeyframes } from './item-drop';
-import { playBreak, playPling } from './sound';
+import { playGlass, playPling } from './sound';
 import { tintedSprite } from './sprite-tint';
 import { bottleXp, orbIcon, splitOrbs, XP_SPLASH_COLOR } from './xp';
 
@@ -100,7 +100,7 @@ export function throwXpBottle(from: Point | undefined): void {
 	const done = (): void => printToChat(t(langFromDocument()).inventory.xp(total));
 	const start = from ?? { x: window.innerWidth / 2, y: window.innerHeight - 80 };
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-		playBreak();
+		playGlass();
 		orbs.forEach((_, i) => window.setTimeout(playPling, (i + 1) * ORB_GAP_MS));
 		done();
 		return;
@@ -115,7 +115,7 @@ export function throwXpBottle(from: Point | undefined): void {
 	const run = async (): Promise<void> => {
 		await bottle.animate([...throwKeyframes(start, land)], { duration: THROW_MS, fill: 'forwards' }).finished;
 		bottle.remove();
-		playBreak();
+		playGlass();
 		const at = { x: land.x + ITEM_SIZE / 2, y: land.y + ITEM_SIZE / 2 };
 		void splash(sky, at);
 		await Promise.all(orbs.map((value, i) => orb(sky, at, value, i * ORB_GAP_MS, start)));

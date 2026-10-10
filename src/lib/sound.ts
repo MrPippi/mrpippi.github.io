@@ -173,6 +173,19 @@ const SAMPLES = {
 	horn5: '/sounds/item/goat_horn/call5.webm',
 	horn6: '/sounds/item/goat_horn/call6.webm',
 	horn7: '/sounds/item/goat_horn/call7.webm',
+	glass1: '/sounds/random/glass1.webm',
+	glass2: '/sounds/random/glass2.webm',
+	glass3: '/sounds/random/glass3.webm',
+	dig1: '/sounds/dig/stone1.webm',
+	dig2: '/sounds/dig/stone2.webm',
+	dig3: '/sounds/dig/stone3.webm',
+	dig4: '/sounds/dig/stone4.webm',
+	step1: '/sounds/step/stone1.webm',
+	step2: '/sounds/step/stone2.webm',
+	step3: '/sounds/step/stone3.webm',
+	step4: '/sounds/step/stone4.webm',
+	step5: '/sounds/step/stone5.webm',
+	step6: '/sounds/step/stone6.webm',
 } as const;
 type Sample = keyof typeof SAMPLES;
 const EXPLOSIONS: readonly Sample[] = ['explode1', 'explode2', 'explode3', 'explode4'];
@@ -347,5 +360,26 @@ export function playTeleport(): void {
 export function playBeacon(): void {
 	void playSample('beacon', 0.6, 1, (ctx) =>
 		playTone(ctx, { type: 'sine', from: 440, to: 880, start: 0, duration: 1, volume: 0.4 }),
+	);
+}
+
+/** 玻璃碎掉（原版 random/glass1–3 隨機）：經驗瓶 */
+export function playGlass(): void {
+	void playSample(pickSample(['glass1', 'glass2', 'glass3']), 0.6, 0.9 + Math.random() * 0.2, (ctx) =>
+		playNoise(ctx, { duration: 0.3, volume: 0.8, filter: 'highpass', from: 3000, to: 1500 }),
+	);
+}
+
+/** 敲方塊（原版 step/stone1–6，挖掘中每隔一下） */
+export function playHit(): void {
+	void playSample(pickSample(['step1', 'step2', 'step3', 'step4', 'step5', 'step6']), 0.25, 0.5, (ctx) =>
+		playTone(ctx, { type: 'square', from: 300, to: 150, start: 0, duration: 0.04, volume: 0.2 }),
+	);
+}
+
+/** 方塊被挖掉（原版 dig/stone1–4） */
+export function playDig(): void {
+	void playSample(pickSample(['dig1', 'dig2', 'dig3', 'dig4']), 0.7, 0.8, (ctx) =>
+		playNoise(ctx, { duration: 0.3, volume: 0.9, filter: 'lowpass', from: 1500, to: 300 }),
 	);
 }

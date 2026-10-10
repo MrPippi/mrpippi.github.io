@@ -18,7 +18,8 @@
     "mc-font": "python scripts/mc-font.py",
     "ui-font": "python scripts/ui-font.py",
     "mc-assets": "python scripts/mc-assets.py",
-    "audio": "node scripts/audio.mjs"
+    "audio": "node scripts/audio.mjs",
+    "fetch-sounds": "node scripts/fetch-sounds.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

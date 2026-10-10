@@ -6,6 +6,7 @@
  *
  * 音樂 40 kbps、音效 64 kbps；Chrome、Edge、Firefox 與 Safari 15+ 都能播放 WebM Opus。
  * 只轉換下方 JOBS 列出的資料夾；原檔不進 git、不公開。
+ * 原檔可以用 node scripts/fetch-sounds.mjs 一次從官方資源伺服器下載。
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readdirSync, statSync } from 'node:fs';
@@ -24,9 +25,11 @@ const JOBS = [
 	[
 		'random',
 		'64k',
-		['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop', 'orb', 'levelup', 'eat1', 'eat2', 'eat3', 'break', 'click'],
+		['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop', 'orb', 'levelup', 'eat1', 'eat2', 'eat3', 'break', 'click', 'glass1', 'glass2', 'glass3'],
 	],
 	['fireworks', '64k', ['launch1', 'blast1', 'twinkle1']],
+	['dig', '64k', ['stone1', 'stone2', 'stone3', 'stone4']],
+	['step', '64k', ['stone1', 'stone2', 'stone3', 'stone4', 'stone5', 'stone6']],
 	['mob/enderman', '64k', ['portal']],
 	['block/beacon', '64k', ['activate']],
 	['item/goat_horn', '64k', ['call0', 'call1', 'call2', 'call3', 'call4', 'call5', 'call6', 'call7']],

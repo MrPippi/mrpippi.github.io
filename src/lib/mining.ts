@@ -5,7 +5,7 @@
  */
 import { type Spark, sparkOpacity, sparkPath, TICK_MS } from './firework';
 import { damageHeld, heldStack } from './hotbar';
-import { playClick } from './sound';
+import { playDig, playHit } from './sound';
 
 const TARGETS = '.banner, .mc-btn';
 const MINE_MS = 1200;
@@ -97,10 +97,11 @@ function startMining(target: HTMLElement, total: number): void {
 			lastStage = stage;
 			crack.style.backgroundImage = `url(/mc/block/destroy_stage_${stage}.png)`;
 			// 每換一個階段敲一下
-			if (stage % 3 === 0) playClick();
+			if (stage % 2 === 0) playHit();
 		}
 		if (elapsed >= total) {
 			cleanup();
+			playDig();
 			shatter(target);
 			target.style.visibility = 'hidden';
 			target.setAttribute('aria-hidden', 'true');
