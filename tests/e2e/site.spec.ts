@@ -50,7 +50,7 @@ test('語言按鈕切換到對應頁面，介面文字跟著換', async ({ page 
 	await page.locator('[data-lang-toggle]').click();
 	await expect(page).toHaveURL(/\/en\/contact\/$/);
 	await expect(page.locator('h1')).toHaveText('Contact');
-	await expect(page.locator('[data-lang-toggle]')).toHaveAttribute('title', '中文');
+	await expect(page.locator('[data-lang-toggle]')).toHaveAttribute('data-tooltip', '中文');
 	await page.locator('[data-lang-toggle]').click();
 	await expect(page).toHaveURL(/\/contact\/$/);
 	await expect(page.locator('h1')).toHaveText('聯絡');

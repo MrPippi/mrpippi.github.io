@@ -30,7 +30,7 @@ import PixelGlyph from './PixelGlyph.astro';
 		const { controls } = t(langFromDocument());
 		const label = effectiveTheme() === 'dark' ? controls.themeToLight : controls.themeToDark;
 		button.setAttribute('aria-label', label);
-		button.title = label;
+		button.dataset.tooltip = label;
 	}
 
 	function apply(next: Theme): void {

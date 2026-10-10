@@ -1,14 +1,5 @@
 ---
-// 全頁固定背景。
-// - 有真正的全景圖（public/mc/panorama/panorama_0–3.png，四個側面）時：旋轉全景，同遊戲標題畫面。
-// - 沒有時：天空漸層 + 原版太陽／月亮 + 原版雲層（以 3D 透視鋪成頭頂上的雲面，緩慢飄移）。
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import Panorama from './Panorama.astro';
-
-const hasPanorama = [0, 1, 2, 3].every((i) =>
-	existsSync(join(process.cwd(), 'public', 'mc', 'panorama', `panorama_${i}.png`)),
-);
+// 全頁固定背景：天空漸層 + 原版太陽／月亮 + 原版雲層（以 3D 透視鋪成頭頂上的雲面，緩慢飄移）。
 
 /** 星星：[left %, top %, 大小 px, 閃爍延遲 s]，用固定公式產生，每次建置一致 */
 const STARS = Array.from({ length: 48 }, (_, i) => {
@@ -21,24 +12,18 @@ const STARS = Array.from({ length: 48 }, (_, i) => {
 ---
 
 <div class="sky" aria-hidden="true">
-	{
-		hasPanorama ? (
-			<Panorama />
-		) : (
-			<>
-				<div class="night only-dark">
-					{STARS.map(([left, top, size, delay]) => (
-						<span class="star" style={`left:${left}%;top:${top}%;width:${size}px;height:${size}px;--delay:${delay}s`} />
-					))}
-				</div>
-				<img class="celestial only-light pixelated" src="/mc/sky/sun.png" alt="" width="32" height="32" />
-				<img class="celestial only-dark pixelated" src="/mc/sky/moon.png" alt="" width="32" height="32" />
-				<div class="cloud-layer">
-					<div class="clouds" />
-				</div>
-			</>
-		)
-	}
+	<div class="night only-dark">
+		{
+			STARS.map(([left, top, size, delay]) => (
+				<span class="star" style={`left:${left}%;top:${top}%;width:${size}px;height:${size}px;--delay:${delay}s`} />
+			))
+		}
+	</div>
+	<img class="celestial only-light pixelated" src="/mc/sky/sun.png" alt="" width="32" height="32" />
+	<img class="celestial only-dark pixelated" src="/mc/sky/moon.png" alt="" width="32" height="32" />
+	<div class="cloud-layer">
+		<div class="clouds"></div>
+	</div>
 </div>
 
 <style>

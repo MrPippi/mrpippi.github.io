@@ -43,7 +43,12 @@ const dict = t(lang);
 		<dl class="stats">
 			{
 				SKILLS.map((row) => (
-					<div class="stat">
+					<div
+						class="stat"
+						tabindex="0"
+						data-tooltip={dict.about.skills[row.key]}
+						data-tooltip-lines={row.value.split(' · ').join('\n')}
+					>
 						<dt>
 							<img src={row.icon} alt="" width="32" height="32" class="pixelated" />
 							{dict.about.skills[row.key]}

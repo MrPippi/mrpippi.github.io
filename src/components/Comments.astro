@@ -1,0 +1,58 @@
+---
+// 文章留言：giscus（GitHub Discussions）。外框做成原版選單的深色面板，配色固定用深色主題（面板本身一直是深色）。
+import { GISCUS } from '../consts';
+import { t } from '../i18n';
+
+// 文章只有中文
+const dict = t('zh-TW').comments;
+---
+
+<section class="comments" aria-labelledby="comments-title">
+	<h2 id="comments-title" class="mc-text">{dict.heading}</h2>
+	<p class="hint">{dict.hint}</p>
+	<div class="giscus"></div>
+	<!-- data-astro-rerun：ClientRouter 換到另一篇文章時也要重新載入留言 -->
+	<script
+		is:inline
+		data-astro-rerun
+		src="https://giscus.app/client.js"
+		data-repo={GISCUS.repo}
+		data-repo-id={GISCUS.repoId}
+		data-category={GISCUS.category}
+		data-category-id={GISCUS.categoryId}
+		data-mapping="pathname"
+		data-strict="1"
+		data-reactions-enabled="1"
+		data-emit-metadata="0"
+		data-input-position="top"
+		data-theme="transparent_dark"
+		data-lang="zh-TW"
+		data-loading="lazy"
+		crossorigin="anonymous"
+		async></script>
+</section>
+
+<style>
+	.comments {
+		margin-top: 3rem;
+		padding-top: 1.5rem;
+		border-top: 2px solid var(--panel-line);
+	}
+
+	h2 {
+		margin: 0 0 0.25rem;
+		font-size: 18px;
+	}
+
+	.hint {
+		margin: 0 0 1rem;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+	}
+
+	/* giscus 會在 .giscus 裡放 iframe */
+	.giscus :global(iframe) {
+		width: 100%;
+		color-scheme: dark;
+	}
+</style>

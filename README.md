@@ -51,10 +51,18 @@ tags: [Minecraft, 插件]
 
 文章清單會顯示閱讀時間與標籤，每個標籤也有自己的頁面（`/blog/tags/<標籤>/`）。有正式文章後，主選單的「文章」按鈕才會解鎖。
 
+## 文章留言
+
+文章頁底部用 [giscus](https://giscus.app/zh-TW)：留言存在這個 repo 的 GitHub Discussions（Announcements 分類），訪客用 GitHub 帳號登入留言。設定在 `src/consts.ts` 的 `GISCUS`。
+第一次使用要安裝 giscus App：https://github.com/apps/giscus （選擇只給這個 repo）。
+
 ## 進度與彩蛋
 
-- **進度**：定義在 `src/lib/advancements.ts`，達成時右上角跳出「進度達成！」，關於我頁面可以看到全部進度。目前有：歡迎光臨、探險家、DJ 皮皮、夜貓子、交個朋友、附魔師、書蟲。紀錄存在訪客自己的瀏覽器裡。
+- **進度**：定義在 `src/lib/advancements.ts`，達成時右上角跳出「進度達成！」，關於我頁面可以看到全部進度。目前有：歡迎光臨、探險家、DJ 皮皮、夜貓子、交個朋友、附魔師、書蟲、迷路了。紀錄存在訪客自己的瀏覽器裡。
 - **附魔書**：關於我頁面的文字用附魔台的銀河字母顯示，點一下會逐字解讀。
+- **404 死亡畫面**：找不到的網址會顯示「你死了！」、隨機死因與「分數：404」，按鈕 1 秒後才能按（同遊戲），並解鎖「迷路了」進度。
+- **原版物品提示框**：滑鼠移到統計資料、進度、附魔書與右下角按鈕上會出現深紫色的原版提示框。其他元素加上 `data-tooltip`（與 `data-tooltip-lines`）即可使用。
+- **換頁讀取畫面**：換頁超過 0.15 秒時顯示「正在載入地形…」與泥土背景。
 
 ## Minecraft 素材
 
@@ -67,7 +75,6 @@ npm run mc-assets
 
 要換圖或加圖時，修改 `scripts/mc-assets.py` 開頭的清單。
 
-**旋轉全景**：遊戲 jar 裡的 `panorama_*.png` 只是 1×1 佔位圖。把真正的全景圖（`panorama_0`–`3.png`，前、右、後、左）放進 `minecraft-assets/textures/gui/title/background/` 後重新執行 `npm run mc-assets`，背景就會自動換成和遊戲一樣緩慢旋轉的全景。用到的素材有：按鈕、選單背景與分隔線、進度通知框、物品欄格子、世界清單的「進入」箭頭、太陽、月亮、雲層、幾個物品圖示，以及 favicon（草地方塊）。
 
 ## 音效與音樂
 
@@ -88,10 +95,10 @@ npm run audio   # 需要 ffmpeg：放在 PATH 上，或用 FFMPEG_PATH 指定
 ## 字型
 
 - 英數：Minecraft 原版點陣字型（`minecraft-assets/textures/font/ascii.png`），附魔文用 `ascii_sga.png`，由 `npm run mc-font` 轉成 `public/fonts/` 下的 woff2。字級用 9 的倍數（18px、27px…）最銳利。
-- 中文標題與按鈕：[Chiron GoRound TC](https://fonts.google.com/specimen/Chiron+GoRound+TC)（SIL OFL 1.1），粗圓體。
-- 內文：Noto Sans TC。
+- 中文標題與按鈕：[Chiron GoRound TC](https://github.com/google/fonts/tree/main/ofl/chirongoroundtc)（SIL OFL 1.1）粗圓體，只裁出介面用到的字（`public/fonts/chiron-goround-*.woff2`）。改了翻譯檔或文章標題後執行 `npm run ui-font -- path/to/ChironGoRoundTC[wght].ttf` 重新產生。
+- 內文：裝置內建的中文字型（蘋方、微軟正黑體、思源黑體），不另外下載。
 
-中文字型都由 Google Fonts 載入，會依頁面用到的字自動分段下載，不需要自己裁字。
+字型都由網站自己提供，不經過 Google Fonts，畫面不必等外部 CSS 下載完才繪製。
 
 ## 網站分析
 

@@ -3,7 +3,7 @@
 import McButton from './McButton.astro';
 ---
 
-<McButton size="square" data-lang-toggle aria-label="English" title="English">
+<McButton size="square" data-lang-toggle aria-label="English" data-tooltip="English">
 	<img src="/mc/gui/language.png" alt="" width="15" height="15" class="pixelated lang-icon" />
 </McButton>
 
@@ -25,7 +25,7 @@ import McButton from './McButton.astro';
 		if (!button) return;
 		const label = t(langFromDocument()).controls.language;
 		button.setAttribute('aria-label', label);
-		button.title = label;
+		button.dataset.tooltip = label;
 	}
 
 	button?.addEventListener('click', () => {

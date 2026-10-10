@@ -1,0 +1,113 @@
+---
+// 404：仿原版死亡畫面。GitHub Pages 對所有找不到的網址都回這一頁，
+// 所以語言在瀏覽器端依網址判斷（/en/ 開頭用英文）。
+import McButton from '../components/McButton.astro';
+import { t } from '../i18n';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const dict = t('zh-TW');
+const firstDeath = dict.notFound.deaths[0].replace('{name}', dict.profile.name);
+---
+
+<BaseLayout title={dict.notFound.title}>
+	<main class="death" data-death>
+		<h1 class="mc-text" data-death-heading>{dict.notFound.heading}</h1>
+		<p class="message mc-text" data-death-message>{firstDeath}</p>
+		<p class="score mc-text"><span data-death-score>{dict.notFound.score}</span><span class="num">404</span></p>
+		<div class="buttons">
+			<McButton data-respawn disabled>{dict.notFound.respawn}</McButton>
+			<McButton data-title-screen disabled>{dict.notFound.titleScreen}</McButton>
+		</div>
+	</main>
+</BaseLayout>
+
+<style>
+	/* 原版死亡畫面：整片半透明紅色，上淡下濃 */
+	.death {
+		display: grid;
+		place-content: center;
+		justify-items: center;
+		gap: 1.25rem;
+		min-height: 100vh;
+		min-height: 100dvh;
+		padding: 2rem var(--gutter) var(--controls-space);
+		background: linear-gradient(rgb(80 0 0 / 0.6), rgb(160 0 0 / 0.75));
+		text-align: center;
+	}
+
+	h1 {
+		margin: 0 0 1rem;
+		font-size: 54px; /* 6 倍 */
+		line-height: 1.2;
+	}
+
+	.message,
+	.score {
+		margin: 0;
+		font-size: 18px;
+	}
+
+	.num {
+		color: var(--yellow);
+		text-shadow: var(--mc-px) var(--mc-px) 0 #3f3f15;
+	}
+
+	.buttons {
+		display: grid;
+		gap: 10px;
+		width: min(400px, 100%);
+		margin-top: 2rem;
+	}
+
+	@media (max-width: 480px) {
+		h1 {
+			font-size: 36px; /* 4 倍 */
+		}
+	}
+</style>
+
+<script>
+	import { navigate } from 'astro:transitions/client';
+	import { HTML_LANG, langFromPath, localizePath, t } from '../i18n';
+	import { unlock } from '../lib/advancements';
+
+	/** 原版死亡畫面的按鈕要等一下才能按 */
+	const ENABLE_DELAY_MS = 1000;
+
+	function setup(): void {
+		const root = document.querySelector<HTMLElement>('[data-death]');
+		if (!root) return;
+		const lang = langFromPath(location.pathname);
+		const dict = t(lang);
+		const home = localizePath('/', lang);
+		document.documentElement.lang = HTML_LANG[lang];
+		document.title = dict.notFound.title;
+
+		const deaths = dict.notFound.deaths;
+		const death = deaths[Math.floor(Math.random() * deaths.length)].replace('{name}', dict.profile.name);
+		const set = (selector: string, text: string) => {
+			const el = root.querySelector(selector);
+			if (el) el.textContent = text;
+		};
+		set('[data-death-heading]', dict.notFound.heading);
+		set('[data-death-message]', death);
+		set('[data-death-score]', dict.notFound.score);
+		set('[data-respawn]', dict.notFound.respawn);
+		set('[data-title-screen]', dict.notFound.titleScreen);
+
+		const respawn = root.querySelector<HTMLButtonElement>('[data-respawn]');
+		const titleScreen = root.querySelector<HTMLButtonElement>('[data-title-screen]');
+		// 重生：從站內來的回上一頁，否則回標題畫面
+		const cameFromSite = document.referrer.startsWith(location.origin) && history.length > 1;
+		respawn?.addEventListener('click', () => (cameFromSite ? history.back() : void navigate(home)));
+		titleScreen?.addEventListener('click', () => void navigate(home));
+		window.setTimeout(() => {
+			if (respawn) respawn.disabled = false;
+			if (titleScreen) titleScreen.disabled = false;
+		}, ENABLE_DELAY_MS);
+
+		unlock('lost');
+	}
+
+	document.addEventListener('astro:page-load', setup);
+</script>

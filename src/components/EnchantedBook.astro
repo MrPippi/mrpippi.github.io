@@ -3,12 +3,21 @@
 import { ENCHANTED_MESSAGE } from '../consts';
 import { langFromPath, t } from '../i18n';
 
-const hint = t(langFromPath(Astro.url.pathname)).enchant.hint;
+const { hint, tooltip } = t(langFromPath(Astro.url.pathname)).enchant;
 
 const chars = [...ENCHANTED_MESSAGE];
 ---
 
-<button type="button" class="book" data-enchanted-book aria-pressed="false" aria-label={`${hint}: ${ENCHANTED_MESSAGE}`}>
+<button
+	type="button"
+	class="book"
+	data-enchanted-book
+	aria-pressed="false"
+	aria-label={`${hint}: ${ENCHANTED_MESSAGE}`}
+	data-tooltip={hint}
+	data-tooltip-color="yellow"
+	data-tooltip-lines={tooltip}
+>
 	<span class="icon">
 		<img src="/mc/item/enchanted_book.png" alt="" width="48" height="48" class="pixelated" />
 	</span>

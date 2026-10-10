@@ -47,15 +47,14 @@ COPIES = {
     "item/music_disc_cat.png": "item/music_disc_cat.png",
     "item/goat_horn.png": "item/goat_horn.png",
     "item/enchanted_book.png": "item/enchanted_book.png",
+    "item/compass.png": "item/compass_00.png",
+    "block/dirt.png": "block/dirt.png",
 }
 ADDITIVE = {
     "sky/sun.png": "environment/celestial/sun.png",
     "sky/moon.png": "environment/celestial/moon/full_moon.png",
 }
 CLOUDS = ("sky/clouds.png", "environment/clouds.png")
-PANORAMA_SOURCE = "gui/title/background/panorama_{}.png"
-PANORAMA_OUTPUT = "panorama/panorama_{}.png"
-PANORAMA_FACES = range(4)  # 只用四個側面（上下兩面不會出現在畫面中）
 GRASS_TINT = (0x91, 0xBD, 0x59)  # 平原生態域的草地顏色
 FAVICON_SCALE = 4
 
@@ -112,19 +111,6 @@ def favicon() -> Image.Image:
     return block.resize((block.width * FAVICON_SCALE, block.height * FAVICON_SCALE), Image.NEAREST)
 
 
-def copy_panorama() -> bool:
-    """遊戲 jar 裡的全景圖只是 1×1 佔位圖；只有 6 張都是真圖才複製，否則移除舊的，網站改用天空背景。"""
-    faces = [load(PANORAMA_SOURCE.format(i)) for i in PANORAMA_FACES]
-    real = all(face.width > 1 and face.height > 1 for face in faces)
-    for i, face in zip(PANORAMA_FACES, faces):
-        out = OUTPUT / PANORAMA_OUTPUT.format(i)
-        if real:
-            save(face, PANORAMA_OUTPUT.format(i))
-        elif out.exists():
-            out.unlink()
-    return real
-
-
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     if not SOURCE.is_dir():
@@ -136,13 +122,11 @@ def main() -> None:
         save(brightness_to_alpha(load(src)), out)
     save(white_mask(load(CLOUDS[1])), CLOUDS[0])
     favicon().save(ROOT / "public" / "favicon.png", optimize=True)
-    panorama = copy_panorama()
 
     files = sorted(OUTPUT.rglob("*.png"))
     total = sum(f.stat().st_size for f in files) / 1024
     print(f"{len(files)} 張 -> {OUTPUT.relative_to(ROOT)} ({total:.1f} KB) + public/favicon.png")
-    if not panorama:
-        print("全景圖是佔位圖（1×1），未啟用旋轉全景；放入真正的 panorama_0–3.png 後重新執行即可。")
+
 
 
 if __name__ == "__main__":

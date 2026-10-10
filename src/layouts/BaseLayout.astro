@@ -2,11 +2,13 @@
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import LanguageToggle from '../components/LanguageToggle.astro';
+import LoadingScreen from '../components/LoadingScreen.astro';
 import MusicToggle from '../components/MusicToggle.astro';
 import Sky from '../components/Sky.astro';
 import SoundToggle from '../components/SoundToggle.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import Toast from '../components/Toast.astro';
+import Tooltip from '../components/Tooltip.astro';
 import { ANALYTICS, PROFILE } from '../consts';
 import { BILINGUAL_PATHS, HTML_LANG, LANGS, OG_LOCALE, langFromPath, localizePath, stripLang, t } from '../i18n';
 
@@ -52,9 +54,8 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 		<meta name="theme-color" content="#05081a" media="(prefers-color-scheme: dark)" />
 
 		<link rel="preload" href="/fonts/minecraft-ascii.woff2" as="font" type="font/woff2" crossorigin />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@700;900&family=Noto+Sans+TC:wght@400;700&display=swap" />
+		<link rel="preload" href="/fonts/chiron-goround-900.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href="/fonts/chiron-goround-700.woff2" as="font" type="font/woff2" crossorigin />
 
 		{
 			ANALYTICS.cloudflareToken && (
@@ -105,6 +106,10 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 		</div>
 		<div transition:persist="toast">
 			<Toast />
+		</div>
+		<div transition:persist="overlays">
+			<Tooltip />
+			<LoadingScreen />
 		</div>
 		<slot />
 	</body>

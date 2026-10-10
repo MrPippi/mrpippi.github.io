@@ -1,7 +1,7 @@
 /** 每個語系的翻譯檔都要符合這個形狀；新增字串時兩個檔案都要補上。 */
 
 export type SkillKey = 'plugins' | 'web' | 'deploy' | 'ai';
-export type AdvancementId = 'welcome' | 'explorer' | 'dj' | 'night-owl' | 'social' | 'enchanter' | 'reader';
+export type AdvancementId = 'welcome' | 'explorer' | 'dj' | 'night-owl' | 'social' | 'enchanter' | 'reader' | 'lost';
 
 export interface Dictionary {
 	readonly site: { readonly title: string; readonly description: string; readonly titleSuffix: string };
@@ -63,7 +63,20 @@ export interface Dictionary {
 		readonly tagTitle: (tag: string) => string;
 		readonly tagDescription: (tag: string) => string;
 	};
-	readonly enchant: { readonly hint: string };
+	readonly enchant: { readonly hint: string; readonly tooltip: string };
+	readonly comments: { readonly heading: string; readonly hint: string };
+	readonly notFound: {
+		readonly title: string;
+		readonly heading: string;
+		/** 分數前面的文字（含冒號） */
+		readonly score: string;
+		/** 死亡訊息，{name} 會換成名字 */
+		readonly deaths: readonly string[];
+		readonly respawn: string;
+		readonly titleScreen: string;
+	};
+	readonly loading: string;
+	readonly tooltip: { readonly unlocked: string; readonly locked: string };
 	readonly advancements: {
 		readonly heading: string;
 		readonly toast: string;

@@ -1,0 +1,96 @@
+---
+// 換頁讀取畫面：仿原版「正在載入地形…」——變暗的泥土方塊鋪滿畫面，中間是文字與進度條。
+// ClientRouter 換頁超過 SHOW_DELAY_MS 才出現，換頁很快時不會閃一下。
+---
+
+<div class="loading" data-loading-screen aria-live="polite" hidden>
+	<p class="text mc-text" data-loading-text></p>
+	<div class="bar" aria-hidden="true"><span></span></div>
+</div>
+
+<style>
+	.loading {
+		position: fixed;
+		inset: 0;
+		z-index: 40;
+		display: grid;
+		place-content: center;
+		justify-items: center;
+		gap: 18px;
+		/* 原版選項背景：泥土材質放大 4 倍再壓暗 */
+		background:
+			linear-gradient(rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.72)),
+			url('/mc/block/dirt.png') repeat;
+		background-size: auto, 64px;
+		image-rendering: pixelated;
+		animation: fade-in 120ms ease-out;
+	}
+
+	.loading[hidden] {
+		display: none;
+	}
+
+	.text {
+		margin: 0;
+		font-size: 18px;
+	}
+
+	/* 進度條：灰底綠條，來回跑（換頁不知道確切進度） */
+	.bar {
+		position: relative;
+		width: min(320px, 70vw);
+		height: 6px;
+		overflow: hidden;
+		background: #404040;
+		box-shadow: 0 0 0 2px #000;
+	}
+
+	.bar span {
+		position: absolute;
+		inset: 0 auto 0 0;
+		width: 35%;
+		background: #80ff20;
+		animation: progress 1.1s ease-in-out infinite;
+	}
+
+	@keyframes progress {
+		from {
+			transform: translateX(-100%);
+		}
+		to {
+			transform: translateX(290%);
+		}
+	}
+
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+		}
+	}
+</style>
+
+<script>
+	import { langFromPath, t } from '../i18n';
+
+	const SHOW_DELAY_MS = 150;
+	const screen = document.querySelector<HTMLElement>('[data-loading-screen]');
+	const text = screen?.querySelector('[data-loading-text]');
+	let timer: number | undefined;
+
+	function hide(): void {
+		window.clearTimeout(timer);
+		if (screen) screen.hidden = true;
+	}
+
+	// 開始換頁：用目的地的語言顯示文字，稍等一下仍沒完成才出現
+	document.addEventListener('astro:before-preparation', (event) => {
+		if (!screen || !text) return;
+		text.textContent = t(langFromPath(event.to.pathname)).loading;
+		window.clearTimeout(timer);
+		timer = window.setTimeout(() => {
+			screen.hidden = false;
+		}, SHOW_DELAY_MS);
+	});
+	document.addEventListener('astro:after-swap', hide);
+	document.addEventListener('astro:page-load', hide);
+</script>

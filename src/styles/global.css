@@ -14,7 +14,20 @@
 	font-display: block;
 }
 
-/* 中文：Chiron GoRound TC（SIL OFL 1.1），由 Google Fonts 載入（見 BaseLayout） */
+/* 中文介面字：Chiron GoRound TC（SIL OFL 1.1）裁字子集，由 scripts/ui-font.py 產生 */
+@font-face {
+	font-family: 'Chiron GoRound TC';
+	src: url('/fonts/chiron-goround-700.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Chiron GoRound TC';
+	src: url('/fonts/chiron-goround-900.woff2') format('woff2');
+	font-weight: 900;
+	font-display: swap;
+}
 
 /* ---------- Tokens ---------- */
 /* 介面一律是「天空 + 半透明深色面板 + 白字」，主題只切換白天／夜晚的天空與面板濃度 */
@@ -32,8 +45,9 @@
 	--shadow-ink: #3f3f3f;
 
 
-	--font-ui: 'Minecraft', 'Chiron GoRound TC', 'Noto Sans TC', sans-serif;
-	--font-body: 'Noto Sans TC', system-ui, -apple-system, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+	--font-ui: 'Minecraft', 'Chiron GoRound TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+	/* 內文用裝置內建的中文字型，不另外下載：蘋果蘋方、Windows 微軟正黑體、Android 思源黑體 */
+	--font-body: system-ui, -apple-system, 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans CJK TC', 'Noto Sans TC', sans-serif;
 	--gutter: 16px;
 	/* 右下角按鈕列佔用的高度（40px 按鈕 + 上下 12px），頁面底部要留這麼多空間 */
 	--controls-space: calc(64px + env(safe-area-inset-bottom));

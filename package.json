@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "check:links": "node scripts/check-links.mjs",
     "mc-font": "python scripts/mc-font.py",
+    "ui-font": "python scripts/ui-font.py",
     "mc-assets": "python scripts/mc-assets.py",
     "audio": "node scripts/audio.mjs"
   },

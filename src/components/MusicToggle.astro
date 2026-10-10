@@ -193,7 +193,7 @@ import PixelGlyph from './PixelGlyph.astro';
 		root?.setAttribute('data-playing', String(playing));
 		toggle?.setAttribute('aria-pressed', String(on));
 		toggle?.setAttribute('aria-label', controls.music);
-		if (toggle) toggle.title = controls.music;
+		if (toggle) toggle.dataset.tooltip = controls.music;
 		if (power) power.textContent = on ? music.stateOn : music.stateOff;
 		if (next) next.textContent = music.next;
 		if (nowLabel) nowLabel.textContent = playing ? music.nowPlaying : music.stopped;

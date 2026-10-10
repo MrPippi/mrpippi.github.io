@@ -50,6 +50,18 @@ export const ANALYTICS = {
 	cloudflareToken: '',
 } as const;
 
+/**
+ * 文章留言（giscus）：留言存在這個 repo 的 GitHub Discussions，訪客用 GitHub 帳號登入留言。
+ * 需要先安裝 giscus App：https://github.com/apps/giscus （選擇只給這個 repo）。
+ * ID 由 GitHub API 查得；category 用 Announcements：只有站長與 giscus 能開新討論串。
+ */
+export const GISCUS = {
+	repo: 'MrPippi/mrpippi.github.io',
+	repoId: 'R_kgDOSQwe9w',
+	category: 'Announcements',
+	categoryId: 'DIC_kwDOSQwe984DHd7E',
+} as const;
+
 export const DISCORD = {
 	username: 'mr__pippi',
 	profileUrl: 'https://discord.com/users/608176040279539712',

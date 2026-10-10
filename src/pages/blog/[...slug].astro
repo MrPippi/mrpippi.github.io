@@ -1,5 +1,6 @@
 ---
 import { render } from 'astro:content';
+import Comments from '../../components/Comments.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import TagChip from '../../components/TagChip.astro';
 import { t } from '../../i18n';
@@ -47,6 +48,7 @@ const dict = t('zh-TW');
 	<article class="prose">
 		<Content />
 	</article>
+	<Comments />
 </MenuLayout>
 
 <style>

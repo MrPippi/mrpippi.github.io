@@ -3,7 +3,8 @@
 import { langFromPath, t } from '../i18n';
 import { ADVANCEMENTS } from '../lib/advancements';
 
-const dict = t(langFromPath(Astro.url.pathname)).advancements;
+const lang = langFromPath(Astro.url.pathname);
+const dict = t(lang).advancements;
 ---
 
 <section aria-labelledby="advancements-title">
@@ -13,7 +14,13 @@ const dict = t(langFromPath(Astro.url.pathname)).advancements;
 	<ul class="grid">
 		{
 			ADVANCEMENTS.map((a) => (
-				<li class="item" data-adv={a.id}>
+				<li
+					class="item"
+					data-adv={a.id}
+					tabindex="0"
+					data-tooltip={dict.items[a.id].title}
+					data-tooltip-lines={`${dict.items[a.id].description}\n-${t(lang).tooltip.locked}`}
+				>
 					<span class="frame">
 						<img src={a.icon} alt="" width="32" height="32" class="pixelated" />
 					</span>
@@ -113,12 +120,21 @@ const dict = t(langFromPath(Astro.url.pathname)).advancements;
 </style>
 
 <script>
+	import { type AdvancementId, langFromDocument, t } from '../i18n';
 	import { ADVANCEMENT_EVENT, ADVANCEMENTS, unlockedIds } from '../lib/advancements';
 
 	function render(): void {
 		const unlocked = unlockedIds();
+		const dict = t(langFromDocument());
 		document.querySelectorAll<HTMLElement>('[data-adv]').forEach((el) => {
-			el.classList.toggle('done', unlocked.includes(el.dataset.adv ?? ''));
+			const id = el.dataset.adv as AdvancementId;
+			const done = unlocked.includes(id);
+			el.classList.toggle('done', done);
+			// 提示框：達成的進度名稱顯示黃色，最後一行是達成狀態（+ 綠色、- 灰色）
+			const status = done ? `+${dict.tooltip.unlocked}` : `-${dict.tooltip.locked}`;
+			el.dataset.tooltipLines = `${dict.advancements.items[id].description}\n${status}`;
+			if (done) el.dataset.tooltipColor = 'yellow';
+			else delete el.dataset.tooltipColor;
 		});
 		const count = document.querySelector('[data-adv-count]');
 		if (count) count.textContent = `${unlocked.length} / ${ADVANCEMENTS.length}`;

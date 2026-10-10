@@ -1,0 +1,151 @@
+---
+// 原版物品提示框：深紫黑底、紫色漸層邊框，第一行是名稱，其餘是說明。
+// 任何元素加上 data-tooltip="名稱"（可選 data-tooltip-lines="第二行\n第三行"、data-tooltip-color="yellow|aqua|green|gray"）
+// 就會在滑鼠移上去或鍵盤聚焦時顯示。觸控裝置沒有滑鼠移入，所以不顯示。
+---
+
+<div class="mc-tooltip" data-mc-tooltip role="tooltip" hidden>
+	<p class="name mc-text" data-tooltip-name></p>
+	<div class="lines" data-tooltip-body></div>
+</div>
+
+<style>
+	.mc-tooltip {
+		position: fixed;
+		z-index: 30;
+		max-width: min(320px, calc(100vw - 24px));
+		padding: 6px 10px 8px;
+		/* 原版：#100010 底，內側一圈由上到下 #5000FF → #28007F 的半透明邊框 */
+		border: 2px solid #100010f0;
+		background: #100010f0;
+		box-shadow:
+			inset 0 2px 0 #5000ff80,
+			inset 0 -2px 0 #28007f80,
+			inset 2px 0 0 #3c00bf80,
+			inset -2px 0 0 #3c00bf80;
+		pointer-events: none;
+	}
+
+	.mc-tooltip[hidden] {
+		display: none;
+	}
+
+	p {
+		margin: 0;
+	}
+
+	.name {
+		color: var(--text);
+		font-size: 18px;
+		line-height: 1.4;
+	}
+
+	.name[data-color='yellow'] {
+		color: var(--yellow);
+		text-shadow: var(--mc-px) var(--mc-px) 0 #3f3f15;
+	}
+
+	.name[data-color='aqua'] {
+		color: #55ffff;
+		text-shadow: var(--mc-px) var(--mc-px) 0 #153f3f;
+	}
+
+	.lines {
+		display: grid;
+		gap: 2px;
+		margin-top: 2px;
+	}
+
+	.lines :global(p) {
+		margin: 0;
+		color: var(--text-muted);
+		font-family: var(--font-ui);
+		font-size: 15px;
+		line-height: 1.4;
+		text-shadow: 0.1em 0.1em 0 #2a2a2a;
+	}
+
+	.lines :global(p[data-color='green']) {
+		color: #55ff55;
+	}
+
+	.lines :global(p[data-color='gray']) {
+		color: #7e7e7e;
+	}
+</style>
+
+<script>
+	const OFFSET = 14;
+	const tooltip = document.querySelector<HTMLElement>('[data-mc-tooltip]');
+	const nameEl = tooltip?.querySelector<HTMLElement>('[data-tooltip-name]');
+	const bodyEl = tooltip?.querySelector<HTMLElement>('[data-tooltip-body]');
+	let current: HTMLElement | null = null;
+
+	/** 第二行之後若以「+」開頭顯示綠色、「-」開頭顯示灰色（例如進度的達成狀態） */
+	function renderLine(text: string): HTMLParagraphElement {
+		const p = document.createElement('p');
+		const marker = text[0];
+		if (marker === '+' || marker === '-') {
+			p.dataset.color = marker === '+' ? 'green' : 'gray';
+			p.textContent = text.slice(1);
+		} else {
+			p.textContent = text;
+		}
+		return p;
+	}
+
+	function show(target: HTMLElement): void {
+		if (!tooltip || !nameEl || !bodyEl) return;
+		current = target;
+		nameEl.textContent = target.dataset.tooltip ?? '';
+		if (target.dataset.tooltipColor) nameEl.dataset.color = target.dataset.tooltipColor;
+		else delete nameEl.dataset.color;
+		const lines = (target.dataset.tooltipLines ?? '').split('\n').filter(Boolean);
+		bodyEl.replaceChildren(...lines.map(renderLine));
+		bodyEl.hidden = lines.length === 0;
+		tooltip.hidden = false;
+	}
+
+	function hide(): void {
+		current = null;
+		if (tooltip) tooltip.hidden = true;
+	}
+
+	/** 放在游標右上方（同原版），超出畫面時往左或往下移 */
+	function moveTo(x: number, y: number): void {
+		if (!tooltip) return;
+		const { width, height } = tooltip.getBoundingClientRect();
+		const left = x + OFFSET + width > window.innerWidth - 8 ? x - OFFSET - width : x + OFFSET;
+		const top = Math.max(8, Math.min(y - OFFSET - height / 2, window.innerHeight - height - 8));
+		tooltip.style.left = `${Math.max(8, left)}px`;
+		tooltip.style.top = `${top}px`;
+	}
+
+	const targetOf = (node: EventTarget | null) =>
+		node instanceof Element ? node.closest<HTMLElement>('[data-tooltip]') : null;
+
+	document.addEventListener('pointerover', (event) => {
+		if (event.pointerType === 'touch') return;
+		const target = targetOf(event.target);
+		if (target && target !== current) show(target);
+		if (!target) hide();
+	});
+	document.addEventListener('pointermove', (event) => {
+		if (current) moveTo(event.clientX, event.clientY);
+	});
+	document.addEventListener('pointerleave', hide);
+
+	// 鍵盤操作：聚焦時顯示在元素旁邊
+	document.addEventListener('focusin', (event) => {
+		const target = targetOf(event.target);
+		if (!target) return;
+		show(target);
+		const box = target.getBoundingClientRect();
+		moveTo(box.right, box.top + box.height / 2);
+	});
+	document.addEventListener('focusout', hide);
+
+	// 換頁、捲動時收起
+	document.addEventListener('astro:before-swap', hide);
+	window.addEventListener('scroll', hide, { passive: true });
+</script>

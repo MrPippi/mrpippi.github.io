@@ -35,7 +35,7 @@ import PixelGlyph from './PixelGlyph.astro';
 		const label = muted ? controls.soundOff : controls.soundOn;
 		button.setAttribute('aria-pressed', String(muted));
 		button.setAttribute('aria-label', label);
-		button.title = label;
+		button.dataset.tooltip = label;
 	}
 
 	button?.addEventListener('click', () => {
