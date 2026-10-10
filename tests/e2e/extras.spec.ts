@@ -10,6 +10,8 @@ test.describe('聊天列指令', () => {
 		await input.fill('尼好');
 		await input.press('Enter');
 		await expect(page.locator('[data-chat-log] li').last()).toHaveText('<訪客> 尼好');
+		// 沒改過名字沒有頭像
+		await expect(page.locator('[data-chat-log] li').last().locator('img')).toHaveCount(0);
 		await expect(input).toBeHidden();
 
 		await page.keyboard.press('t');

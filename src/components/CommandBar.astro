@@ -21,6 +21,15 @@
 </div>
 
 <style>
+	/* 聊天訊息前的玩家頭像，和文字一樣高 */
+	.log :global(.head) {
+		width: 1em;
+		height: 1em;
+		margin-right: 0.35em;
+		vertical-align: -0.12em;
+		image-rendering: pixelated;
+	}
+
 	.chat {
 		position: fixed;
 		left: 12px;
@@ -148,10 +157,21 @@
 	let history: readonly string[] = [];
 	let historyIndex = -1;
 
-	function print(text: string, tone: Tone = 'chat'): void {
+	function print(text: string, tone: Tone = 'chat', head?: string): void {
 		if (!log) return;
 		const line = document.createElement('li');
 		line.textContent = text;
+		// 改過名字的玩家：訊息前面放皮膚的 2D 頭像（載入失敗就拿掉）
+		if (head) {
+			const img = document.createElement('img');
+			img.className = 'head pixelated';
+			img.src = head;
+			img.alt = '';
+			img.width = 16;
+			img.height = 16;
+			img.addEventListener('error', () => img.remove(), { once: true });
+			line.prepend(img);
+		}
 		line.dataset.tone = tone;
 		log.append(line);
 		while (log.children.length > MAX_LINES) log.firstElementChild?.remove();

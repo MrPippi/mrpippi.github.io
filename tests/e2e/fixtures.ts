@@ -19,6 +19,16 @@ export async function mockExternalApis(page: Page, mocks: ExternalMocks = {}): P
 	const cors = { 'access-control-allow-origin': '*' };
 	await page.route('https://decapi.me/twitch/uptime/**', (route) => route.fulfill({ body: twitchUptime, headers: cors }));
 	await page.route('https://decapi.me/twitch/title/**', (route) => route.fulfill({ body: twitchTitle, headers: cors }));
+	// 皮膚頭像：回一張 1×1 的 PNG，不連到外部
+	await page.route('https://crafthead.net/**', (route) =>
+		route.fulfill({
+			contentType: 'image/png',
+			body: Buffer.from(
+				'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+				'base64',
+			),
+		}),
+	);
 	await page.route('https://api.open-meteo.com/**', (route) =>
 		route.fulfill({ json: { current: { time: '2026-10-10T16:00', weather_code: weatherCode } }, headers: cors }),
 	);

@@ -102,6 +102,8 @@ test.describe('物品欄進階', () => {
 		await input.fill('嗨');
 		await input.press('Enter');
 		await expect(lastChat(page)).toHaveText('<Steve> 嗨');
+		// 改過名字後訊息前面有皮膚頭像
+		await expect(lastChat(page).locator('img.head')).toHaveAttribute('src', 'https://crafthead.net/avatar/Steve/16');
 	});
 
 	test('地圖：列出頁面，標出目前位置，Esc 關閉', async ({ page }) => {

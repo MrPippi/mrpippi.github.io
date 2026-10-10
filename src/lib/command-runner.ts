@@ -11,13 +11,14 @@ import { receiveItems, showHotbar, slotCenter } from './hotbar';
 import { dieWithItems } from './death-drops';
 import { consumeItem, hasItem } from './hotbar';
 import { dropItems } from './item-drop-anim';
-import { finishRename, isRenaming, playerName } from './player';
+import { finishRename, isRenaming, playerHead, playerName } from './player';
 import { nextTrack, setMusicOn } from './music';
 import { setTheme } from './theme';
 import { fetchRealWeather, overrideWeather } from './weather';
 
 export type Tone = 'chat' | 'info' | 'error';
-export type Print = (text: string, tone?: Tone) => void;
+/** head：訊息前面顯示的玩家頭像網址 */
+export type Print = (text: string, tone?: Tone, head?: string) => void;
 
 /** 這些結果算「成功執行了一個指令」，會解鎖進度 */
 const NOT_COMMANDS: readonly Action['kind'][] = ['chat', 'empty', 'unknown', 'usage'];
@@ -69,11 +70,11 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 			return;
 		case 'chat':
 			if (isRenaming() && hasItem('name_tag')) return rename(action.text, print);
-			print(`<${playerName()}> ${action.text}`, 'chat');
+			print(`<${playerName()}> ${action.text}`, 'chat', playerHead());
 			if (isCreeperCall(action.text) && (await igniteCreeper())) print(commands.blownUp(playerName()), 'info');
 			return;
 		case 'say':
-			print(`[${playerName()}] ${action.text}`, 'chat');
+			print(`[${playerName()}] ${action.text}`, 'chat', playerHead());
 			unlock('soliloquy');
 			return;
 		case 'unknown':
