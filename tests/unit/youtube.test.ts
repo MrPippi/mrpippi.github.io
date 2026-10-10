@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractChannelId, parseFeed } from '../../src/lib/youtube';
+import { extractChannelId, parseFeed, videosOnlyFeedUrl } from '../../src/lib/youtube';
 
 const entry = (id: string, title: string, published: string) => `
 	<entry>
@@ -58,5 +58,13 @@ describe('extractChannelId', () => {
 	it('找不到或格式不對時回傳 undefined', () => {
 		expect(extractChannelId('<html>consent</html>')).toBeUndefined();
 		expect(extractChannelId('{"channelId":"UCshort"}')).toBeUndefined();
+	});
+});
+
+describe('videosOnlyFeedUrl', () => {
+	it('改用 UULF 播放清單（不含 Shorts 與直播）', () => {
+		expect(videosOnlyFeedUrl('UCdcUpJOFIJWQxrKKCONv4wg')).toBe(
+			'https://www.youtube.com/feeds/videos.xml?playlist_id=UULFdcUpJOFIJWQxrKKCONv4wg',
+		);
 	});
 });

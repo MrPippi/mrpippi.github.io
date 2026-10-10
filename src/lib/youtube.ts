@@ -1,5 +1,6 @@
 /**
- * 建置時從 YouTube 頻道 RSS 抓最新影片。
+ * 建置時從 YouTube RSS 抓最新影片。只抓一般影片，不含 Shorts 與直播紀錄
+ * （YouTube 每個頻道都有 UULF 開頭的「一般影片」播放清單，UUSH 是 Shorts、UULV 是直播）。
  * 任何失敗（查不到頻道 ID、網路錯誤、格式不符）都回傳空陣列，頁面改顯示「前往頻道」，不讓建置失敗。
  */
 
@@ -45,6 +46,11 @@ function parseEntry(xml: string): Video | undefined {
 
 export function parseFeed(xml: string): readonly Video[] {
 	return [...xml.matchAll(ENTRY)].map((m) => parseEntry(m[1])).filter((v): v is Video => v !== undefined);
+}
+
+/** 頻道 ID（UC…）→ 只含一般影片的播放清單 RSS 網址 */
+export function videosOnlyFeedUrl(channelId: string): string {
+	return `https://www.youtube.com/feeds/videos.xml?playlist_id=UULF${channelId.slice(2)}`;
 }
 
 /** 頻道頁 HTML 裡出現頻道 ID 的幾種位置，依可靠程度排序 */
@@ -98,7 +104,7 @@ export async function fetchLatestVideos(channelId: string, limit: number, channe
 		return [];
 	}
 	try {
-		const res = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${id}`, {
+		const res = await fetch(videosOnlyFeedUrl(id), {
 			signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
 		});
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
