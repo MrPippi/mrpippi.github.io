@@ -4,11 +4,11 @@
  * 2. 這個清單在 GitHub Actions 主機上常回 404，失敗時改抓整個頻道的 RSS，
  *    再逐支判斷：/shorts/ID 回 200 的是 Shorts，影片頁標示 isLiveContent 的是直播紀錄。
  * 3. RSS 都不能用時，讀頻道的「影片」分頁（只列一般影片，見 youtube-scrape.ts）。
- * 4. 每次請求失敗會重試；全部失敗時改用上次成功的備份（見 youtube-cache.ts）。
+ * 4. 每次請求失敗會重試；全部失敗（或抓到 0 支）時改用備份（見 youtube-cache.ts）。
  * 連備份都沒有時回傳空陣列，頁面改顯示「前往頻道」，不讓建置失敗。
  */
 
-import { loadVideos, saveVideos } from './youtube-cache';
+import { recallVideos, rememberVideos } from './youtube-cache';
 import { decodeEntities, extractVideoIds, parseWatchPage } from './youtube-scrape';
 
 export interface Video {
@@ -199,9 +199,11 @@ async function scrapeVideosTab(id: string, limit: number): Promise<readonly Vide
 	const ids = extractVideoIds(await fetchPage(`https://www.youtube.com/channel/${id}/videos`));
 	if (ids.length === 0) throw new Error('分頁裡找不到影片');
 	const videos: Video[] = [];
+	let unreadable = 0;
 	for (const videoId of ids) {
 		if (videos.length >= limit) break;
 		const info = parseWatchPage(await fetchPage(`https://www.youtube.com/watch?v=${videoId}`));
+		if (!info) unreadable++;
 		if (!info || info.live) continue;
 		videos.push({
 			id: videoId,
@@ -211,6 +213,8 @@ async function scrapeVideosTab(id: string, limit: number): Promise<readonly Vide
 			thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
 		});
 	}
+	// 影片頁被要求驗證時讀不到標題與日期：當成失敗，改用備份
+	if (videos.length === 0) throw new Error(`${ids.length} 支影片中有 ${unreadable} 支的頁面讀不到資料`);
 	return videos;
 }
 
@@ -236,11 +240,11 @@ async function fetchLatestVideosOnce(channelId: string, limit: number, channelUr
 		return [];
 	}
 	const fresh = await fetchFresh(id, limit);
-	if (fresh) {
-		saveVideos(id, fresh);
+	if (fresh && fresh.length > 0) {
+		rememberVideos(id, fresh);
 		return fresh;
 	}
-	const cached = loadVideos(id);
+	const cached = recallVideos(id);
 	if (cached) return cached.slice(0, limit);
 	console.warn('[youtube] 沒有可用的影片備份，改顯示頻道連結');
 	return [];

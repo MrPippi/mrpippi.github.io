@@ -34,7 +34,7 @@ npm run test:e2e     # 瀏覽器測試與截圖（Playwright，先 build；本�
 中文在根目錄，英文在 `/en/`。標題畫面、關於我、直播 & 影片、聯絡有兩種語言；文章只有中文。
 右下角地球按鈕切換語言，會跳到對方語言的同一頁（沒有就回標題畫面），換頁不重新載入，音樂不中斷。
 
-- **最新影片**：部署時自動從 `YOUTUBE.url` 查出頻道 ID 並抓一般影片的 RSS（不含 Shorts 與直播紀錄）（也可以直接把 ID 填進 `YOUTUBE.channelId`），`deploy.yml` 也設定每天台灣時間 02:00 自動重建一次。留空或抓取失敗時只顯示「前往頻道」。
+- **最新影片**：建置時抓 YouTube 頻道的一般影片（不含 Shorts 與直播）。YouTube 常擋掉建置主機，所以依序嘗試：一般影片 RSS → 頻道 RSS（過濾 Shorts／直播）→ 頻道「影片」分頁；全部失敗時改用上次的建置快取，或 repo 裡的快照 `src/data/youtube-videos.json`。快照在本機建置成功時會自動更新，有變動時記得一起 commit。`deploy.yml` 每天台灣時間 02:00 自動重建一次。
 - **新增文章**：在 `src/content/blog/` 放一個 `.md` 檔，`draft: true` 的文章只會在本機開發時出現：
 
 ```md
