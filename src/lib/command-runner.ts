@@ -5,7 +5,8 @@
 import { navigate } from 'astro:transitions/client';
 import { langFromDocument, localizePath, t } from '../i18n';
 import { recordGive, unlock } from './advancements';
-import { type Action, COMMANDS, GIVE_ITEMS, TP_PAGES, seedOf } from './commands';
+import { type Action, COMMANDS, GIVE_ITEMS, TP_PAGES, isCreeperCall, seedOf } from './commands';
+import { igniteCreeper } from './explosion-anim';
 import { dropItem } from './item-drop-anim';
 import { nextTrack, setMusicOn } from './music';
 import { setTheme } from './theme';
@@ -57,9 +58,11 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 			return;
 		case 'chat':
 			print(`<${commands.player}> ${action.text}`, 'chat');
+			if (isCreeperCall(action.text) && (await igniteCreeper())) print(commands.blownUp(commands.player), 'info');
 			return;
 		case 'say':
 			print(`[${commands.player}] ${action.text}`, 'chat');
+			unlock('soliloquy');
 			return;
 		case 'unknown':
 			print(commands.unknown(action.name), 'error');
@@ -86,6 +89,7 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 			showToast(item, message, GIVE_ITEMS[action.item]);
 			dropItem(GIVE_ITEMS[action.item]);
 			recordGive(action.item);
+			if (action.item === 'diamond_pickaxe') unlock('diamonds');
 			return;
 		}
 		case 'tp': {

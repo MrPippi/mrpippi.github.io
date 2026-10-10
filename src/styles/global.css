@@ -281,6 +281,27 @@ img {
 	}
 }
 
+/* 苦力怕彩蛋的爆炸（src/lib/explosion-anim.ts）：閃白與原版爆炸粒子 */
+.explosion-flash,
+.explosion {
+	position: fixed;
+	inset: 0;
+	z-index: 22;
+	pointer-events: none;
+}
+
+.explosion-flash {
+	background: #fff;
+	opacity: 0;
+}
+
+.explosion-puff {
+	position: absolute;
+	opacity: 0;
+	background-repeat: no-repeat;
+	image-rendering: pixelated;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

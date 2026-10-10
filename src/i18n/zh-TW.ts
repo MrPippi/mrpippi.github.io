@@ -129,6 +129,7 @@ export const zhTW: Dictionary = {
 	advancements: {
 		heading: '進度',
 		toast: '進度達成！',
+		hidden: { title: '???', description: '隱藏進度' },
 		items: {
 			welcome: { title: '歡迎光臨', description: '第一次來到這個世界' },
 			explorer: { title: '探險家', description: '逛過關於我、直播 & 影片與聯絡' },
@@ -149,6 +150,12 @@ export const zhTW: Dictionary = {
 			structure: { title: '結構探索', description: '從作品集打開一個專案' },
 			'you-died': { title: '你死了！', description: '輸入 /kill' },
 			splash: { title: '標語收藏家', description: '點標題畫面的標語 10 次' },
+			insomnia: { title: '失眠', description: '在凌晨 0 點到 4 點之間造訪' },
+			diamonds: { title: '鑽石！', description: '拿到鑽石鎬' },
+			soliloquy: { title: '自言自語', description: '用 /say 說話' },
+			respawn: { title: '重生', description: '在死亡畫面按下重生' },
+			'disc-collector': { title: '唱片收藏家', description: '聽過所有的唱片' },
+			creeper: { title: '嘶嘶…', description: '在聊天列呼喚苦力怕' },
 		},
 	},
 	controls: {
@@ -206,5 +213,6 @@ export const zhTW: Dictionary = {
 		search: (query) => `搜尋文章：${query}`,
 		seed: (seed) => `種子碼：[${seed}]`,
 		kill: (player) => `${player} 退出了這個世界`,
+		blownUp: (player) => `${player} 被苦力怕炸死了`,
 	},
 };

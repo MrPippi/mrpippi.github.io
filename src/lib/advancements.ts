@@ -9,6 +9,8 @@ import { showToast } from './toast';
 export interface Advancement {
 	readonly id: AdvancementId;
 	readonly icon: string;
+	/** 隱藏進度：達成前清單上只顯示「???」 */
+	readonly hidden?: boolean;
 }
 
 export const ADVANCEMENTS: readonly Advancement[] = [
@@ -31,6 +33,12 @@ export const ADVANCEMENTS: readonly Advancement[] = [
 	{ id: 'structure', icon: '/mc/block/structure_block.png' },
 	{ id: 'you-died', icon: '/mc/item/skull_banner_pattern.png' },
 	{ id: 'splash', icon: '/mc/item/gold_ingot.png' },
+	{ id: 'insomnia', icon: '/mc/item/phantom_membrane.png', hidden: true },
+	{ id: 'diamonds', icon: '/mc/item/diamond.png', hidden: true },
+	{ id: 'soliloquy', icon: '/mc/item/echo_shard.png', hidden: true },
+	{ id: 'respawn', icon: '/mc/item/totem_of_undying.png', hidden: true },
+	{ id: 'disc-collector', icon: '/mc/block/jukebox_side.png', hidden: true },
+	{ id: 'creeper', icon: '/mc/item/gunpowder.png', hidden: true },
 ];
 
 export const ADVANCEMENT_EVENT = 'advancement-unlocked';
@@ -42,11 +50,14 @@ export const LIBRARIAN_POSTS = 5;
 export const HOARDER_ITEMS = 3;
 /** 「標語收藏家」要點幾次標語 */
 export const SPLASH_CLICKS = 10;
+/** 「失眠」：在這個時間（訪客當地時間，0 點起算）之前造訪 */
+export const INSOMNIA_BEFORE_HOUR = 4;
 
 const STORAGE_KEY = 'advancements';
 const VISITED_KEY = 'visited-pages';
 const GIVEN_KEY = 'given-items';
 const SPLASH_KEY = 'splash-clicks';
+const HEARD_KEY = 'heard-tracks';
 const POST_PATH = /^\/blog\/(?!tags\/)[^/]+\/$/;
 
 function readList(key: string): readonly string[] {
@@ -92,6 +103,15 @@ export function recordVisit(path: string): void {
 	if (EXPLORER_PATHS.every((p) => next.includes(p))) unlock('explorer');
 	if (POST_PATH.test(normalized)) unlock('reader');
 	if (next.filter((p) => POST_PATH.test(p)).length >= LIBRARIAN_POSTS) unlock('librarian');
+	if (new Date().getHours() < INSOMNIA_BEFORE_HOUR) unlock('insomnia');
+}
+
+/** 記錄聽過的曲目，全部聽過就達成「唱片收藏家」 */
+export function recordTrack(title: string, total: number): void {
+	const heard = readList(HEARD_KEY);
+	const next = heard.includes(title) ? heard : [...heard, title];
+	if (next !== heard) writeList(HEARD_KEY, next);
+	if (next.length >= total) unlock('disc-collector');
 }
 
 /** 記錄 /give 拿到的物品，拿到夠多種就達成「滿載而歸」 */

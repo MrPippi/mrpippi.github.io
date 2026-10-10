@@ -8,6 +8,7 @@
 - 介面圖（按鈕、選單背景、提示框…）轉成 RGBA 原樣複製，網頁用 image-rendering: pixelated 放大。
 - 太陽、月亮在遊戲裡是「疊加」混色（黑底），這裡把亮度轉成透明度，放在任何天空上都自然。
 - 雲朵圖是黑白點陣，轉成白色 + 透明。
+- 爆炸粒子的 16 格動畫接成一條橫向圖。
 - favicon 由草地方塊側面 + 染成草綠色的覆蓋層合成。
 需要 Pillow（pip install pillow）。
 """
@@ -73,12 +74,20 @@ COPIES = {
     "block/structure_block.png": "block/structure_block.png",
     "item/skull_banner_pattern.png": "item/skull_banner_pattern.png",
     "item/gold_ingot.png": "item/gold_ingot.png",
+    "item/phantom_membrane.png": "item/phantom_membrane.png",
+    "item/diamond.png": "item/diamond.png",
+    "item/echo_shard.png": "item/echo_shard.png",
+    "item/totem_of_undying.png": "item/totem_of_undying.png",
+    "block/jukebox_side.png": "block/jukebox_side.png",
+    "item/gunpowder.png": "item/gunpowder.png",
 }
 ADDITIVE = {
     "sky/sun.png": "environment/celestial/sun.png",
     "sky/moon.png": "environment/celestial/moon/full_moon.png",
 }
 CLOUDS = ("sky/clouds.png", "environment/clouds.png")
+# 爆炸粒子的 16 格動畫接成一條橫向圖，網頁用 background-position 逐格播放
+EXPLOSION = ("particle/explosion.png", [f"particle/explosion_{i}.png" for i in range(16)])
 GRASS_TINT = (0x91, 0xBD, 0x59)  # 平原生態域的草地顏色
 FAVICON_SCALE = 4
 
@@ -129,6 +138,15 @@ def tint(img: Image.Image, color: tuple[int, int, int]) -> Image.Image:
     return out
 
 
+def strip(frames: list[str]) -> Image.Image:
+    images = [load(f) for f in frames]
+    width, height = images[0].size
+    out = Image.new("RGBA", (width * len(images), height))
+    for i, img in enumerate(images):
+        out.paste(img, (i * width, 0))
+    return out
+
+
 def favicon() -> Image.Image:
     block = load("block/grass_block_side.png")
     block.alpha_composite(tint(load("block/grass_block_side_overlay.png"), GRASS_TINT))
@@ -145,6 +163,7 @@ def main() -> None:
     for out, src in ADDITIVE.items():
         save(brightness_to_alpha(load(src)), out)
     save(white_mask(load(CLOUDS[1])), CLOUDS[0])
+    save(strip(EXPLOSION[1]), EXPLOSION[0])
     favicon().save(ROOT / "public" / "favicon.png", optimize=True)
 
     files = sorted(OUTPUT.rglob("*.png"))

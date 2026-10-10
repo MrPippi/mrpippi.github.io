@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_INPUT, parseCommand, seedOf, suggest } from '../../src/lib/commands';
+import { isCreeperCall, MAX_INPUT, parseCommand, seedOf, suggest } from '../../src/lib/commands';
 
 describe('parseCommand', () => {
 	it('空白或只有斜線不做事', () => {
@@ -97,5 +97,17 @@ describe('seedOf', () => {
 		expect(seedOf('MrPippi')).toBe(seedOf('MrPippi'));
 		expect(Number.isInteger(seedOf('MrPippi'))).toBe(true);
 		expect(seedOf('MrPippi')).not.toBe(seedOf('Steve'));
+	});
+});
+
+describe('isCreeperCall', () => {
+	it.each([
+		['creeper', true],
+		['Aw man, CREEPER!', true],
+		['有苦力怕', true],
+		['crepe', false],
+		['', false],
+	])('%s → %s', (text, expected) => {
+		expect(isCreeperCall(text)).toBe(expected);
 	});
 });

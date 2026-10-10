@@ -1,10 +1,13 @@
 ---
 // 進度清單：伺服器端先全部畫成「未達成」，瀏覽器載入後依 localStorage 標示已達成的項目。
+// 隱藏進度達成前只顯示「???」，圖示換成問號。
 import { langFromPath, t } from '../i18n';
-import { ADVANCEMENTS } from '../lib/advancements';
+import { type Advancement, ADVANCEMENTS } from '../lib/advancements';
 
 const lang = langFromPath(Astro.url.pathname);
 const dict = t(lang).advancements;
+/** 清單上顯示的標題與說明：隱藏進度先用「???」 */
+const shown = (a: Advancement) => (a.hidden ? dict.hidden : dict.items[a.id]);
 ---
 
 <section aria-labelledby="advancements-title">
@@ -17,16 +20,33 @@ const dict = t(lang).advancements;
 				<li
 					class="item"
 					data-adv={a.id}
+					data-adv-hidden={a.hidden ? '' : undefined}
 					tabindex="0"
-					data-tooltip={dict.items[a.id].title}
-					data-tooltip-lines={`${dict.items[a.id].description}\n-${t(lang).tooltip.locked}`}
+					data-tooltip={shown(a).title}
+					data-tooltip-lines={`${shown(a).description}\n-${t(lang).tooltip.locked}`}
 				>
 					<span class="frame">
-						<img src={a.icon} alt="" width="32" height="32" class="pixelated" />
+						{a.hidden && (
+							<span class="mystery mc-text" aria-hidden="true">
+								?
+							</span>
+						)}
+						<img
+							src={a.hidden ? undefined : a.icon}
+							data-icon={a.icon}
+							alt=""
+							width="32"
+							height="32"
+							class="pixelated"
+						/>
 					</span>
 					<span class="text">
-						<span class="title mc-text">{dict.items[a.id].title}</span>
-						<span class="desc">{dict.items[a.id].description}</span>
+						<span class="title mc-text" data-adv-title>
+							{shown(a).title}
+						</span>
+						<span class="desc" data-adv-desc>
+							{shown(a).description}
+						</span>
 					</span>
 				</li>
 			))
@@ -97,6 +117,17 @@ const dict = t(lang).advancements;
 		font-size: 0.78rem;
 	}
 
+	/* 隱藏進度達成前：問號代替圖示 */
+	.mystery {
+		color: #777;
+		font-size: 24px;
+	}
+
+	.item[data-adv-hidden]:not(.done) img,
+	.item.done .mystery {
+		display: none;
+	}
+
 	.item.done {
 		border-color: rgb(255 214 90 / 0.45);
 	}
@@ -130,9 +161,19 @@ const dict = t(lang).advancements;
 			const id = el.dataset.adv as AdvancementId;
 			const done = unlocked.includes(id);
 			el.classList.toggle('done', done);
+			const secret = el.hasAttribute('data-adv-hidden') && !done;
+			const { title, description } = secret ? dict.advancements.hidden : dict.advancements.items[id];
+			// 隱藏進度達成後才載入圖示
+			const img = el.querySelector<HTMLImageElement>('img[data-icon]');
+			if (img && !secret && !img.getAttribute('src')) img.src = img.dataset.icon ?? '';
+			const titleEl = el.querySelector('[data-adv-title]');
+			const descEl = el.querySelector('[data-adv-desc]');
+			if (titleEl) titleEl.textContent = title;
+			if (descEl) descEl.textContent = description;
 			// 提示框：達成的進度名稱顯示黃色，最後一行是達成狀態（+ 綠色、- 灰色）
 			const status = done ? `+${dict.tooltip.unlocked}` : `-${dict.tooltip.locked}`;
-			el.dataset.tooltipLines = `${dict.advancements.items[id].description}\n${status}`;
+			el.dataset.tooltip = title;
+			el.dataset.tooltipLines = `${description}\n${status}`;
 			if (done) el.dataset.tooltipColor = 'yellow';
 			else delete el.dataset.tooltipColor;
 		});

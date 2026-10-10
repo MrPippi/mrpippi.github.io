@@ -140,3 +140,55 @@ export function playPop(): void {
 	const pitch = 0.8 + Math.random() * 0.4;
 	playTone(ctx, { type: 'sine', from: 500 * pitch, to: 1100 * pitch, start: 0, duration: 0.07, volume: 0.6 });
 }
+
+interface Noise {
+	readonly duration: number;
+	readonly volume: number;
+	readonly filter: BiquadFilterType;
+	/** 濾波頻率從 from 滑到 to */
+	readonly from: number;
+	readonly to: number;
+	/** 漸強時間（秒）；沒有就一開始最大聲 */
+	readonly attack?: number;
+}
+
+function playNoise(ctx: AudioContext, noise: Noise): void {
+	const t0 = ctx.currentTime;
+	const length = Math.ceil(ctx.sampleRate * noise.duration);
+	const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+	const data = buffer.getChannelData(0);
+	for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+
+	const source = ctx.createBufferSource();
+	source.buffer = buffer;
+	const filter = ctx.createBiquadFilter();
+	filter.type = noise.filter;
+	filter.frequency.setValueAtTime(noise.from, t0);
+	filter.frequency.exponentialRampToValueAtTime(noise.to, t0 + noise.duration);
+	const gain = ctx.createGain();
+	const peak = Math.max(0.0001, noise.volume * SYNTH_VOLUME * getSoundVolume());
+	if (noise.attack) {
+		gain.gain.setValueAtTime(0.0001, t0);
+		gain.gain.exponentialRampToValueAtTime(peak, t0 + noise.attack);
+	} else {
+		gain.gain.setValueAtTime(peak, t0);
+	}
+	gain.gain.exponentialRampToValueAtTime(0.0001, t0 + noise.duration);
+	source.connect(filter).connect(gain).connect(ctx.destination);
+	source.start(t0);
+}
+
+/** 苦力怕點燃的「嘶——」：越來越大聲，到爆炸前一刻 */
+export function playHiss(ms: number): void {
+	const ctx = activeContext();
+	if (!ctx) return;
+	const duration = ms / 1000;
+	playNoise(ctx, { duration, volume: 0.6, filter: 'highpass', from: 5000, to: 2500, attack: duration * 0.9 });
+}
+
+/** 爆炸聲：低沉的轟一聲慢慢消失 */
+export function playExplosion(): void {
+	const ctx = activeContext();
+	if (!ctx) return;
+	playNoise(ctx, { duration: 1.4, volume: 2.5, filter: 'lowpass', from: 1500, to: 60 });
+}

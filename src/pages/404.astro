@@ -99,7 +99,11 @@ const firstDeath = dict.notFound.deaths[0].replace('{name}', dict.profile.name);
 		const titleScreen = root.querySelector<HTMLButtonElement>('[data-title-screen]');
 		// 重生：從站內來的回上一頁，否則回標題畫面
 		const cameFromSite = document.referrer.startsWith(location.origin) && history.length > 1;
-		respawn?.addEventListener('click', () => (cameFromSite ? history.back() : void navigate(home)));
+		respawn?.addEventListener('click', () => {
+			unlock('respawn');
+			if (cameFromSite) history.back();
+			else void navigate(home);
+		});
 		titleScreen?.addEventListener('click', () => void navigate(home));
 		window.setTimeout(() => {
 			if (respawn) respawn.disabled = false;

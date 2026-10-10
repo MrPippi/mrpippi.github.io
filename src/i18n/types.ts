@@ -22,7 +22,13 @@ export type AdvancementId =
 	| 'bilingual'
 	| 'structure'
 	| 'you-died'
-	| 'splash';
+	| 'splash'
+	| 'insomnia'
+	| 'diamonds'
+	| 'soliloquy'
+	| 'respawn'
+	| 'disc-collector'
+	| 'creeper';
 
 export interface Dictionary {
 	readonly site: { readonly title: string; readonly description: string; readonly titleSuffix: string };
@@ -127,6 +133,8 @@ export interface Dictionary {
 	readonly advancements: {
 		readonly heading: string;
 		readonly toast: string;
+		/** 隱藏進度達成前顯示的標題與說明 */
+		readonly hidden: { readonly title: string; readonly description: string };
 		readonly items: Readonly<Record<AdvancementId, { readonly title: string; readonly description: string }>>;
 	};
 	readonly controls: {
@@ -176,5 +184,6 @@ export interface Dictionary {
 		readonly search: (query: string) => string;
 		readonly seed: (seed: number) => string;
 		readonly kill: (player: string) => string;
+		readonly blownUp: (player: string) => string;
 	};
 }

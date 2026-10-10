@@ -164,6 +164,11 @@ export function suggest(input: string, limit = 6): readonly string[] {
 		.slice(0, limit);
 }
 
+/** 聊天訊息裡呼喚苦力怕（彩蛋）：creeper 或「苦力怕」，不分大小寫 */
+export function isCreeperCall(text: string): boolean {
+	return /creeper|苦力怕/i.test(text);
+}
+
 /** /seed 顯示的種子碼：由名稱算出來，每次都一樣 */
 export function seedOf(name: string): number {
 	return [...name].reduce((hash, ch) => (Math.imul(hash, 31) + (ch.codePointAt(0) ?? 0)) | 0, 0);

@@ -130,6 +130,7 @@ export const en: Dictionary = {
 	advancements: {
 		heading: 'Advancements',
 		toast: 'Advancement Made!',
+		hidden: { title: '???', description: 'Hidden advancement' },
 		items: {
 			welcome: { title: 'Welcome', description: 'Enter this world for the first time' },
 			explorer: { title: 'Explorer', description: 'Visit About, Streams & Videos and Contact' },
@@ -150,6 +151,12 @@ export const en: Dictionary = {
 			structure: { title: 'Structure Explorer', description: 'Open a project from the portfolio' },
 			'you-died': { title: 'You Died!', description: 'Run /kill' },
 			splash: { title: 'Splash Collector', description: 'Click the title screen splash 10 times' },
+			insomnia: { title: 'Insomnia', description: 'Visit between midnight and 4 a.m.' },
+			diamonds: { title: 'Diamonds!', description: 'Get a diamond pickaxe' },
+			soliloquy: { title: 'Talking to Myself', description: 'Say something with /say' },
+			respawn: { title: 'Respawn', description: 'Press Respawn on the death screen' },
+			'disc-collector': { title: 'Disc Collector', description: 'Listen to every music disc' },
+			creeper: { title: 'Ssss...', description: 'Call a creeper in the chat' },
 		},
 	},
 	controls: {
@@ -207,5 +214,6 @@ export const en: Dictionary = {
 		search: (query) => `Searching posts: ${query}`,
 		seed: (seed) => `Seed: [${seed}]`,
 		kill: (player) => `${player} left the game`,
+		blownUp: (player) => `${player} was blown up by Creeper`,
 	},
 };

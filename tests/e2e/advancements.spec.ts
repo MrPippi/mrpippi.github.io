@@ -5,6 +5,14 @@ const POST = '/blog/hello-title-screen/';
 
 const unlocked = (page: Page): Promise<string> => page.evaluate(() => localStorage.getItem('advancements') ?? '');
 
+/** 按 T 開聊天送出一般訊息 */
+async function chat(page: Page, text: string): Promise<void> {
+	await page.keyboard.press('t');
+	const input = page.locator('[data-chat-input]');
+	await input.fill(text);
+	await input.press('Enter');
+}
+
 async function run(page: Page, command: string): Promise<void> {
 	await page.keyboard.press('/');
 	const input = page.locator('[data-chat-input]');
@@ -121,5 +129,82 @@ test.describe('文章進度', () => {
 		await page.goto('/blog/');
 		await expect.poll(() => unlocked(page)).toContain('welcome');
 		expect(await unlocked(page)).not.toContain('librarian');
+	});
+});
+
+test.describe('隱藏進度', () => {
+	test('達成前清單只顯示「???」，達成後才顯示名稱與圖示', async ({ page }) => {
+		await page.goto('/about/');
+		const item = page.locator('[data-adv="diamonds"]');
+		await expect(item.locator('[data-adv-title]')).toHaveText('???');
+		await expect(item.locator('[data-adv-desc]')).toHaveText('隱藏進度');
+		await expect(item.locator('img')).toBeHidden();
+
+		await run(page, 'give @s diamond_pickaxe');
+		await expect(item).toHaveClass(/done/);
+		await expect(item.locator('[data-adv-title]')).toHaveText('鑽石！');
+		await expect(item.locator('img')).toHaveAttribute('src', '/mc/item/diamond.png');
+	});
+
+	test('/say 解鎖「自言自語」', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'say 哈囉');
+		await expect.poll(() => unlocked(page)).toContain('soliloquy');
+	});
+
+	test('凌晨造訪解鎖「失眠」，下午不會', async ({ page, context }) => {
+		await page.clock.setFixedTime(new Date(2026, 9, 10, 14, 0));
+		await page.goto('/');
+		await expect.poll(() => unlocked(page)).toContain('welcome');
+		expect(await unlocked(page)).not.toContain('insomnia');
+
+		const night = await context.newPage();
+		await night.clock.setFixedTime(new Date(2026, 9, 10, 2, 30));
+		await night.goto('/about/');
+		await expect.poll(() => unlocked(night)).toContain('insomnia');
+	});
+
+	test('死亡畫面按「重生」解鎖「重生」', async ({ page }) => {
+		await page.goto('/this-page-does-not-exist/');
+		const respawn = page.locator('[data-respawn]');
+		await expect(respawn).toBeEnabled({ timeout: 3000 });
+		await respawn.click();
+		await expect(page).toHaveURL(/\/$/);
+		expect(await unlocked(page)).toContain('respawn');
+	});
+
+	test('聽過所有唱片解鎖「唱片收藏家」', async ({ page }) => {
+		await page.addInitScript(() => {
+			localStorage.setItem(
+				'heard-tracks',
+				JSON.stringify(['Biome Fest', 'Blind Spots', 'Haunt Muskie', 'Aria Math', 'Dreiton']),
+			);
+		});
+		await page.goto('/');
+		expect(await unlocked(page)).not.toContain('disc-collector');
+		// 模擬第六首開始播放（headless 瀏覽器不實際播音樂）
+		await page.evaluate(() =>
+			document.dispatchEvent(
+				new CustomEvent('music-change', { detail: { playing: true, title: 'Taswell', newTrack: true } }),
+			),
+		);
+		await expect.poll(() => unlocked(page)).toContain('disc-collector');
+	});
+
+	test('聊天列呼喚苦力怕：1.5 秒後爆炸，解鎖「嘶嘶…」', async ({ page }) => {
+		await page.goto('/');
+		await chat(page, 'creeper');
+		await expect(page.locator('.explosion-puff').first()).toBeAttached({ timeout: 3000 });
+		await expect(page.locator('[data-chat-log] li').last()).toHaveText('訪客 被苦力怕炸死了');
+		expect(await unlocked(page)).toContain('creeper');
+		await expect(page.locator('.explosion')).toHaveCount(0, { timeout: 3000 });
+	});
+
+	test('減少動態效果時苦力怕只有聲音，沒有閃光與粒子', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await chat(page, '苦力怕');
+		await expect.poll(() => unlocked(page)).toContain('creeper');
+		await expect(page.locator('.explosion, .explosion-flash')).toHaveCount(0);
 	});
 });

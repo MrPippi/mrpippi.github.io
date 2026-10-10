@@ -224,7 +224,7 @@ import PixelGlyph from './PixelGlyph.astro';
 
 <script>
 	import { langFromDocument, t } from '../i18n';
-	import { unlock } from '../lib/advancements';
+	import { recordTrack, unlock } from '../lib/advancements';
 	import {
 		ARTIST,
 		MUSIC_EVENT,
@@ -241,6 +241,7 @@ import PixelGlyph from './PixelGlyph.astro';
 		setLooping,
 		setMusicOn,
 		setMusicVolume,
+		TRACKS,
 	} from '../lib/music';
 	import { getSoundVolume, setSoundVolume } from '../lib/sound';
 	import { showToast } from '../lib/toast';
@@ -353,6 +354,7 @@ import PixelGlyph from './PixelGlyph.astro';
 		if (newTrack) randomizeNoteColor();
 		render();
 		if (newTrack && title) {
+			recordTrack(title, TRACKS.length);
 			showToast(dict().music.nowPlaying, `${ARTIST} - ${title}`, '/mc/item/music_disc_cat.png', {
 				variant: 'music',
 				silent: true,
