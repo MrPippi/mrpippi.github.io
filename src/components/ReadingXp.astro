@@ -1,5 +1,5 @@
 ---
-// 閱讀進度：原版經驗條（182×5 放大 2 倍）固定在左下角，綠色數字是讀了幾 %；讀到底時「叮」一聲（像升級）。
+// 閱讀進度：原版經驗條（放大 2 倍）橫跨整個畫面底部，綠色數字（讀了幾 %）在正中間；讀到底時「叮」一聲（像升級）。
 // 進度以文章本體（[data-reading-target]）計算，不含留言區。
 import { t } from '../i18n';
 
@@ -24,13 +24,11 @@ const dict = t('zh-TW').blog;
 <style>
 	.xp {
 		position: fixed;
-		left: 12px;
-		bottom: calc(14px + env(safe-area-inset-bottom));
+		inset: auto 0 env(safe-area-inset-bottom);
 		z-index: 9;
 		display: grid;
 		justify-items: center;
-		/* 右下角按鈕列（4 顆 40px 按鈕）旁邊留空 */
-		width: min(364px, calc(100vw - 24px - 4 * 40px - 4 * 8px - 12px));
+		gap: 2px;
 		pointer-events: none;
 	}
 
@@ -51,20 +49,42 @@ const dict = t('zh-TW').blog;
 			0 calc(var(--mc-px) * -1) 0 #000;
 	}
 
+	/*
+	 * 材質 182×5：左右各 1 px 是圓角，中間 180 px 剛好是 18 格（每格 10 px），
+	 * 用 border-image 把中間那段重複鋪滿整個寬度，格線不會被拉寬。
+	 */
+	.bar,
+	.fill {
+		border-style: solid;
+		border-width: 0 2px;
+		border-image-slice: 0 1 fill;
+		border-image-repeat: repeat;
+		image-rendering: pixelated;
+	}
+
 	.bar {
 		position: relative;
 		width: 100%;
 		height: 10px;
-		background: url('/mc/gui/experience_bar_background.png') 0 0 / 100% 100%;
-		image-rendering: pixelated;
+		border-image-source: url('/mc/gui/experience_bar_background.png');
 	}
 
 	.fill {
 		position: absolute;
-		inset: 0;
-		background: url('/mc/gui/experience_bar_progress.png') 0 0 / 100% 100%;
-		image-rendering: pixelated;
+		inset: 0 -2px;
+		border-image-source: url('/mc/gui/experience_bar_progress.png');
 		clip-path: inset(0 calc(100% - var(--progress, 0%)) 0 0);
+	}
+
+	/* 窄螢幕：數字靠左，避開右下角的按鈕列 */
+	@media (max-width: 560px) {
+		.xp {
+			justify-items: start;
+		}
+
+		.level {
+			padding-left: 12px;
+		}
 	}
 </style>
 

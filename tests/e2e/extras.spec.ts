@@ -71,20 +71,42 @@ test.describe('天氣', () => {
 		await mockExternalApis(page, { weatherCode: 61 });
 		await page.goto('/');
 		await expect(page.locator('[data-sky]')).toHaveAttribute('data-weather', 'rain');
-		// 雨要真的在動：每層都有動畫時間，而且位置會變
-		const layers = page.locator('.precip');
-		const durations = await layers.evaluateAll((els) => els.map((el) => getComputedStyle(el).animationDuration));
-		expect(durations.every((d) => d !== '0s')).toBe(true);
-		const before = await layers.first().evaluate((el) => getComputedStyle(el).transform);
-		await expect
-			.poll(() => layers.first().evaluate((el) => getComputedStyle(el).transform))
-			.not.toBe(before);
+		// 雨要真的在動：canvas 有畫東西，而且每格畫面都不一樣
+		const canvas = page.locator('[data-precip]');
+		await expect(canvas).toBeVisible();
+		const snapshot = (): Promise<string> => canvas.evaluate((el: HTMLCanvasElement) => el.toDataURL());
+		const blank = await page.evaluate(() => document.createElement('canvas').toDataURL());
+		await expect.poll(snapshot).not.toBe(blank);
+		const before = await snapshot();
+		await expect.poll(snapshot).not.toBe(before);
+		// 水花材質載得到
+		const splash = await page.request.get('/mc/particle/splash_0.png');
+		expect(splash.ok()).toBe(true);
 	});
 
-	test('晴天時沒有雨', async ({ page }) => {
+	test('晴天時沒有雨，放晴後停止動畫', async ({ page }) => {
 		await page.goto('/');
 		await expect(page.locator('[data-sky]')).toHaveAttribute('data-weather', 'clear');
-		await expect(page.locator('.precip').first()).toBeHidden();
+		await expect(page.locator('[data-precip]')).toBeHidden();
+
+		await page.keyboard.press('/');
+		const input = page.locator('[data-chat-input]');
+		await input.pressSequentially('weather snow');
+		await input.press('Enter');
+		await expect(page.locator('[data-precip]')).toBeVisible();
+		await page.keyboard.press('/');
+		await input.pressSequentially('weather clear');
+		await input.press('Enter');
+		await expect(page.locator('[data-precip]')).toBeHidden();
+	});
+
+	test('減少動態效果時不下雨', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await mockExternalApis(page, { weatherCode: 61 });
+		await page.goto('/');
+		await expect(page.locator('[data-sky]')).toHaveAttribute('data-weather', 'rain');
+		await expect(page.locator('[data-precip]')).toBeHidden();
+		await expect(page.locator('[data-lens]')).toBeHidden();
 	});
 });
 
