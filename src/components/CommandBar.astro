@@ -84,8 +84,11 @@
 		opacity: 1;
 	}
 
+	/* 候選太多時（例如所有物品）可以捲動 */
 	.suggest {
 		justify-self: start;
+		max-height: min(40vh, 18em);
+		overflow-y: auto;
 		margin: 0;
 		padding: 2px 0;
 		list-style: none;

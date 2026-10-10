@@ -110,6 +110,12 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 			if (item === 'diamond_pickaxe') unlock('diamonds');
 			return;
 		}
+		case 'giveList':
+			print(commands.giveList, 'info');
+			(Object.keys(GIVE_ITEMS) as (keyof typeof GIVE_ITEMS)[]).forEach((id) =>
+				print(`${id} - ${commands.items[id]}`, 'info'),
+			);
+			return;
 		case 'tp': {
 			print(commands.tp(commands.pages[action.page]), 'info');
 			// 文章只有中文版

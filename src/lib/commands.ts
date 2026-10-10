@@ -78,6 +78,7 @@ export type Action =
 	| { readonly kind: 'time'; readonly value: (typeof TIMES)[number] }
 	| { readonly kind: 'weather'; readonly value: Weather | undefined }
 	| { readonly kind: 'give'; readonly item: GiveItem; readonly count: number }
+	| { readonly kind: 'giveList' }
 	| { readonly kind: 'tp'; readonly page: TpPage }
 	| { readonly kind: 'music'; readonly value: (typeof MUSIC_ACTIONS)[number] }
 	| { readonly kind: 'search'; readonly query: string }
@@ -128,6 +129,8 @@ function parseArgs(name: CommandName, args: readonly string[], rest: string): Ac
 		case 'give': {
 			// /give @s cake 5、/give cake 都接受；數量 1–64，省略是 1
 			const [rawId, rawCount, ...extra] = args[0] === '@s' || args[0] === '@p' ? args.slice(1) : args;
+			// 沒寫物品：列出所有可以拿的物品
+			if (rawId === undefined) return { kind: 'giveList' };
 			const id = itemId(rawId);
 			const count = rawCount === undefined ? 1 : giveCount(rawCount);
 			return isKey(GIVE_ITEMS, id) && count !== undefined && extra.length === 0
@@ -176,7 +179,7 @@ function argOptions(name: string, argIndex: number, args: readonly string[]): re
  * 自動完成：回傳完整的候選輸入（按 Tab 會換成第一個）。
  * 例：'/we' → ['/weather']；'/weather r' → ['/weather rain']
  */
-export function suggest(input: string, limit = 6): readonly string[] {
+export function suggest(input: string, limit = 20): readonly string[] {
 	if (!input.startsWith('/')) return [];
 	const parts = input.slice(1).split(' ');
 	if (parts.length === 1) {

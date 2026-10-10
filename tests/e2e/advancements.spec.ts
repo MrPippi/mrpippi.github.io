@@ -249,6 +249,19 @@ test.describe('物品欄', () => {
 		await expect(slot(page, 0).locator('img')).toHaveAttribute('src', '/mc/item/cake.png');
 	});
 
+	test('只打 /give 列出所有物品，自動完成也全部列出', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'give');
+		const log = page.locator('[data-chat-log] li');
+		await expect(log.filter({ hasText: '可以拿的物品' })).toHaveCount(1);
+		await expect(log.filter({ hasText: 'experience_bottle - 經驗瓶' })).toHaveCount(1);
+		await expect(log.filter({ hasText: ' - ' })).toHaveCount(13);
+
+		await page.keyboard.press('/');
+		await page.locator('[data-chat-input]').pressSequentially('give @s ');
+		await expect(page.locator('[data-chat-suggest] button')).toHaveCount(13);
+	});
+
 	test('數量超出範圍時顯示用法', async ({ page }) => {
 		await page.goto('/');
 		await run(page, 'give @s cake 65');
