@@ -150,7 +150,10 @@ const STARS = Array.from({ length: 48 }, (_, i) => {
 		background-repeat: repeat;
 		image-rendering: pixelated;
 		will-change: transform;
-		animation: fall linear infinite;
+		/* 不用 animation 簡寫：這條選擇器權重較高，簡寫會把下面各層設定的速度（animation-duration）蓋回 0 */
+		animation-name: fall;
+		animation-timing-function: linear;
+		animation-iteration-count: infinite;
 	}
 
 	.precip--near {

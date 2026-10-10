@@ -71,6 +71,14 @@ test.describe('天氣', () => {
 		await mockExternalApis(page, { weatherCode: 61 });
 		await page.goto('/');
 		await expect(page.locator('[data-sky]')).toHaveAttribute('data-weather', 'rain');
+		// 雨要真的在動：每層都有動畫時間，而且位置會變
+		const layers = page.locator('.precip');
+		const durations = await layers.evaluateAll((els) => els.map((el) => getComputedStyle(el).animationDuration));
+		expect(durations.every((d) => d !== '0s')).toBe(true);
+		const before = await layers.first().evaluate((el) => getComputedStyle(el).transform);
+		await expect
+			.poll(() => layers.first().evaluate((el) => getComputedStyle(el).transform))
+			.not.toBe(before);
 	});
 
 	test('晴天時沒有雨', async ({ page }) => {
