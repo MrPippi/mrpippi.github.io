@@ -5,6 +5,8 @@ import type { SkillKey } from './i18n/types';
 
 export const PROFILE = {
 	handle: 'MrPippi',
+	/** Minecraft 遊戲內名稱（IGN） */
+	ign: 'Mr__Pippi',
 	/** 原尺寸頭像（分享預覽圖 og:image 用） */
 	avatar: 'https://github.com/MrPippi.png',
 	/** 關於我頁面顯示 112px，抓 2 倍大小就好（原圖 460px，省下約 40 KB） */
