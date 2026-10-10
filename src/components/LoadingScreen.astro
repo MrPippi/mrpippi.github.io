@@ -1,6 +1,6 @@
 ---
 // 換頁讀取畫面：仿原版「正在載入地形…」——變暗的泥土方塊鋪滿畫面，中間是文字與進度條。
-// ClientRouter 換頁超過 SHOW_DELAY_MS 才出現，換頁很快時不會閃一下。
+// 每次 ClientRouter 換頁都會播：至少停 MIN_MS 讓進度條跑滿，換好頁面後再淡出。
 ---
 
 <div class="loading" data-loading-screen aria-live="polite" hidden>
@@ -24,10 +24,17 @@
 		background-size: auto, 64px;
 		image-rendering: pixelated;
 		animation: fade-in 120ms ease-out;
+		transition: opacity 250ms ease;
 	}
 
 	.loading[hidden] {
 		display: none;
+	}
+
+	/* 換好頁面後淡出，淡出時不擋住點擊 */
+	.loading.leaving {
+		opacity: 0;
+		pointer-events: none;
 	}
 
 	.text {
@@ -45,20 +52,21 @@
 		box-shadow: 0 0 0 2px #000;
 	}
 
+	/* 進度條：灰底綠條，從左跑到右（時間與 MIN_MS 一致） */
 	.bar span {
 		position: absolute;
-		inset: 0 auto 0 0;
-		width: 35%;
+		inset: 0;
 		background: #80ff20;
-		animation: progress 1.1s ease-in-out infinite;
+		transform-origin: left;
+		animation: progress var(--loading-ms, 600ms) ease-out forwards;
 	}
 
 	@keyframes progress {
 		from {
-			transform: translateX(-100%);
+			transform: scaleX(0);
 		}
 		to {
-			transform: translateX(290%);
+			transform: scaleX(1);
 		}
 	}
 
@@ -72,25 +80,44 @@
 <script>
 	import { langFromPath, t } from '../i18n';
 
-	const SHOW_DELAY_MS = 150;
+	/** 讀取畫面至少停多久（進度條跑滿的時間） */
+	const MIN_MS = 600;
+	const FADE_MS = 250;
 	const screen = document.querySelector<HTMLElement>('[data-loading-screen]');
 	const text = screen?.querySelector('[data-loading-text]');
-	let timer: number | undefined;
+	let fadeTimer: number | undefined;
 
-	function hide(): void {
-		window.clearTimeout(timer);
-		if (screen) screen.hidden = true;
+	const wait = (ms: number): Promise<void> => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+	function show(pathname: string): void {
+		if (!screen || !text) return;
+		window.clearTimeout(fadeTimer);
+		text.textContent = t(langFromPath(pathname)).loading;
+		screen.style.setProperty('--loading-ms', `${MIN_MS}ms`);
+		screen.classList.remove('leaving');
+		// 重新播放進度條
+		screen.hidden = true;
+		void screen.offsetWidth;
+		screen.hidden = false;
 	}
 
-	// 開始換頁：用目的地的語言顯示文字，稍等一下仍沒完成才出現
+	function hide(): void {
+		if (!screen || screen.hidden) return;
+		screen.classList.add('leaving');
+		window.clearTimeout(fadeTimer);
+		fadeTimer = window.setTimeout(() => {
+			screen.hidden = true;
+			screen.classList.remove('leaving');
+		}, FADE_MS);
+	}
+
+	// 開始換頁：馬上顯示讀取畫面，載入下一頁的同時至少等 MIN_MS
 	document.addEventListener('astro:before-preparation', (event) => {
-		if (!screen || !text) return;
-		text.textContent = t(langFromPath(event.to.pathname)).loading;
-		window.clearTimeout(timer);
-		timer = window.setTimeout(() => {
-			screen.hidden = false;
-		}, SHOW_DELAY_MS);
+		show(event.to.pathname);
+		const load = event.loader;
+		event.loader = async () => {
+			await Promise.all([load(), wait(MIN_MS)]);
+		};
 	});
-	document.addEventListener('astro:after-swap', hide);
 	document.addEventListener('astro:page-load', hide);
 </script>

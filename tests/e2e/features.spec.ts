@@ -72,3 +72,14 @@ test('換頁較慢時顯示「正在載入地形…」，載入完自動消失',
 	await expect(page).toHaveURL(/\/about\/$/);
 	await expect(loading).toBeHidden();
 });
+
+test('換頁很快時也播完整的讀取畫面，之後淡出', async ({ page }) => {
+	await page.goto('/');
+	const loading = page.locator('[data-loading-screen]');
+	const start = Date.now();
+	await page.locator('a.banner[href="/about/"]').click();
+	await expect(loading).toBeVisible();
+	await expect(loading).toBeHidden();
+	expect(Date.now() - start).toBeGreaterThanOrEqual(600);
+	await expect(page.locator('h1')).toHaveText('關於我');
+});
