@@ -192,7 +192,7 @@ export const zhTW: Dictionary = {
 		weatherSet: (name) => `天氣已變為${name}`,
 		weatherNow: (name) => `台北現在的天氣：${name}`,
 		weatherNames: { clear: '晴天', rain: '下雨', thunder: '雷雨', snow: '下雪' },
-		gave: (item, player) => `已將 [${item}] × 1 給予 ${player}`,
+		gave: (item, count, player) => `已將 [${item}] × ${count} 給予 ${player}`,
 		items: {
 			cake: '蛋糕',
 			diamond_pickaxe: '鑽石鎬',

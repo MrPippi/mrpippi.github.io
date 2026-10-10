@@ -1,5 +1,5 @@
 /**
- * /give 的物品掉落動畫：物品從畫面上方自由落體掉下來，落地彈一下，躺一會兒後被「撿起來」。
+ * /give 的物品掉落動畫：物品從畫面上方自由落體掉下來，落地彈一下，躺一會兒後被「撿起來」飛進物品欄。
  * 這裡只算位置與關鍵影格（純函式）；畫面在 item-drop-anim.ts。
  */
 
@@ -20,6 +20,11 @@ const PICKUP_SCALE = 0.3;
 export interface Viewport {
 	readonly width: number;
 	readonly height: number;
+}
+
+export interface Point {
+	readonly x: number;
+	readonly y: number;
 }
 
 export interface DropPlan {
@@ -55,10 +60,20 @@ export function fallKeyframes(plan: DropPlan): readonly Keyframe[] {
 	];
 }
 
-/** 被撿起來：飛向畫面下方中央（玩家的位置）並縮小消失 */
-export function pickupKeyframes(plan: DropPlan, viewport: Viewport): readonly Keyframe[] {
+/** 被撿起來：中心飛到 target（物品欄的格子）並縮小消失 */
+export function pickupKeyframes(plan: DropPlan, target: Point): readonly Keyframe[] {
+	const half = ITEM_SIZE / 2;
 	return [
 		{ transform: `${at(plan.x, plan.landY)} scale(1)`, opacity: 1 },
-		{ transform: `${at((viewport.width - ITEM_SIZE) / 2, viewport.height)} scale(${PICKUP_SCALE})`, opacity: 0 },
+		{ transform: `${at(target.x - half, target.y - half)} scale(${PICKUP_SCALE})`, opacity: 0 },
 	];
+}
+
+/** 掉落物疊幾個顯示：和原版一樣，數量越多疊越多個（最多 5 個） */
+export function renderedCopies(count: number): number {
+	if (count <= 1) return 1;
+	if (count <= 16) return 2;
+	if (count <= 32) return 3;
+	if (count <= 48) return 4;
+	return 5;
 }

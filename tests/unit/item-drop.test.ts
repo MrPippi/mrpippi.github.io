@@ -7,6 +7,7 @@ import {
 	ITEM_SIZE,
 	pickupKeyframes,
 	planDrop,
+	renderedCopies,
 } from '../../src/lib/item-drop';
 
 const viewport = { width: 1000, height: 800 };
@@ -52,10 +53,24 @@ describe('keyframes', () => {
 		expect(land?.transform).toBe(frames.at(-1)?.transform);
 	});
 
-	it('撿起來：飛向畫面下方中央並縮小消失', () => {
-		const [from, to] = pickupKeyframes(plan, viewport);
+	it('撿起來：中心飛到物品欄的格子並縮小消失', () => {
+		const [from, to] = pickupKeyframes(plan, { x: 500, y: 760 });
 		expect(from?.transform).toBe(`translate(${plan.x}px, ${plan.landY}px) scale(1)`);
-		expect(to?.transform).toBe(`translate(${(viewport.width - ITEM_SIZE) / 2}px, ${viewport.height}px) scale(0.3)`);
+		expect(to?.transform).toBe(`translate(${500 - ITEM_SIZE / 2}px, ${760 - ITEM_SIZE / 2}px) scale(0.3)`);
 		expect(to?.opacity).toBe(0);
+	});
+});
+
+describe('renderedCopies', () => {
+	it.each([
+		[1, 1],
+		[2, 2],
+		[16, 2],
+		[17, 3],
+		[33, 4],
+		[49, 5],
+		[64, 5],
+	])('%i 個疊成 %i 個', (count, copies) => {
+		expect(renderedCopies(count)).toBe(copies);
 	});
 });

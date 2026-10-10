@@ -211,3 +211,46 @@ test.describe('隱藏進度', () => {
 		await expect(page.locator('.explosion, .explosion-flash')).toHaveCount(0);
 	});
 });
+
+test.describe('物品欄', () => {
+	const hotbar = (page: Page) => page.locator('[data-hotbar]');
+	const slot = (page: Page, i: number) => page.locator(`[data-slot="${i}"]`);
+
+	test('/give 數量：物品欄出現，掉落物撿起來後放進格子並顯示數量與名稱', async ({ page }) => {
+		await page.goto('/');
+		await expect(hotbar(page)).not.toHaveClass(/visible/);
+		await run(page, 'give @s redstone 5');
+		await expect(page.locator('[data-chat-log] li').last()).toHaveText('已將 [紅石粉] × 5 給予 訪客');
+		await expect(hotbar(page)).toHaveClass(/visible/);
+		// 數量多時掉落物疊成兩個
+		await expect(page.locator('[data-item-drop] img')).toHaveCount(2);
+
+		await expect(slot(page, 0).locator('img')).toHaveAttribute('src', '/mc/item/redstone.png', { timeout: 6000 });
+		await expect(slot(page, 0).locator('.count')).toHaveText('5');
+		await expect(page.locator('[data-hotbar-name]')).toHaveText('紅石粉 ×5');
+		// 閒置後淡出
+		await expect(hotbar(page)).not.toHaveClass(/visible/, { timeout: 8000 });
+	});
+
+	test('不能疊的物品一格一個，背包記在瀏覽器裡', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await run(page, 'give @s cake 2');
+		await run(page, 'give @s map 3');
+		await expect(slot(page, 0).locator('img')).toHaveAttribute('src', '/mc/item/cake.png');
+		await expect(slot(page, 1).locator('img')).toHaveAttribute('src', '/mc/item/cake.png');
+		await expect(slot(page, 2).locator('.count')).toHaveText('3');
+		await expect(slot(page, 0).locator('.count')).toHaveCount(0);
+
+		await page.reload();
+		await run(page, 'give @s map');
+		await expect(slot(page, 2).locator('.count')).toHaveText('4');
+		await expect(slot(page, 0).locator('img')).toHaveAttribute('src', '/mc/item/cake.png');
+	});
+
+	test('數量超出範圍時顯示用法', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'give @s cake 65');
+		await expect(page.locator('[data-chat-log] li').last()).toHaveText('用法：/give @s <item> [count]');
+	});
+});

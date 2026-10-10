@@ -2,6 +2,7 @@
  * 聊天列指令（彩蛋）：把輸入的文字解析成要執行的動作，本身不碰畫面，方便測試。
  * 執行與顯示在 <CommandBar />。指令名稱與參數和遊戲一樣用英文。
  */
+import { MAX_GIVE_COUNT } from './inventory';
 import { WEATHERS, type Weather } from './weather';
 
 /** /give 可以拿的物品：id → public/ 下的圖示（名稱在翻譯檔 commands.items） */
@@ -20,6 +21,25 @@ export const GIVE_ITEMS = {
 	bundle: '/mc/item/bundle.png',
 } as const;
 export type GiveItem = keyof typeof GIVE_ITEMS;
+
+/** 每格最多疊幾個（和原版一樣；沒列出的是 64） */
+const STACK_SIZES: Partial<Record<GiveItem, number>> = {
+	cake: 1,
+	diamond_pickaxe: 1,
+	enchanted_book: 1,
+	ender_pearl: 16,
+	goat_horn: 1,
+	bundle: 1,
+};
+const DEFAULT_STACK = 64;
+
+export function stackSize(item: GiveItem): number {
+	return STACK_SIZES[item] ?? DEFAULT_STACK;
+}
+
+export function isGiveItem(id: string): id is GiveItem {
+	return Object.hasOwn(GIVE_ITEMS, id);
+}
 
 /** /tp 可以去的頁面：名稱 → 網址（不含語系前綴） */
 export const TP_PAGES = {
@@ -40,7 +60,7 @@ export const COMMANDS = {
 	help: '/help',
 	time: '/time set <day|night>',
 	weather: `/weather [${WEATHERS.join('|')}]`,
-	give: '/give @s <item>',
+	give: '/give @s <item> [count]',
 	tp: `/tp <${Object.keys(TP_PAGES).join('|')}>`,
 	music: `/music <${MUSIC_ACTIONS.join('|')}>`,
 	search: '/search <keyword>',
@@ -56,7 +76,7 @@ export type Action =
 	| { readonly kind: 'help' }
 	| { readonly kind: 'time'; readonly value: (typeof TIMES)[number] }
 	| { readonly kind: 'weather'; readonly value: Weather | undefined }
-	| { readonly kind: 'give'; readonly item: GiveItem }
+	| { readonly kind: 'give'; readonly item: GiveItem; readonly count: number }
 	| { readonly kind: 'tp'; readonly page: TpPage }
 	| { readonly kind: 'music'; readonly value: (typeof MUSIC_ACTIONS)[number] }
 	| { readonly kind: 'search'; readonly query: string }
@@ -79,6 +99,13 @@ function isKey<T extends object>(obj: T, key: string | undefined): key is Extrac
 	return key !== undefined && Object.hasOwn(obj, key);
 }
 
+/** /give 的數量：1–64 的整數，其他回傳 undefined */
+function giveCount(raw: string): number | undefined {
+	if (!/^\d{1,3}$/.test(raw)) return undefined;
+	const count = Number(raw);
+	return count >= 1 && count <= MAX_GIVE_COUNT ? count : undefined;
+}
+
 /** 去掉 minecraft: 前綴並轉小寫：minecraft:Cake → cake */
 function itemId(raw: string | undefined): string | undefined {
 	return raw?.toLowerCase().replace(/^minecraft:/, '');
@@ -98,9 +125,13 @@ function parseArgs(name: CommandName, args: readonly string[], rest: string): Ac
 			if (args.length === 0) return { kind: 'weather', value: undefined };
 			return isOneOf(WEATHERS, args[0]) ? { kind: 'weather', value: args[0] } : usage;
 		case 'give': {
-			// /give @s cake、/give cake 都接受
-			const id = itemId(args[0] === '@s' || args[0] === '@p' ? args[1] : args[0]);
-			return isKey(GIVE_ITEMS, id) ? { kind: 'give', item: id } : usage;
+			// /give @s cake 5、/give cake 都接受；數量 1–64，省略是 1
+			const [rawId, rawCount, ...extra] = args[0] === '@s' || args[0] === '@p' ? args.slice(1) : args;
+			const id = itemId(rawId);
+			const count = rawCount === undefined ? 1 : giveCount(rawCount);
+			return isKey(GIVE_ITEMS, id) && count !== undefined && extra.length === 0
+				? { kind: 'give', item: id, count }
+				: usage;
 		}
 		case 'tp':
 			return isKey(TP_PAGES, args[0]) ? { kind: 'tp', page: args[0] } : usage;

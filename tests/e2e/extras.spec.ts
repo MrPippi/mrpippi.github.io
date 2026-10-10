@@ -44,14 +44,13 @@ test.describe('聊天列指令', () => {
 		await expect(errors.first()).toHaveText('未知的指令：/creeper');
 	});
 
-	test('/give 跳出物品通知，/weather 改變天空', async ({ page }) => {
+	test('/give 在聊天列顯示數量，/weather 改變天空', async ({ page }) => {
 		await page.goto('/en/');
 		await page.keyboard.press('/');
 		const input = page.locator('[data-chat-input]');
-		await input.pressSequentially('give @s cake');
+		await input.pressSequentially('give @s cake 3');
 		await input.press('Enter');
-		// 通知會排隊：先是「歡迎光臨」與指令進度，接著才是物品
-		await expect(page.locator('[data-toast-body]')).toHaveText('Gave 1 [Cake] to Guest', { timeout: 12_000 });
+		await expect(page.locator('[data-chat-log] li').last()).toHaveText('Gave 3 [Cake] to Guest');
 
 		await page.keyboard.press('/');
 		await input.pressSequentially('weather thunder');

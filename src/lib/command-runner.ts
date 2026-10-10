@@ -7,10 +7,10 @@ import { langFromDocument, localizePath, t } from '../i18n';
 import { recordGive, unlock } from './advancements';
 import { type Action, COMMANDS, GIVE_ITEMS, TP_PAGES, isCreeperCall, seedOf } from './commands';
 import { igniteCreeper } from './explosion-anim';
+import { receiveItems, showHotbar, slotCenter } from './hotbar';
 import { dropItem } from './item-drop-anim';
 import { nextTrack, setMusicOn } from './music';
 import { setTheme } from './theme';
-import { showToast } from './toast';
 import { fetchRealWeather, overrideWeather } from './weather';
 
 export type Tone = 'chat' | 'info' | 'error';
@@ -83,13 +83,18 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 		case 'weather':
 			return runWeather(action.value, print);
 		case 'give': {
-			const item = commands.items[action.item];
-			const message = commands.gave(item, commands.player);
-			print(message, 'info');
-			showToast(item, message, GIVE_ITEMS[action.item]);
-			dropItem(GIVE_ITEMS[action.item]);
-			recordGive(action.item);
-			if (action.item === 'diamond_pickaxe') unlock('diamonds');
+			const { item, count } = action;
+			const name = commands.items[item];
+			print(commands.gave(name, count, commands.player), 'info');
+			// 物品欄先出現，掉落物撿起來後飛進對應的格子
+			showHotbar();
+			dropItem(GIVE_ITEMS[item], {
+				count,
+				target: () => slotCenter(item, count),
+				onPickup: () => receiveItems(item, count, count > 1 ? `${name} ×${count}` : name),
+			});
+			recordGive(item);
+			if (item === 'diamond_pickaxe') unlock('diamonds');
 			return;
 		}
 		case 'tp': {

@@ -193,7 +193,7 @@ export const en: Dictionary = {
 		weatherSet: (name) => `Changing to ${name}`,
 		weatherNow: (name) => `Weather in Taipei right now: ${name}`,
 		weatherNames: { clear: 'clear', rain: 'rain', thunder: 'thunder', snow: 'snow' },
-		gave: (item, player) => `Gave 1 [${item}] to ${player}`,
+		gave: (item, count, player) => `Gave ${count} [${item}] to ${player}`,
 		items: {
 			cake: 'Cake',
 			diamond_pickaxe: 'Diamond Pickaxe',

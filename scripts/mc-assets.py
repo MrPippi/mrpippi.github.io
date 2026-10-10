@@ -63,6 +63,8 @@ COPIES = {
     "item/music_disc_chirp.png": "item/music_disc_chirp.png",
     "item/music_disc_far.png": "item/music_disc_far.png",
     "item/music_disc_mall.png": "item/music_disc_mall.png",
+    "gui/hotbar.png": "gui/sprites/hud/hotbar.png",
+    "gui/hotbar_selection.png": "gui/sprites/hud/hotbar_selection.png",
     "gui/experience_bar_background.png": "gui/sprites/hud/experience_bar_background.png",
     "gui/experience_bar_progress.png": "gui/sprites/hud/experience_bar_progress.png",
     "block/dirt.png": "block/dirt.png",

@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import CommandBar from '../components/CommandBar.astro';
+import Hotbar from '../components/Hotbar.astro';
 import LanguageToggle from '../components/LanguageToggle.astro';
 import LoadingScreen from '../components/LoadingScreen.astro';
 import MusicToggle from '../components/MusicToggle.astro';
@@ -110,6 +111,7 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 		</div>
 		<div transition:persist="overlays">
 			<Tooltip />
+			<Hotbar />
 			<CommandBar />
 			<LoadingScreen />
 		</div>

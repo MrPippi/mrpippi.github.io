@@ -176,7 +176,7 @@ export interface Dictionary {
 		readonly weatherSet: (name: string) => string;
 		readonly weatherNow: (name: string) => string;
 		readonly weatherNames: Readonly<Record<Weather, string>>;
-		readonly gave: (item: string, player: string) => string;
+		readonly gave: (item: string, count: number, player: string) => string;
 		readonly items: Readonly<Record<GiveItem, string>>;
 		readonly tp: (page: string) => string;
 		readonly pages: Readonly<Record<TpPage, string>>;

@@ -1,0 +1,146 @@
+---
+// 原版物品欄：/give 拿到的物品飛進來（右下角顯示數量），上方浮出物品名稱。
+// 平常隱藏，/give 時出現，閒置幾秒後淡出。內容由 src/lib/hotbar.ts 畫上去；資訊已在聊天列，這裡純裝飾。
+import { HOTBAR_SIZE } from '../lib/inventory';
+
+const slots = Array.from({ length: HOTBAR_SIZE }, (_, i) => i);
+---
+
+<div class="hotbar" data-hotbar aria-hidden="true">
+	<p class="name mc-text" data-hotbar-name></p>
+	<div class="bar">
+		<img class="frame pixelated" src="/mc/gui/hotbar.png" alt="" width="182" height="22" />
+		<img class="selection pixelated" src="/mc/gui/hotbar_selection.png" alt="" width="24" height="23" />
+		<ol class="slots">
+			{slots.map((i) => <li class="slot" data-slot={i} style={`--i:${i}`} />)}
+		</ol>
+	</div>
+</div>
+
+<style>
+	/* 原圖 182×22，放大 2 倍；窄螢幕縮小到畫面寬度。--u 是一個遊戲像素 */
+	.hotbar {
+		--w: min(364px, calc(100vw - 24px));
+		--u: calc(var(--w) / 182);
+		position: fixed;
+		left: 50%;
+		bottom: var(--hotbar-bottom);
+		z-index: 19;
+		width: var(--w);
+		opacity: 0;
+		transform: translateX(-50%);
+		transition: opacity 0.4s ease;
+		pointer-events: none;
+	}
+
+	.hotbar:global(.visible) {
+		opacity: 1;
+	}
+
+	.name {
+		min-height: 1em;
+		margin: 0 0 10px;
+		color: #fff;
+		font-size: 18px;
+		line-height: 1;
+		text-align: center;
+		opacity: 0;
+	}
+
+	/* 物品名稱停 2 秒後淡出（和遊戲換手上物品時一樣） */
+	.name:global(.show) {
+		animation: name-fade 2.5s linear forwards;
+	}
+
+	@keyframes name-fade {
+		0%,
+		80% {
+			opacity: 1;
+		}
+
+		100% {
+			opacity: 0;
+		}
+	}
+
+	.bar {
+		position: relative;
+		aspect-ratio: 182 / 22;
+	}
+
+	.frame {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.selection {
+		position: absolute;
+		left: calc(var(--u) * (20 * var(--selected, 0) - 1));
+		top: calc(var(--u) * -1);
+		width: calc(var(--u) * 24);
+		height: calc(var(--u) * 23);
+	}
+
+	.slots {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	/* 每格 20 像素寬，物品畫在格子裡 16×16 的位置 */
+	.slot {
+		position: absolute;
+		left: calc(var(--u) * (3 + 20 * var(--i)));
+		top: calc(var(--u) * 3);
+		width: calc(var(--u) * 16);
+		height: calc(var(--u) * 16);
+	}
+
+	.slot :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		image-rendering: pixelated;
+	}
+
+	.slot :global(.count) {
+		position: absolute;
+		right: calc(var(--u) * -1);
+		bottom: calc(var(--u) * -2);
+		color: #fff;
+		font-size: calc(var(--u) * 9);
+		line-height: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.name:global(.show) {
+			animation: none;
+			opacity: 1;
+		}
+	}
+</style>
+
+<style is:global>
+	/* 物品欄的位置：畫面最底下；文章頁在經驗條上方；窄螢幕在右下角按鈕列上方 */
+	body {
+		--hotbar-bottom: calc(12px + env(safe-area-inset-bottom));
+		--hotbar-height: 96px;
+	}
+
+	body:has([data-reading-xp]) {
+		--hotbar-bottom: calc(36px + env(safe-area-inset-bottom));
+	}
+
+	@media (max-width: 640px) {
+		body,
+		body:has([data-reading-xp]) {
+			--hotbar-bottom: var(--controls-space);
+		}
+	}
+
+	/* 物品欄出現時，聊天列移到它上面（和遊戲一樣） */
+	body:has([data-hotbar].visible) .chat {
+		bottom: calc(var(--hotbar-bottom) + var(--hotbar-height));
+	}
+</style>
