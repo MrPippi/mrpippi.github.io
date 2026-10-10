@@ -16,7 +16,7 @@ import {
 } from './precipitation';
 
 /** 原版雨的顏色（rain.png） */
-const RAIN_RGB = '120 150 225';
+const RAIN_RGB = '110 145 235';
 const SNOW_RGB = '255 255 255';
 /** 太久沒畫（切到別的分頁）回來時，不要一次跳太遠 */
 const MAX_DT = 0.05;
@@ -43,18 +43,19 @@ function fitCanvas(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Si
 	return { width, height };
 }
 
-/** 雨絲：上淡下濃的三段，寬 2~3 px */
+/** 雨絲：一格格方塊像素往下疊，上淡下濃的那種最上面幾乎透明；整條亮的每隔幾格稍微暗一點，像原版材質 */
 function drawRain(ctx: CanvasRenderingContext2D, world: World): void {
 	for (const drop of world.drops) {
-		const px = drop.depth > 0.55 ? 3 : 2;
-		const alpha = 0.3 + drop.depth * 0.55;
-		const x = snap(drop.x, px);
-		const segment = Math.max(px, snap(drop.length / 3, px));
-		const top = snap(drop.y, px);
-		[0.25, 0.55, 1].forEach((strength, i) => {
+		const { pixel } = drop;
+		const texels = Math.max(1, Math.round(drop.length / pixel));
+		const alpha = 0.35 + drop.depth * 0.5;
+		const x = snap(drop.x, pixel);
+		const top = snap(drop.y, pixel);
+		for (let i = 0; i < texels; i += 1) {
+			const strength = drop.fade ? 0.12 + (0.88 * (i + 1)) / texels : i % 3 === 1 ? 0.75 : 1;
 			ctx.fillStyle = `rgb(${RAIN_RGB} / ${alpha * strength})`;
-			ctx.fillRect(x, top + segment * i, px, segment);
-		});
+			ctx.fillRect(x, top + i * pixel, pixel, pixel);
+		}
 	}
 }
 

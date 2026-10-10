@@ -38,8 +38,8 @@ describe('precipKindOf', () => {
 
 describe('dropCount', () => {
 	it('依畫面面積決定數量，有上限', () => {
-		expect(dropCount('rain', { width: 600, height: 600 })).toBe(100);
-		expect(dropCount('rain', { width: 10_000, height: 10_000 })).toBe(600);
+		expect(dropCount('rain', { width: 1000, height: 500 })).toBe(100);
+		expect(dropCount('rain', { width: 10_000, height: 10_000 })).toBe(450);
 		expect(dropCount('rain', { width: 0, height: 0 })).toBe(0);
 	});
 
@@ -68,7 +68,20 @@ describe('spawnDrop', () => {
 		const near = spawnDrop('rain', SIZE, sequence([0.95, 0.5]));
 		expect(near.depth).toBeGreaterThan(far.depth);
 		expect(near.speed).toBeGreaterThan(far.speed);
+		expect(near.pixel).toBeGreaterThan(far.pixel);
 		expect(near.length).toBeGreaterThan(far.length);
+	});
+
+	it('雨絲長度是整數格', () => {
+		const rand = seeded(20);
+		for (let i = 0; i < 100; i += 1) {
+			const drop = spawnDrop('rain', SIZE, rand);
+			expect(drop.pixel).toBeGreaterThanOrEqual(3);
+			expect(drop.pixel).toBeLessThanOrEqual(6);
+			expect(Number.isInteger(drop.length / drop.pixel)).toBe(true);
+			expect(drop.length / drop.pixel).toBeGreaterThanOrEqual(5);
+			expect(drop.length / drop.pixel).toBeLessThanOrEqual(15);
+		}
 	});
 
 });
@@ -91,7 +104,7 @@ describe('stepWorld', () => {
 	});
 
 	it.each(['rain', 'snow'] as const)('%s 一路落到畫面底部才換成新的', (kind) => {
-		const drop = { x: 100, y: SIZE.height - 30, depth: 0.5, speed: 1000, length: 20, phase: 0 };
+		const drop = { x: 100, y: SIZE.height - 30, depth: 0.5, speed: 1000, length: 20, pixel: 4, fade: false, phase: 0 };
 		const world: World = { ...createWorld(kind, SIZE, seeded(6)), drops: [drop] };
 		const almost = stepWorld(world, 0.02, SIZE, seeded(7));
 		expect(almost.drops[0]).toEqual({ ...drop, y: SIZE.height - 10 });
