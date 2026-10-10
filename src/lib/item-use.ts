@@ -1,18 +1,25 @@
 /**
- * 使用物品欄裡的物品（每用一次少一個）：結果印在聊天列，有些會換頁、換主題或放煙火。
+ * 使用物品欄裡的物品：結果印在聊天列，有些會換頁、換主題、放煙火或打開地圖。
+ * 回傳 consumed 表示用掉一個；kept 表示物品還在（地圖、山羊角、鑽石鎬，或名牌等你輸入名字）。
+ * 附魔書由物品欄自己處理（要先選另一個物品）。
  */
 import { navigate } from 'astro:transitions/client';
 import { langFromDocument, localizePath, stripLang, t } from '../i18n';
-import { visitedCount } from './advancements';
-import { printToChat } from './chat';
+import { openChat, printToChat } from './chat';
 import { type GiveItem, TP_PAGES, type TpPage } from './commands';
 import { beaconBeam, launchFirework } from './firework-anim';
-import { playBeacon, playBreak, playEat, playHorn, playLever, playTeleport } from './sound';
+import type { Point } from './item-drop';
+import { openSiteMap } from './map-screen';
+import { playerName, startRename } from './player';
+import { playBeacon, playEat, playHorn, playLever, playTeleport } from './sound';
 import { effectiveTheme, setTheme } from './theme';
+import { throwXpBottle } from './xp-anim';
+
+export type UseResult = 'consumed' | 'kept';
 
 const pickRandom = <T>(list: readonly T[]): T | undefined => list[Math.floor(Math.random() * list.length)];
 
-function pathOf(page: TpPage): string {
+export function pagePath(page: TpPage): string {
 	// 文章只有中文版
 	return page === 'blog' ? TP_PAGES.blog : localizePath(TP_PAGES[page], langFromDocument());
 }
@@ -26,7 +33,7 @@ function teleport(): void {
 	if (!page) return;
 	playTeleport();
 	printToChat(commands.tp(commands.pages[page]));
-	void navigate(pathOf(page));
+	void navigate(pagePath(page));
 }
 
 /** 紅石：像開關紅石燈一樣切換白天／夜晚 */
@@ -38,52 +45,59 @@ function toggleLamp(): void {
 	printToChat(toLight ? inventory.redstoneOn : inventory.redstoneOff);
 }
 
-export function useItem(item: GiveItem): void {
-	const dict = t(langFromDocument());
-	const { inventory, commands } = dict;
-	const player = commands.player;
+/** 名牌：打開聊天列，下一句話就是新名字（取好名字才用掉名牌） */
+function rename(): void {
+	startRename();
+	printToChat(t(langFromDocument()).inventory.renamePrompt);
+	openChat();
+}
+
+export function useItem(item: GiveItem, from: Point | undefined): UseResult {
+	const { inventory } = t(langFromDocument());
+	const player = playerName();
 	switch (item) {
 		case 'cake':
 			playEat();
 			printToChat(inventory.cake(player));
-			return;
+			return 'consumed';
 		case 'diamond_pickaxe':
-			playBreak();
-			printToChat(inventory.pickaxe(player));
-			return;
+			printToChat(inventory.pickaxeHint);
+			return 'kept';
 		case 'enchanted_book':
-			printToChat(inventory.learned(player, pickRandom(inventory.enchantments) ?? ''));
-			return;
+			return 'kept';
 		case 'ender_pearl':
 			teleport();
-			return;
+			return 'consumed';
 		case 'nether_star':
 			playBeacon();
 			beaconBeam();
 			printToChat(inventory.beacon);
-			return;
+			return 'consumed';
 		case 'firework_rocket':
 			launchFirework();
-			return;
+			return 'consumed';
 		case 'map':
-			printToChat(inventory.map(visitedCount()));
-			return;
+			openSiteMap();
+			return 'kept';
 		case 'compass':
 			printToChat(inventory.compass);
 			void navigate(localizePath('/', langFromDocument()));
-			return;
+			return 'consumed';
 		case 'redstone':
 			toggleLamp();
-			return;
+			return 'consumed';
 		case 'name_tag':
-			printToChat(inventory.nameTag(dict.profile.name));
-			return;
+			rename();
+			return 'kept';
 		case 'goat_horn':
 			playHorn();
 			printToChat(inventory.horn(player));
-			return;
+			return 'kept';
 		case 'bundle':
 			printToChat(inventory.bundle);
-			return;
+			return 'consumed';
+		case 'experience_bottle':
+			throwXpBottle(from);
+			return 'consumed';
 	}
 }

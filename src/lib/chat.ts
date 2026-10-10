@@ -13,3 +13,10 @@ export interface ChatPrint {
 export function printToChat(text: string, tone: Tone = 'info'): void {
 	document.dispatchEvent(new CustomEvent<ChatPrint>(CHAT_PRINT_EVENT, { detail: { text, tone } }));
 }
+
+export const CHAT_OPEN_EVENT = 'chat-open';
+
+/** 打開聊天列並預先填入文字 */
+export function openChat(prefill = ''): void {
+	document.dispatchEvent(new CustomEvent<string>(CHAT_OPEN_EVENT, { detail: prefill }));
+}

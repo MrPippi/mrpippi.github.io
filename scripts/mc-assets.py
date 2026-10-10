@@ -77,6 +77,22 @@ COPIES = {
     "item/skull_banner_pattern.png": "item/skull_banner_pattern.png",
     "item/gold_ingot.png": "item/gold_ingot.png",
     "item/bell.png": "item/bell.png",
+    "block/destroy_stage_0.png": "block/destroy_stage_0.png",
+    "block/destroy_stage_1.png": "block/destroy_stage_1.png",
+    "block/destroy_stage_2.png": "block/destroy_stage_2.png",
+    "block/destroy_stage_3.png": "block/destroy_stage_3.png",
+    "block/destroy_stage_4.png": "block/destroy_stage_4.png",
+    "block/destroy_stage_5.png": "block/destroy_stage_5.png",
+    "block/destroy_stage_6.png": "block/destroy_stage_6.png",
+    "block/destroy_stage_7.png": "block/destroy_stage_7.png",
+    "block/destroy_stage_8.png": "block/destroy_stage_8.png",
+    "block/destroy_stage_9.png": "block/destroy_stage_9.png",
+    "misc/enchanted_glint_item.png": "misc/enchanted_glint_item.png",
+    "map/map_background.png": "map/map_background.png",
+    "map/player.png": "map/decorations/player.png",
+    "map/white_banner.png": "map/decorations/white_banner.png",
+    "map/red_x.png": "map/decorations/red_x.png",
+    "entity/experience_orb.png": "entity/experience/experience_orb.png",
     "item/phantom_membrane.png": "item/phantom_membrane.png",
     "item/diamond.png": "item/diamond.png",
     "item/echo_shard.png": "item/echo_shard.png",
@@ -93,6 +109,8 @@ CLOUDS = ("sky/clouds.png", "environment/clouds.png")
 EXPLOSION = ("particle/explosion.png", [f"particle/explosion_{i}.png" for i in range(16)])
 # 煙火火花：遊戲裡從 spark_7 播到 spark_0（由大變小），灰階圖，網頁上再染成煙火的顏色
 SPARK = ("particle/spark.png", [f"particle/spark_{i}.png" for i in range(7, -1, -1)])
+# 藥水碎裂的粒子（經驗瓶）：同樣是灰階，從 effect_7 播到 effect_0
+EFFECT = ("particle/effect.png", [f"particle/effect_{i}.png" for i in range(7, -1, -1)])
 GRASS_TINT = (0x91, 0xBD, 0x59)  # 平原生態域的草地顏色
 FAVICON_SCALE = 4
 
@@ -170,6 +188,7 @@ def main() -> None:
     save(white_mask(load(CLOUDS[1])), CLOUDS[0])
     save(strip(EXPLOSION[1]), EXPLOSION[0])
     save(strip(SPARK[1]), SPARK[0])
+    save(strip(EFFECT[1]), EFFECT[0])
     favicon().save(ROOT / "public" / "favicon.png", optimize=True)
 
     files = sorted(OUTPUT.rglob("*.png"))

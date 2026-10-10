@@ -114,6 +114,59 @@ const slots = Array.from({ length: HOTBAR_SIZE }, (_, i) => i);
 		pointer-events: none;
 	}
 
+	/* 附魔光澤：原版 glint 貼圖斜斜捲動，只畫在物品的像素上（用物品圖當遮罩） */
+	.slot :global(.glint) {
+		position: absolute;
+		inset: 0;
+		background: url('/mc/misc/enchanted_glint_item.png') 0 0 / 200% 200%;
+		mix-blend-mode: screen;
+		opacity: 0.8;
+		-webkit-mask: var(--icon) center / 100% 100% no-repeat;
+		mask: var(--icon) center / 100% 100% no-repeat;
+		image-rendering: pixelated;
+		animation: glint 4s linear infinite;
+		pointer-events: none;
+	}
+
+	@keyframes glint {
+		to {
+			background-position: 200% 100%;
+		}
+	}
+
+	/* 耐久度條：格子底部，黑底上的彩色條 */
+	.slot :global(.durability) {
+		position: absolute;
+		left: calc(var(--u) * 2);
+		right: calc(var(--u) * 1);
+		bottom: calc(var(--u) * 1);
+		height: calc(var(--u) * 2);
+		background: #000;
+	}
+
+	.slot :global(.durability span) {
+		display: block;
+		height: 50%;
+	}
+
+	/* 冷卻：白色半透明遮罩從上往下縮（原版的樣子） */
+	.slot :global(.cooldown) {
+		position: absolute;
+		inset: auto 0 0;
+		height: 100%;
+		background: rgb(255 255 255 / 0.5);
+		animation-name: cooldown;
+		animation-timing-function: linear;
+		animation-fill-mode: both;
+		pointer-events: none;
+	}
+
+	@keyframes cooldown {
+		to {
+			height: 0;
+		}
+	}
+
 	.slot :global(.count) {
 		position: absolute;
 		right: calc(var(--u) * -1);
@@ -157,7 +210,9 @@ const slots = Array.from({ length: HOTBAR_SIZE }, (_, i) => i);
 
 <script>
 	import { initHotbar } from '../lib/hotbar';
+	import { initMining } from '../lib/mining';
 
 	// 物品欄在換頁時保留（transition:persist），只初始化一次
 	initHotbar();
+	initMining();
 </script>

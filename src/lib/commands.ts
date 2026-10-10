@@ -19,6 +19,7 @@ export const GIVE_ITEMS = {
 	name_tag: '/mc/item/name_tag.png',
 	goat_horn: '/mc/item/goat_horn.png',
 	bundle: '/mc/item/bundle.png',
+	experience_bottle: '/mc/item/experience_bottle.png',
 } as const;
 export type GiveItem = keyof typeof GIVE_ITEMS;
 

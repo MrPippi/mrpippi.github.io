@@ -5,6 +5,9 @@ import {
 	INVENTORY_SIZE,
 	type Inventory,
 	isEmpty,
+	damageSlot,
+	enchantSlot,
+	findItem,
 	parseInventory,
 	removeItems,
 } from '../../src/lib/inventory';
@@ -103,5 +106,46 @@ describe('isEmpty', () => {
 	it('全部空格才算空', () => {
 		expect(isEmpty(EMPTY_INVENTORY)).toBe(true);
 		expect(isEmpty(withSlots({ 30: { item: 'map', count: 1 } }))).toBe(false);
+	});
+});
+
+describe('耐久度與附魔', () => {
+	const start = withSlots({ 0: { item: 'diamond_pickaxe', count: 1 }, 1: { item: 'map', count: 3 } });
+
+	it('工具用掉耐久度，用完就壞掉消失', () => {
+		const once = damageSlot(start, 0, 1, 3);
+		expect(once.inventory[0]).toEqual({ item: 'diamond_pickaxe', count: 1, damage: 1 });
+		expect(once.broke).toBe(false);
+		const last = damageSlot(damageSlot(once.inventory, 0, 1, 3).inventory, 0, 1, 3);
+		expect(last.broke).toBe(true);
+		expect(last.inventory[0]).toBeNull();
+	});
+
+	it('附魔過的堆疊不會和新拿到的疊在一起', () => {
+		const enchanted = enchantSlot(start, 1);
+		expect(enchanted[1]).toEqual({ item: 'map', count: 3, enchanted: true });
+		const result = addItems(enchanted, 'map', 2, 64);
+		expect(result.inventory[1]).toEqual({ item: 'map', count: 3, enchanted: true });
+		expect(result.inventory[2]).toEqual({ item: 'map', count: 2 });
+	});
+
+	it('拿出物品時保留附魔與耐久度', () => {
+		const removed = removeItems(enchantSlot(start, 1), 1, 1);
+		expect(removed.removed).toEqual({ item: 'map', count: 1, enchanted: true });
+		expect(removed.inventory[1]).toEqual({ item: 'map', count: 2, enchanted: true });
+	});
+
+	it('讀回存檔時保留附魔與耐久度，丟掉亂寫的欄位', () => {
+		const parsed = parseInventory(
+			[{ item: 'map', count: 1, damage: 2, enchanted: true, extra: 1 }, { item: 'map', count: 1, damage: -1 }],
+			() => true,
+		);
+		expect(parsed[0]).toEqual({ item: 'map', count: 1, damage: 2, enchanted: true });
+		expect(parsed[1]).toEqual({ item: 'map', count: 1 });
+	});
+
+	it('找物品所在的格子', () => {
+		expect(findItem(start, 'map')).toBe(1);
+		expect(findItem(start, 'cake')).toBe(-1);
 	});
 });

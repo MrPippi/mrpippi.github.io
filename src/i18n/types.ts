@@ -135,18 +135,32 @@ export interface Dictionary {
 		readonly label: string;
 		readonly slot: (item: string, count: number) => string;
 		readonly empty: string;
+		/** 物品提示框的說明：每種物品的用途 */
+		readonly lore: Readonly<Record<GiveItem, string>>;
+		readonly durability: (left: number, max: number) => string;
+		readonly enchantedLore: string;
+		readonly cooldown: string;
 		readonly cake: (player: string) => string;
 		readonly pickaxe: (player: string) => string;
-		readonly learned: (player: string, enchantment: string) => string;
+		readonly pickaxeHint: string;
 		readonly enchantments: readonly string[];
+		readonly enchantPrompt: string;
+		readonly enchanted: (item: string, enchantment: string) => string;
 		readonly compass: string;
 		readonly redstoneOn: string;
 		readonly redstoneOff: string;
-		readonly map: (explored: number) => string;
+		readonly mapTitle: string;
+		readonly mapExplored: (explored: number, total: number) => string;
+		readonly mapHere: string;
+		readonly mapVisited: string;
+		readonly mapUnvisited: string;
+		readonly mapClose: string;
 		readonly beacon: string;
-		readonly nameTag: (name: string) => string;
+		readonly renamePrompt: string;
+		readonly renamed: (name: string) => string;
 		readonly horn: (player: string) => string;
 		readonly bundle: string;
+		readonly xp: (points: number) => string;
 	};
 	readonly advancements: {
 		readonly heading: string;

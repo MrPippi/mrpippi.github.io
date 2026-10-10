@@ -268,6 +268,12 @@ img {
 	pointer-events: none;
 }
 
+/* 丟在地上、可以點一下撿回來的物品 */
+.item-drop.pickable {
+	pointer-events: auto;
+	cursor: pointer;
+}
+
 /* 數量多時疊好幾個（各自用 translate 偏移） */
 .item-drop img {
 	position: absolute;
@@ -342,6 +348,152 @@ img {
 	background: linear-gradient(to top, rgb(255 255 255 / 0.95), rgb(170 230 255 / 0.5));
 	opacity: 0;
 	pointer-events: none;
+}
+
+/* 鑽石鎬挖按鈕（src/lib/mining.ts）：原版裂痕貼圖鋪滿按鈕，碎掉時噴出碎屑 */
+.crack {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	background-size: 32px;
+	image-rendering: pixelated;
+	mix-blend-mode: overlay;
+	pointer-events: none;
+}
+
+.debris-layer,
+.xp-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 22;
+	pointer-events: none;
+}
+
+.debris {
+	position: absolute;
+	width: 6px;
+	height: 6px;
+}
+
+/* 經驗瓶（src/lib/xp-anim.ts）：瓶子、藍色藥水粒子、原版經驗球 */
+.xp-bottle {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 48px;
+	height: 48px;
+}
+
+.xp-splash {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	margin: -8px 0 0 -8px;
+	background-size: 800% 100%;
+	background-repeat: no-repeat;
+	image-rendering: pixelated;
+}
+
+.xp-orb {
+	position: absolute;
+	width: 32px;
+	height: 32px;
+	margin: -16px 0 0 -16px;
+	background: url('/mc/entity/experience_orb.png') 0 0 / 128px 128px no-repeat;
+	image-rendering: pixelated;
+	animation: xp-glow 0.8s ease-in-out infinite alternate;
+}
+
+/* 原版經驗球會在黃綠之間閃 */
+@keyframes xp-glow {
+	to {
+		filter: hue-rotate(-40deg) brightness(1.2);
+	}
+}
+
+/* 地圖（src/lib/map-screen.ts）：原版羊皮紙地圖，上面是網站的頁面 */
+.site-map {
+	width: min(420px, calc(100vw - 32px));
+	padding: 36px 40px 28px;
+	border: 0;
+	background: url('/mc/map/map_background.png') center / 100% 100%;
+	color: #3f2a14;
+	image-rendering: pixelated;
+}
+
+.site-map::backdrop {
+	background: rgb(0 0 0 / 0.55);
+}
+
+.site-map h2 {
+	margin: 0;
+	color: #3f2a14;
+	font-size: 22px;
+	text-align: center;
+	text-shadow: none;
+}
+
+.site-map .explored {
+	margin: 4px 0 14px;
+	font-size: 0.85rem;
+	text-align: center;
+}
+
+.site-map ul {
+	display: grid;
+	gap: 4px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.site-map a {
+	display: grid;
+	grid-template-columns: 24px 1fr auto;
+	align-items: center;
+	gap: 10px;
+	padding: 4px 8px;
+	color: inherit;
+	text-decoration: none;
+}
+
+.site-map a:hover,
+.site-map a:focus-visible {
+	outline: 2px solid #3f2a14;
+	outline-offset: -2px;
+	background: rgb(63 42 20 / 0.12);
+}
+
+.site-map a img {
+	width: 24px;
+	height: 24px;
+}
+
+.site-map .name {
+	color: #3f2a14;
+	font-size: 17px;
+	text-shadow: none;
+}
+
+.site-map .status {
+	font-size: 0.8rem;
+	opacity: 0.75;
+}
+
+.site-map a[data-state='unvisited'] .name {
+	opacity: 0.55;
+}
+
+.site-map .close {
+	display: block;
+	margin: 16px auto 0;
+	padding: 6px 18px;
+	border: 2px solid #3f2a14;
+	background: rgb(255 255 255 / 0.3);
+	color: #3f2a14;
+	font-size: 15px;
+	text-shadow: none;
+	cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {

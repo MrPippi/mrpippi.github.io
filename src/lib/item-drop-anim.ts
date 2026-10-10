@@ -106,26 +106,70 @@ export function dropItems(icon: string, count: number, options: DropOptions): vo
 	});
 }
 
-/** 從物品欄丟出物品（中心在 from）：往上拋、落地，躺一會兒後消失 */
-export function throwItem(icon: string, count: number, from: Point): void {
-	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-	const viewport = { width: window.innerWidth, height: window.innerHeight };
+export interface ThrowOptions {
+	/** 落點（左上角）；沒給就往上拋、落在附近 */
+	readonly land?: Point;
+	/** 落地後多久消失；null 表示一直留著（死亡時噴出來的物品） */
+	readonly despawnMs?: number | null;
+	/** 點地上的物品可以撿回來：飛到 target（物品欄的格子）後呼叫 onPickup */
+	readonly pickup?: { readonly target: () => Point | undefined; readonly onPickup: () => void };
+}
+
+function landingNear(from: Point, viewport: Viewport): Point {
 	const ground = planDrop(viewport, Math.random).landY;
 	const x = from.x - ITEM_SIZE / 2 + (Math.random() * 2 - 1) * THROW_SPREAD;
-	const land = {
+	return {
 		x: Math.min(Math.max(0, x), viewport.width - ITEM_SIZE),
 		// 物品欄在地面附近，落點至少要在它上面
 		y: Math.min(ground, from.y - ITEM_SIZE * 1.5),
 	};
+}
+
+/** 等到被點（回傳 true）或時間到（回傳 false）；ms 為 null 時一直等 */
+function clickedOrTimeout(item: HTMLElement, ms: number | null, clickable: boolean): Promise<boolean> {
+	return new Promise((resolve) => {
+		const timer = ms === null ? undefined : window.setTimeout(() => resolve(false), ms);
+		if (!clickable) return;
+		item.classList.add('pickable');
+		item.addEventListener(
+			'click',
+			() => {
+				window.clearTimeout(timer);
+				resolve(true);
+			},
+			{ once: true },
+		);
+	});
+}
+
+/** 從物品欄丟出物品（中心在 from）：往上拋、落地，躺一會兒後消失；可以點一下撿回來 */
+export function throwItem(icon: string, count: number, from: Point, options: ThrowOptions = {}): void {
+	const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const despawnMs = options.despawnMs === undefined ? DESPAWN_MS : options.despawnMs;
+	if (reduced && !options.pickup) return;
+	const viewport = { width: window.innerWidth, height: window.innerHeight };
+	const land = options.land ?? landingNear(from, viewport);
 	const item = createItem(icon, count);
 	// 丟出去的不算「等著被撿」的掉落物
 	delete item.dataset.itemDrop;
 	item.dataset.itemThrown = '';
+	item.style.transform = `translate(${land.x}px, ${land.y}px)`;
 	document.body.append(item);
+	const lie = { x: land.x, landY: land.y, fallMs: 0 };
 	const fly = async (): Promise<void> => {
-		await item.animate([...throwKeyframes(from, land)], { duration: THROW_MS, fill: 'forwards' }).finished;
-		await wait(DESPAWN_MS);
-		await item.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_MS, fill: 'forwards' }).finished;
+		if (!reduced) await item.animate([...throwKeyframes(from, land)], { duration: THROW_MS, fill: 'forwards' }).finished;
+		const picked = await clickedOrTimeout(item, despawnMs, options.pickup !== undefined);
+		if (picked && options.pickup) {
+			const target = options.pickup.target() ?? { x: viewport.width / 2, y: viewport.height };
+			if (!reduced) {
+				await item.animate([...pickupKeyframes(lie, target)], { duration: PICKUP_MS, easing: 'ease-in', fill: 'forwards' })
+					.finished;
+			}
+			playPop();
+			options.pickup.onPickup();
+			return;
+		}
+		if (!reduced) await item.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_MS, fill: 'forwards' }).finished;
 	};
 	fly()
 		.catch(() => undefined)

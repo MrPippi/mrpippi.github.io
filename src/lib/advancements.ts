@@ -106,9 +106,9 @@ export function recordVisit(path: string): void {
 	if (new Date().getHours() < INSOMNIA_BEFORE_HOUR) unlock('insomnia');
 }
 
-/** 逛過幾個不同的頁面（地圖用） */
-export function visitedCount(): number {
-	return readList(VISITED_KEY).length;
+/** 逛過的頁面（不含語系前綴，地圖用） */
+export function visitedPages(): readonly string[] {
+	return readList(VISITED_KEY);
 }
 
 /** 記錄聽過的曲目，全部聽過就達成「唱片收藏家」 */
