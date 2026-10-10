@@ -3,8 +3,13 @@
  * 1. 先抓「一般影片」播放清單（UULF 開頭；UUSH 是 Shorts、UULV 是直播）。
  * 2. 這個清單在 GitHub Actions 主機上常回 404，失敗時改抓整個頻道的 RSS，
  *    再逐支判斷：/shorts/ID 回 200 的是 Shorts，影片頁標示 isLiveContent 的是直播紀錄。
- * 任何失敗（查不到頻道 ID、網路錯誤、格式不符）都回傳空陣列，頁面改顯示「前往頻道」，不讓建置失敗。
+ * 3. RSS 都不能用時，讀頻道的「影片」分頁（只列一般影片，見 youtube-scrape.ts）。
+ * 4. 每次請求失敗會重試；全部失敗時改用上次成功的備份（見 youtube-cache.ts）。
+ * 連備份都沒有時回傳空陣列，頁面改顯示「前往頻道」，不讓建置失敗。
  */
+
+import { loadVideos, saveVideos } from './youtube-cache';
+import { decodeEntities, extractVideoIds, parseWatchPage } from './youtube-scrape';
 
 export interface Video {
 	readonly id: string;
@@ -29,14 +34,6 @@ function tag(xml: string, name: string): string | undefined {
 	return new RegExp(`<${name}>([\\s\\S]*?)</${name}>`).exec(xml)?.[1]?.trim();
 }
 
-function decodeEntities(text: string): string {
-	return text
-		.replace(/&lt;/g, '<')
-		.replace(/&gt;/g, '>')
-		.replace(/&quot;/g, '"')
-		.replace(/&#39;/g, "'")
-		.replace(/&amp;/g, '&');
-}
 
 function parseEntry(xml: string): Video | undefined {
 	const id = tag(xml, 'yt:videoId');
@@ -96,10 +93,25 @@ export function channelFeedUrl(channelId: string): string {
 	return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
 }
 
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 1500;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** YouTube 對建置主機常常間歇性回錯，失敗時等一下再試（等待時間逐次加長） */
 async function fetchFeed(url: string): Promise<readonly Video[]> {
-	const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
-	if (!res.ok) throw new Error(`HTTP ${res.status}`);
-	return parseFeed(await res.text());
+	let lastError: unknown;
+	for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+		try {
+			const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+			return parseFeed(await res.text());
+		} catch (error) {
+			lastError = error;
+			if (attempt < RETRY_ATTEMPTS) await sleep(RETRY_DELAY_MS * attempt);
+		}
+	}
+	throw lastError;
 }
 
 export type VideoKind = 'video' | 'short' | 'live' | 'unknown';
@@ -151,13 +163,7 @@ async function keepRegularVideos(videos: readonly Video[], limit: number): Promi
  * 抓最新的一般影片（不含 Shorts 與直播）。channelId 留空時，會先用 channelUrl 自動查出頻道 ID。
  * 查到的 ID 會印在建置紀錄裡，想省掉這一步可以把它填進 src/consts.ts。
  */
-export async function fetchLatestVideos(channelId: string, limit: number, channelUrl?: string): Promise<readonly Video[]> {
-	const id = channelId || (channelUrl ? await resolveChannelId(channelUrl) : undefined);
-	if (!id) return [];
-	if (!CHANNEL_ID.test(id)) {
-		console.warn(`[youtube] 頻道 ID 格式不正確：${id}`);
-		return [];
-	}
+async function fetchFresh(id: string, limit: number): Promise<readonly Video[] | undefined> {
 	try {
 		const videos = (await fetchFeed(videosOnlyFeedUrl(id))).slice(0, limit);
 		console.info(`[youtube] 頻道 ${id}：從一般影片清單取得 ${videos.length} 支影片`);
@@ -170,7 +176,72 @@ export async function fetchLatestVideos(channelId: string, limit: number, channe
 		console.info(`[youtube] 頻道 ${id}：過濾後取得 ${videos.length} 支影片`);
 		return videos;
 	} catch (error) {
-		console.warn(`[youtube] 抓取影片失敗，改顯示頻道連結：${String(error)}`);
+		console.warn(`[youtube] 頻道 RSS 也無法使用（${String(error)}），改讀頻道的「影片」分頁`);
+	}
+	try {
+		const videos = await scrapeVideosTab(id, limit);
+		console.info(`[youtube] 頻道 ${id}：從「影片」分頁取得 ${videos.length} 支影片`);
+		return videos;
+	} catch (error) {
+		console.warn(`[youtube] 「影片」分頁也無法使用：${String(error)}`);
+		return undefined;
+	}
+}
+
+async function fetchPage(url: string): Promise<string> {
+	const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), headers: BROWSER_HEADERS });
+	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	return res.text();
+}
+
+/** 頻道「影片」分頁只列一般影片；再到每支影片頁讀標題與日期，並排除直播紀錄 */
+async function scrapeVideosTab(id: string, limit: number): Promise<readonly Video[]> {
+	const ids = extractVideoIds(await fetchPage(`https://www.youtube.com/channel/${id}/videos`));
+	if (ids.length === 0) throw new Error('分頁裡找不到影片');
+	const videos: Video[] = [];
+	for (const videoId of ids) {
+		if (videos.length >= limit) break;
+		const info = parseWatchPage(await fetchPage(`https://www.youtube.com/watch?v=${videoId}`));
+		if (!info || info.live) continue;
+		videos.push({
+			id: videoId,
+			title: info.title,
+			published: info.published,
+			url: `https://www.youtube.com/watch?v=${videoId}`,
+			thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+		});
+	}
+	return videos;
+}
+
+/** 同一次建置中（中英文兩頁）只抓一次 */
+const inFlight = new Map<string, Promise<readonly Video[]>>();
+
+/**
+ * 抓最新的一般影片（不含 Shorts 與直播）。channelId 留空時，會先用 channelUrl 自動查出頻道 ID。
+ * 抓成功就存備份；全部失敗時改用上次成功的備份，影片區不會變空。
+ */
+export function fetchLatestVideos(channelId: string, limit: number, channelUrl?: string): Promise<readonly Video[]> {
+	const key = `${channelId || channelUrl}|${limit}`;
+	const pending = inFlight.get(key) ?? fetchLatestVideosOnce(channelId, limit, channelUrl);
+	inFlight.set(key, pending);
+	return pending;
+}
+
+async function fetchLatestVideosOnce(channelId: string, limit: number, channelUrl?: string): Promise<readonly Video[]> {
+	const id = channelId || (channelUrl ? await resolveChannelId(channelUrl) : undefined);
+	if (!id) return [];
+	if (!CHANNEL_ID.test(id)) {
+		console.warn(`[youtube] 頻道 ID 格式不正確：${id}`);
 		return [];
 	}
+	const fresh = await fetchFresh(id, limit);
+	if (fresh) {
+		saveVideos(id, fresh);
+		return fresh;
+	}
+	const cached = loadVideos(id);
+	if (cached) return cached.slice(0, limit);
+	console.warn('[youtube] 沒有可用的影片備份，改顯示頻道連結');
+	return [];
 }
