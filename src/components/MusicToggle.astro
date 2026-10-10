@@ -27,7 +27,7 @@ import PixelGlyph from './PixelGlyph.astro';
 				<span class="now-title mc-text" data-now-title></span>
 			</span>
 		</p>
-		<!-- 唱片機：每首曲目一張唱片，正在播的那張會轉 -->
+		<!-- 唱片機：每首曲目一張唱片 -->
 		<ol class="tracks" data-track-list>
 			{
 				TRACKS.map((track, index) => (
@@ -188,10 +188,6 @@ import PixelGlyph from './PixelGlyph.astro';
 		flex-shrink: 0;
 	}
 
-	:global(.music-control[data-playing='true']) .track[aria-current='true'] .disc {
-		animation: spin 1.6s steps(8) infinite;
-	}
-
 	.track-title {
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -208,12 +204,6 @@ import PixelGlyph from './PixelGlyph.astro';
 	.row :global(.mc-btn) {
 		width: 100%;
 		font-size: 15px;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
 	}
 
 	@keyframes notes {
