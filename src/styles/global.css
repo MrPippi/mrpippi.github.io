@@ -350,12 +350,13 @@ img {
 	pointer-events: none;
 }
 
-/* 鑽石鎬挖按鈕（src/lib/mining.ts）：原版裂痕貼圖鋪滿按鈕，碎掉時噴出碎屑 */
+/* 鑽石鎬挖按鈕（src/lib/mining.ts）：原版裂痕拼成的 canvas 蓋滿按鈕，碎掉時噴出碎屑 */
 .crack {
 	position: absolute;
 	inset: 0;
 	z-index: 3;
-	background-size: 32px;
+	width: 100%;
+	height: 100%;
 	image-rendering: pixelated;
 	mix-blend-mode: overlay;
 	pointer-events: none;

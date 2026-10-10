@@ -1,8 +1,9 @@
 /**
  * 鑽石鎬挖按鈕：選到鑽石鎬時，對選單按鈕（標題畫面的大按鈕、石頭按鈕）按住不放，
- * 會出現原版的方塊裂痕（destroy_stage_0–9），挖完按鈕碎掉、噴出碎屑，鎬子少一點耐久度。
+ * 會出現原版的方塊裂痕（destroy_stage_0–9，每格隨機轉向，不會整片重複），挖完按鈕碎掉、噴出碎屑，鎬子少一點耐久度。
  * 碎掉的按鈕在換頁或重新整理後回來。附魔過的鎬子挖得比較快（效率）。
  */
+import { CRACK_STAGES, CRACK_TEXTURE, type CrackLayout, crackLayout, crackStage } from './crack';
 import { type Spark, sparkOpacity, sparkPath, TICK_MS } from './firework';
 import { damageHeld, heldStack } from './hotbar';
 import { playDig, playHit } from './sound';
@@ -10,15 +11,46 @@ import { playDig, playHit } from './sound';
 const TARGETS = '.banner, .mc-btn';
 const MINE_MS = 1200;
 const ENCHANTED_MINE_MS = 600;
-const CRACK_STAGES = 10;
 /** 按住超過這麼久才算在挖（短按還是一般的點擊） */
 const HOLD_MS = 150;
 const DEBRIS_COUNT = 18;
 const DEBRIS_COLOR = '#7a7a7a';
 
-/** 挖了 elapsed 毫秒時的裂痕階段（0–9） */
-export function crackStage(elapsed: number, total: number): number {
-	return Math.min(CRACK_STAGES - 1, Math.max(0, Math.floor((elapsed / total) * CRACK_STAGES)));
+let crackImages: Promise<readonly HTMLImageElement[]> | undefined;
+
+/** 10 張裂痕貼圖，第一次挖的時候才載入 */
+function loadCracks(): Promise<readonly HTMLImageElement[]> {
+	crackImages ??= Promise.all(
+		Array.from(
+			{ length: CRACK_STAGES },
+			(_, stage) =>
+				new Promise<HTMLImageElement>((resolve, reject) => {
+					const img = new Image();
+					img.onload = () => resolve(img);
+					img.onerror = () => reject(new Error(`無法載入裂痕 ${stage}`));
+					img.src = `/mc/block/destroy_stage_${stage}.png`;
+				}),
+		),
+	);
+	return crackImages;
+}
+
+/** 依拼法把某個階段的裂痕畫到 canvas（每格 16×16，CSS 再放大鋪滿按鈕） */
+function drawCrack(canvas: HTMLCanvasElement, layout: CrackLayout, img: HTMLImageElement): void {
+	const ctx = canvas.getContext('2d');
+	if (!ctx) return;
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	layout.orientations.forEach((orientation, i) => {
+		const x = (i % layout.cols) * CRACK_TEXTURE;
+		const y = Math.floor(i / layout.cols) * CRACK_TEXTURE;
+		const half = CRACK_TEXTURE / 2;
+		ctx.save();
+		ctx.translate(x + half, y + half);
+		ctx.rotate(((orientation % 4) * Math.PI) / 2);
+		if (orientation >= 4) ctx.scale(-1, 1);
+		ctx.drawImage(img, -half, -half);
+		ctx.restore();
+	});
 }
 
 function holdingPickaxe(): { readonly enchanted: boolean } | undefined {
@@ -64,10 +96,20 @@ function shatter(target: HTMLElement): void {
 }
 
 function startMining(target: HTMLElement, total: number): void {
-	const crack = document.createElement('span');
+	const rect = target.getBoundingClientRect();
+	const layout = crackLayout(rect.width, rect.height, Math.random);
+	const crack = document.createElement('canvas');
 	crack.className = 'crack';
+	crack.width = layout.cols * CRACK_TEXTURE;
+	crack.height = layout.rows * CRACK_TEXTURE;
 	crack.setAttribute('aria-hidden', 'true');
 	target.append(crack);
+	let images: readonly HTMLImageElement[] = [];
+	void loadCracks()
+		.then((loaded) => {
+			images = loaded;
+		})
+		.catch(() => undefined);
 	const started = performance.now();
 	let frame = 0;
 	let lastStage = -1;
@@ -93,9 +135,10 @@ function startMining(target: HTMLElement, total: number): void {
 		const elapsed = now - started;
 		if (elapsed > HOLD_MS) suppressClick = true;
 		const stage = crackStage(elapsed, total);
-		if (stage !== lastStage) {
+		const img = images[stage];
+		if (stage !== lastStage && img) {
 			lastStage = stage;
-			crack.style.backgroundImage = `url(/mc/block/destroy_stage_${stage}.png)`;
+			drawCrack(crack, layout, img);
 			// 每換一個階段敲一下
 			if (stage % 2 === 0) playHit();
 		}
