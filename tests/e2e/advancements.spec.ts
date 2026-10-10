@@ -228,8 +228,9 @@ test.describe('物品欄', () => {
 		await expect(slot(page, 0).locator('img')).toHaveAttribute('src', '/mc/item/redstone.png', { timeout: 6000 });
 		await expect(slot(page, 0).locator('.count')).toHaveText('5');
 		await expect(page.locator('[data-hotbar-name]')).toHaveText('紅石粉 ×5');
-		// 閒置後淡出
-		await expect(hotbar(page)).not.toHaveClass(/visible/, { timeout: 8000 });
+		// 背包有東西時一直顯示
+		await page.waitForTimeout(6500);
+		await expect(hotbar(page)).toHaveClass(/visible/);
 	});
 
 	test('不能疊的物品一格一個，背包記在瀏覽器裡', async ({ page }) => {
@@ -253,4 +254,98 @@ test.describe('物品欄', () => {
 		await run(page, 'give @s cake 65');
 		await expect(page.locator('[data-chat-log] li').last()).toHaveText('用法：/give @s <item> [count]');
 	});
+});
+
+test.describe('物品欄操作', () => {
+	const slot = (page: Page, i: number) => page.locator(`[data-slot="${i}"]`);
+	const count = (page: Page, i: number) => slot(page, i).locator('.count');
+
+	test.beforeEach(async ({ page }) => {
+		// 不播掉落動畫，物品直接進物品欄
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+	});
+
+	test('數字鍵選格子，Q 丟一個、Ctrl+Q 丟整格，空了物品欄就隱藏', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'give @s map 3');
+		await run(page, 'give @s compass 2');
+		// 剛拿到的物品那一格會被選到
+		await expect(slot(page, 1)).toHaveAttribute('aria-pressed', 'true');
+		await page.keyboard.press('1');
+		await expect(slot(page, 0)).toHaveAttribute('aria-pressed', 'true');
+
+		await page.keyboard.press('2');
+		await expect(slot(page, 1)).toHaveAttribute('aria-pressed', 'true');
+		await expect(page.locator('[data-hotbar-name]')).toHaveText('指南針');
+		await page.keyboard.press('q');
+		await expect(count(page, 1)).toHaveCount(0);
+		await expect(slot(page, 1)).toHaveAttribute('aria-label', '指南針');
+		await page.keyboard.press('Control+q');
+		await expect(slot(page, 1).locator('img')).toHaveCount(0);
+
+		await page.keyboard.press('1');
+		await page.keyboard.press('Control+q');
+		await expect(page.locator('[data-hotbar]')).not.toHaveClass(/visible/);
+		expect(await page.evaluate(() => localStorage.getItem('inventory'))).not.toContain('map');
+	});
+
+	test('在輸入框裡打 Q 不會丟東西', async ({ page }) => {
+		await page.goto('/blog/');
+		await run(page, 'give @s map 3');
+		await page.locator('[data-search-input]').pressSequentially('q');
+		await expect(count(page, 0)).toHaveText('3');
+	});
+
+	test('點選中的格子使用物品：紅石切換白天黑夜並印出訊息', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'give @s redstone 2');
+		const before = await page.locator('html').getAttribute('data-theme');
+		await slot(page, 0).click();
+		await expect(page.locator('html')).not.toHaveAttribute('data-theme', before ?? 'none');
+		await expect(page.locator('[data-chat-log] li').last()).toHaveText(/紅石燈(亮了|熄了)/);
+		await expect(count(page, 0)).toHaveCount(0);
+	});
+
+	test('點沒選中的格子只會選取，右鍵直接使用', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'give @s cake 2');
+		await slot(page, 1).click();
+		await expect(slot(page, 1)).toHaveAttribute('aria-pressed', 'true');
+		await expect(slot(page, 1).locator('img')).toHaveCount(1);
+		await slot(page, 0).click({ button: 'right' });
+		await expect(page.locator('[data-chat-log] li').last()).toHaveText('訪客 吃了一片蛋糕');
+		await expect(slot(page, 0).locator('img')).toHaveCount(0);
+	});
+
+	test('長按丟出，按住不放會一直丟', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'give @s redstone 10');
+		const box = await slot(page, 0).boundingBox();
+		if (!box) throw new Error('找不到格子');
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+		await page.mouse.down();
+		await page.waitForTimeout(900);
+		await page.mouse.up();
+		const left = Number(await count(page, 0).textContent());
+		expect(left).toBeLessThan(9);
+		// 放開後不會被當成點一下（沒有使用掉）
+		await expect(page.locator('[data-chat-log] li').last()).not.toContainText('紅石燈');
+	});
+
+	test('終界珍珠傳送到別的頁面', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'give @s ender_pearl');
+		await slot(page, 0).click();
+		await expect(page).not.toHaveURL(/:\d+\/$/);
+		await expect(page.locator('[data-chat-log] li').last()).toContainText('傳送');
+	});
+});
+
+test('使用煙火：火箭升空炸開', async ({ page }) => {
+	await page.goto('/');
+	await page.evaluate(() => localStorage.setItem('inventory', JSON.stringify([{ item: 'firework_rocket', count: 1 }])));
+	await page.reload();
+	await page.locator('[data-slot="0"]').click();
+	await expect(page.locator('.firework-spark').first()).toBeAttached({ timeout: 3000 });
+	await expect(page.locator('.firework')).toHaveCount(0, { timeout: 4000 });
 });

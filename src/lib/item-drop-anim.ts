@@ -13,6 +13,7 @@ import {
 	type Point,
 	renderedCopies,
 	splitCount,
+	throwKeyframes,
 	type Viewport,
 } from './item-drop';
 import { playPop, preloadSamples } from './sound';
@@ -22,6 +23,12 @@ const LINGER_MS = 1800;
 const PICKUP_MS = 220;
 /** 同時最多幾個掉落物，連打指令時不會塞滿畫面 */
 const MAX_ITEMS = 24;
+/** 丟出去的物品飛行時間、落地後多久消失、消失的淡出時間 */
+const THROW_MS = 650;
+const DESPAWN_MS = 2500;
+const FADE_MS = 400;
+/** 丟出去的物品往左右偏多遠（px） */
+const THROW_SPREAD = 120;
 /** 分散的掉落物一個接一個掉下來的間隔 */
 const STAGGER_MS = 120;
 /** 疊在一起的掉落物各自偏移一點（px） */
@@ -97,4 +104,30 @@ export function dropItems(icon: string, count: number, options: DropOptions): vo
 		if (i === 0) dropOne(icon, share, options);
 		else window.setTimeout(() => dropOne(icon, share, options), i * STAGGER_MS);
 	});
+}
+
+/** 從物品欄丟出物品（中心在 from）：往上拋、落地，躺一會兒後消失 */
+export function throwItem(icon: string, count: number, from: Point): void {
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+	const viewport = { width: window.innerWidth, height: window.innerHeight };
+	const ground = planDrop(viewport, Math.random).landY;
+	const x = from.x - ITEM_SIZE / 2 + (Math.random() * 2 - 1) * THROW_SPREAD;
+	const land = {
+		x: Math.min(Math.max(0, x), viewport.width - ITEM_SIZE),
+		// 物品欄在地面附近，落點至少要在它上面
+		y: Math.min(ground, from.y - ITEM_SIZE * 1.5),
+	};
+	const item = createItem(icon, count);
+	// 丟出去的不算「等著被撿」的掉落物
+	delete item.dataset.itemDrop;
+	item.dataset.itemThrown = '';
+	document.body.append(item);
+	const fly = async (): Promise<void> => {
+		await item.animate([...throwKeyframes(from, land)], { duration: THROW_MS, fill: 'forwards' }).finished;
+		await wait(DESPAWN_MS);
+		await item.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_MS, fill: 'forwards' }).finished;
+	};
+	fly()
+		.catch(() => undefined)
+		.finally(() => item.remove());
 }

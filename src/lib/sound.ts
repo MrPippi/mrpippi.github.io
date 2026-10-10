@@ -256,3 +256,25 @@ export function playExplosion(): void {
 		playNoise(ctx, { duration: 1.4, volume: 2.5, filter: 'lowpass', from: 1500, to: 60 }),
 	);
 }
+
+/** 山羊角：低沉的號角聲 */
+export function playHorn(): void {
+	const ctx = activeContext();
+	if (!ctx) return;
+	playTone(ctx, { type: 'sawtooth', from: 233, to: 208, start: 0, duration: 1.4, volume: 0.35 });
+	playTone(ctx, { type: 'triangle', from: 466, to: 415, start: 0, duration: 1.2, volume: 0.25 });
+}
+
+/** 煙火升空的「咻——」 */
+export function playFireworkLaunch(): void {
+	const ctx = activeContext();
+	if (!ctx) return;
+	playNoise(ctx, { duration: 0.8, volume: 0.5, filter: 'bandpass', from: 600, to: 3000, attack: 0.3 });
+}
+
+/** 煙火炸開的「碰」 */
+export function playFireworkBlast(): void {
+	const ctx = activeContext();
+	if (!ctx) return;
+	playNoise(ctx, { duration: 0.9, volume: 1.6, filter: 'lowpass', from: 2500, to: 120 });
+}

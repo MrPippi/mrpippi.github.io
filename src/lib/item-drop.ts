@@ -88,3 +88,18 @@ export function renderedCopies(count: number): number {
 	if (count <= 48) return 4;
 	return 5;
 }
+
+/** 丟出去的物品往上拋多高（px） */
+const THROW_HEIGHT = 90;
+
+/** 從物品欄丟出：中心從 from 往上拋，再落到 land（左上角座標） */
+export function throwKeyframes(from: Point, land: Point): readonly Keyframe[] {
+	const half = ITEM_SIZE / 2;
+	const start = { x: from.x - half, y: from.y - half };
+	const peakY = Math.min(start.y, land.y) - THROW_HEIGHT;
+	return [
+		{ transform: at(start.x, start.y), easing: 'ease-out' },
+		{ transform: at((start.x + land.x) / 2, peakY), offset: 0.4, easing: 'ease-in' },
+		{ transform: at(land.x, land.y) },
+	];
+}

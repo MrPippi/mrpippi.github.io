@@ -9,6 +9,7 @@ import {
 	planDrop,
 	renderedCopies,
 	splitCount,
+	throwKeyframes,
 } from '../../src/lib/item-drop';
 
 const viewport = { width: 1000, height: 800 };
@@ -90,5 +91,14 @@ describe('splitCount', () => {
 
 	it('總數不變', () => {
 		expect(splitCount(37, 5).reduce((a, b) => a + b, 0)).toBe(37);
+	});
+});
+
+describe('throwKeyframes', () => {
+	it('從格子中心往上拋，最後落在指定位置', () => {
+		const frames = throwKeyframes({ x: 500, y: 760 }, { x: 600, y: 650 });
+		expect(frames[0]?.transform).toBe(`translate(${500 - ITEM_SIZE / 2}px, ${760 - ITEM_SIZE / 2}px)`);
+		expect(frames[1]?.transform).toBe(`translate(${(476 + 600) / 2}px, 560px)`);
+		expect(frames.at(-1)?.transform).toBe('translate(600px, 650px)');
 	});
 });

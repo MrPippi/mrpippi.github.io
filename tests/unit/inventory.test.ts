@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { addItems, EMPTY_INVENTORY, INVENTORY_SIZE, type Inventory, parseInventory } from '../../src/lib/inventory';
+import {
+	addItems,
+	EMPTY_INVENTORY,
+	INVENTORY_SIZE,
+	type Inventory,
+	isEmpty,
+	parseInventory,
+	removeItems,
+} from '../../src/lib/inventory';
 
 const withSlots = (slots: Record<number, { item: string; count: number }>): Inventory =>
 	EMPTY_INVENTORY.map((_, i) => slots[i] ?? null);
@@ -61,5 +69,39 @@ describe('parseInventory', () => {
 
 	it('不是陣列時回傳空背包', () => {
 		expect(parseInventory({ a: 1 }, isItem)).toEqual(EMPTY_INVENTORY);
+	});
+});
+
+describe('removeItems', () => {
+	const start = withSlots({ 0: { item: 'map', count: 5 }, 1: { item: 'cake', count: 1 } });
+
+	it('拿出一個，剩下的留在格子裡', () => {
+		const result = removeItems(start, 0, 1);
+		expect(result.removed).toEqual({ item: 'map', count: 1 });
+		expect(result.inventory[0]).toEqual({ item: 'map', count: 4 });
+	});
+
+	it('拿光了格子變空，最多只拿到格子裡有的數量', () => {
+		const result = removeItems(start, 0, 99);
+		expect(result.removed).toEqual({ item: 'map', count: 5 });
+		expect(result.inventory[0]).toBeNull();
+	});
+
+	it('空格拿不到東西，背包不變', () => {
+		const result = removeItems(start, 5, 1);
+		expect(result.removed).toBeNull();
+		expect(result.inventory).toBe(start);
+	});
+
+	it('不改動傳進來的背包', () => {
+		removeItems(start, 1, 1);
+		expect(start[1]).toEqual({ item: 'cake', count: 1 });
+	});
+});
+
+describe('isEmpty', () => {
+	it('全部空格才算空', () => {
+		expect(isEmpty(EMPTY_INVENTORY)).toBe(true);
+		expect(isEmpty(withSlots({ 30: { item: 'map', count: 1 } }))).toBe(false);
 	});
 });

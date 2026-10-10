@@ -130,6 +130,24 @@ export interface Dictionary {
 	};
 	readonly loading: string;
 	readonly tooltip: { readonly unlocked: string; readonly locked: string };
+	/** 物品欄：格子的名稱，以及使用物品時印在聊天列的訊息 */
+	readonly inventory: {
+		readonly label: string;
+		readonly slot: (item: string, count: number) => string;
+		readonly empty: string;
+		readonly cake: (player: string) => string;
+		readonly pickaxe: (player: string) => string;
+		readonly learned: (player: string, enchantment: string) => string;
+		readonly enchantments: readonly string[];
+		readonly compass: string;
+		readonly redstoneOn: string;
+		readonly redstoneOff: string;
+		readonly map: (explored: number) => string;
+		readonly beacon: string;
+		readonly nameTag: (name: string) => string;
+		readonly horn: (player: string) => string;
+		readonly bundle: string;
+	};
 	readonly advancements: {
 		readonly heading: string;
 		readonly toast: string;

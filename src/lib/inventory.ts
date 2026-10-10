@@ -60,3 +60,25 @@ export function parseInventory(value: unknown, isItem: (id: string) => boolean):
 		return isStack(slot) && isItem(slot.item) ? { item: slot.item, count: slot.count } : null;
 	});
 }
+
+export interface RemoveResult {
+	readonly inventory: Inventory;
+	/** 拿出來的物品；那一格是空的就是 null */
+	readonly removed: Stack | null;
+}
+
+/** 從第 index 格拿出最多 count 個（丟出或使用） */
+export function removeItems(inventory: Inventory, index: number, count: number): RemoveResult {
+	const slot = inventory[index];
+	const amount = Math.min(Math.max(0, Math.floor(count)), slot?.count ?? 0);
+	if (!slot || amount === 0) return { inventory, removed: null };
+	const left = slot.count - amount;
+	return {
+		inventory: inventory.map((s, i) => (i === index ? (left > 0 ? { item: slot.item, count: left } : null) : s)),
+		removed: { item: slot.item, count: amount },
+	};
+}
+
+export function isEmpty(inventory: Inventory): boolean {
+	return inventory.every((slot) => slot === null);
+}

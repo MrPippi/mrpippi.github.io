@@ -133,6 +133,7 @@
 <script>
 	import { langFromDocument, t } from '../i18n';
 	import { runAction, type Tone } from '../lib/command-runner';
+	import { CHAT_PRINT_EVENT, type ChatPrint } from '../lib/chat';
 	import { parseCommand, suggest } from '../lib/commands';
 
 	const MAX_LINES = 50;
@@ -156,6 +157,11 @@
 		while (log.children.length > MAX_LINES) log.firstElementChild?.remove();
 		log.scrollTop = log.scrollHeight;
 	}
+
+	document.addEventListener(CHAT_PRINT_EVENT, (event) => {
+		const { text, tone } = (event as CustomEvent<ChatPrint>).detail;
+		print(text, tone);
+	});
 
 	function renderSuggestions(): void {
 		if (!suggestBox || !input) return;
