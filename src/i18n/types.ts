@@ -28,7 +28,8 @@ export type AdvancementId =
 	| 'soliloquy'
 	| 'respawn'
 	| 'disc-collector'
-	| 'creeper';
+	| 'creeper'
+	| 'treasure-map';
 
 export interface Dictionary {
 	readonly site: { readonly title: string; readonly description: string; readonly titleSuffix: string };
@@ -161,6 +162,19 @@ export interface Dictionary {
 		readonly horn: (player: string) => string;
 		readonly bundle: string;
 		readonly xp: (points: number) => string;
+		readonly heart: string;
+		readonly totemHint: string;
+		readonly mapTreasure: string;
+		readonly treasureFound: string;
+	};
+	/** 附魔地圖上 X 標記的隱藏頁面：寶箱 */
+	readonly treasure: {
+		readonly heading: string;
+		readonly description: string;
+		readonly lead: string;
+		readonly chest: string;
+		readonly take: (item: string, count: number) => string;
+		readonly empty: string;
 	};
 	readonly advancements: {
 		readonly heading: string;
@@ -210,6 +224,7 @@ export interface Dictionary {
 		readonly weatherNames: Readonly<Record<Weather, string>>;
 		readonly gave: (item: string, count: number, player: string) => string;
 		readonly giveList: string;
+		readonly totemSaved: (player: string) => string;
 		readonly items: Readonly<Record<GiveItem, string>>;
 		readonly tp: (page: string) => string;
 		readonly pages: Readonly<Record<TpPage, string>>;

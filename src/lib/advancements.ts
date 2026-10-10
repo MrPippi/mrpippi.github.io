@@ -39,6 +39,7 @@ export const ADVANCEMENTS: readonly Advancement[] = [
 	{ id: 'respawn', icon: '/mc/item/totem_of_undying.png', hidden: true },
 	{ id: 'disc-collector', icon: '/mc/block/jukebox_side.png', hidden: true },
 	{ id: 'creeper', icon: '/mc/item/gunpowder.png', hidden: true },
+	{ id: 'treasure-map', icon: '/mc/map/red_x.png', hidden: true },
 ];
 
 export const ADVANCEMENT_EVENT = 'advancement-unlocked';

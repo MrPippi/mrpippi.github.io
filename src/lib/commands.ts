@@ -20,6 +20,10 @@ export const GIVE_ITEMS = {
 	goat_horn: '/mc/item/goat_horn.png',
 	bundle: '/mc/item/bundle.png',
 	experience_bottle: '/mc/item/experience_bottle.png',
+	diamond: '/mc/item/diamond.png',
+	gold_ingot: '/mc/item/gold_ingot.png',
+	heart_of_the_sea: '/mc/item/heart_of_the_sea.png',
+	totem_of_undying: '/mc/item/totem_of_undying.png',
 } as const;
 export type GiveItem = keyof typeof GIVE_ITEMS;
 
@@ -31,6 +35,7 @@ const STACK_SIZES: Partial<Record<GiveItem, number>> = {
 	ender_pearl: 16,
 	goat_horn: 1,
 	bundle: 1,
+	totem_of_undying: 1,
 };
 const DEFAULT_STACK = 64;
 

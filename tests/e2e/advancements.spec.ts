@@ -255,11 +255,11 @@ test.describe('物品欄', () => {
 		const log = page.locator('[data-chat-log] li');
 		await expect(log.filter({ hasText: '可以拿的物品' })).toHaveCount(1);
 		await expect(log.filter({ hasText: 'experience_bottle - 經驗瓶' })).toHaveCount(1);
-		await expect(log.filter({ hasText: ' - ' })).toHaveCount(13);
+		await expect(log.filter({ hasText: ' - ' })).toHaveCount(17);
 
 		await page.keyboard.press('/');
 		await page.locator('[data-chat-input]').pressSequentially('give @s ');
-		await expect(page.locator('[data-chat-suggest] button')).toHaveCount(13);
+		await expect(page.locator('[data-chat-suggest] button')).toHaveCount(17);
 	});
 
 	test('數量超出範圍時顯示用法', async ({ page }) => {

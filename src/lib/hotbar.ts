@@ -9,6 +9,7 @@
  * - 手機：點格子選取、再點一次使用；長按丟出，按住不放會一直丟
  */
 import { langFromDocument, t } from '../i18n';
+import { unlock } from './advancements';
 import { printToChat } from './chat';
 import { type GiveItem, GIVE_ITEMS, isGiveItem, stackSize } from './commands';
 import {
@@ -252,6 +253,11 @@ function applyEnchant(index: number): void {
 	setInventory(removeItems(enchantSlot(inventory, index), book, 1).inventory);
 	playLevelUp();
 	printToChat(dictInventory.enchanted(itemName(target.item), enchantment));
+	// 附魔地圖 = 藏寶圖：地圖上多一個寶藏地點，解鎖隱藏進度
+	if (target.item === 'map') {
+		printToChat(dictInventory.treasureFound);
+		unlock('treasure-map');
+	}
 }
 
 function select(index: number): void {
@@ -293,7 +299,7 @@ function useSelected(): void {
 		printToChat(dict().inventory.enchantPrompt);
 		return;
 	}
-	const result = useItem(stack.item, centerOf(slotElement(selected)));
+	const result = useItem(stack.item, centerOf(slotElement(selected)), stack.enchanted === true);
 	if (result === 'consumed') setInventory(removeItems(inventory, selected, 1).inventory);
 	startCooldown(stack.item);
 }

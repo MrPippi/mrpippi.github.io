@@ -153,3 +153,52 @@ test.describe('物品欄進階', () => {
 		await expect(slot(page, 0).locator('.count')).toHaveCount(0);
 	});
 });
+
+test.describe('藏寶圖與寶藏', () => {
+	test('附魔地圖：解鎖隱藏進度，地圖多一個 X，傳送到寶箱拿戰利品', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await run(page, 'give @s enchanted_book');
+		await run(page, 'give @s map');
+		await slot(page, 0).click();
+		await slot(page, 0).click();
+		await slot(page, 1).click();
+		await expect(slot(page, 1).locator('.glint')).toHaveCount(1);
+		expect(await page.evaluate(() => localStorage.getItem('advancements'))).toContain('treasure-map');
+
+		await slot(page, 1).click();
+		const treasure = page.locator('dialog.site-map a[href="/treasure/"]');
+		await expect(treasure).toBeVisible();
+		await treasure.click();
+		await expect(page).toHaveURL(/\/treasure\/$/);
+
+		const chest = page.locator('[data-chest-slot]:not(:disabled)');
+		await expect(chest).toHaveCount(7);
+		await page.locator('[data-chest-slot="13"]').click();
+		await expect(chest).toHaveCount(6);
+		expect(await page.evaluate(() => localStorage.getItem('inventory'))).toContain('heart_of_the_sea');
+
+		// 拿過的不會再出現
+		await page.reload();
+		await expect(chest).toHaveCount(6);
+	});
+
+	test('沒附魔的地圖沒有寶藏地點', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await run(page, 'give @s map');
+		await slot(page, 0).click();
+		await expect(page.locator('dialog.site-map a')).toHaveCount(6);
+	});
+
+	test('背包有不死圖騰時 /kill 不會死，圖騰用掉', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await run(page, 'give @s totem_of_undying');
+		await run(page, 'kill');
+		await expect(lastChat(page)).toHaveText('訪客 被不死圖騰救了一命！');
+		await page.waitForTimeout(1000);
+		await expect(page).toHaveURL(/\/$/);
+		expect(await page.evaluate(() => localStorage.getItem('inventory'))).not.toContain('totem');
+	});
+});

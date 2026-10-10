@@ -25,10 +25,11 @@ const JOBS = [
 	[
 		'random',
 		'64k',
-		['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop', 'orb', 'levelup', 'eat1', 'eat2', 'eat3', 'break', 'click', 'glass1', 'glass2', 'glass3'],
+		['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop', 'orb', 'levelup', 'eat1', 'eat2', 'eat3', 'break', 'click', 'glass1', 'glass2', 'glass3', 'use_totem'],
 	],
 	['fireworks', '64k', ['launch1', 'blast1', 'twinkle1']],
 	['dig', '64k', ['stone1', 'stone2', 'stone3', 'stone4']],
+	['block/chest', '64k', ['open', 'close1']],
 	['step', '64k', ['stone1', 'stone2', 'stone3', 'stone4', 'stone5', 'stone6']],
 	['mob/enderman', '64k', ['portal']],
 	['block/beacon', '64k', ['activate']],

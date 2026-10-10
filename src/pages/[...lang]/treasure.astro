@@ -1,0 +1,160 @@
+---
+// 埋藏的寶藏：附魔過的地圖（藏寶圖）上 X 標記的隱藏頁面。原版寶箱介面，戰利品點一下收進物品欄，每樣只能拿一次。
+import MenuLayout from '../../layouts/MenuLayout.astro';
+import { langFromPath, langStaticPaths, t } from '../../i18n';
+import { CHEST_SLOTS } from '../../lib/treasure';
+
+export function getStaticPaths() {
+	return langStaticPaths();
+}
+
+const dict = t(langFromPath(Astro.url.pathname)).treasure;
+const slots = Array.from({ length: CHEST_SLOTS }, (_, i) => i);
+---
+
+<MenuLayout heading={dict.heading} description={dict.description}>
+	<p class="lead">{dict.lead}</p>
+	<div class="chest" data-chest>
+		<p class="chest-title mc-text">{dict.chest}</p>
+		<div class="grid">
+			{slots.map((i) => <button type="button" class="slot" data-chest-slot={i} disabled />)}
+		</div>
+	</div>
+	<p class="empty" data-chest-empty hidden>{dict.empty}</p>
+</MenuLayout>
+
+<style>
+	.lead,
+	.empty {
+		margin: 0 0 1rem;
+		color: var(--text-muted);
+		text-align: center;
+	}
+
+	.empty {
+		margin-top: 1rem;
+	}
+
+	.empty[hidden] {
+		display: none;
+	}
+
+	/* 原版容器介面：淺灰底、立體邊框、深灰標題，9×3 格 */
+	.chest {
+		width: fit-content;
+		max-width: 100%;
+		margin: 0 auto;
+		padding: 10px 12px 14px;
+		border: 2px solid #000;
+		background: #c6c6c6;
+		box-shadow:
+			inset 2px 2px 0 #fff,
+			inset -2px -2px 0 #555;
+	}
+
+	.chest-title {
+		margin: 0 0 8px;
+		color: #404040;
+		font-size: 16px;
+		text-shadow: none;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(9, var(--slot));
+		--slot: min(40px, calc((100vw - 64px) / 9));
+	}
+
+	.slot {
+		position: relative;
+		width: var(--slot);
+		height: var(--slot);
+		padding: calc(var(--slot) * 0.1);
+		border: 0;
+		background: url('/mc/gui/slot.png') center / 100% 100%;
+		image-rendering: pixelated;
+	}
+
+	.slot:not(:disabled) {
+		cursor: pointer;
+	}
+
+	.slot:not(:disabled):hover,
+	.slot:focus-visible {
+		outline: 2px solid #fff;
+		outline-offset: -2px;
+		background-color: rgb(255 255 255 / 0.35);
+		background-blend-mode: screen;
+	}
+
+	.slot :global(img) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		image-rendering: pixelated;
+	}
+
+	.slot :global(.count) {
+		position: absolute;
+		right: 1px;
+		bottom: 0;
+		color: #fff;
+		font-size: 15px;
+		line-height: 1;
+	}
+</style>
+
+<script>
+	import { langFromDocument, t } from '../../i18n';
+	import { GIVE_ITEMS } from '../../lib/commands';
+	import { receiveStack } from '../../lib/hotbar';
+	import { playChestOpen } from '../../lib/sound';
+	import { lootedSlots, markLooted, remainingLoot, type Loot } from '../../lib/treasure';
+
+	function fill(slot: HTMLButtonElement, loot: Loot | undefined): void {
+		const dict = t(langFromDocument());
+		slot.replaceChildren();
+		slot.disabled = loot === undefined;
+		delete slot.dataset.tooltip;
+		slot.removeAttribute('aria-label');
+		if (!loot) return;
+		const img = document.createElement('img');
+		img.src = GIVE_ITEMS[loot.item];
+		img.alt = '';
+		slot.append(img);
+		if (loot.count > 1) {
+			const count = document.createElement('span');
+			count.className = 'count mc-text';
+			count.textContent = String(loot.count);
+			slot.append(count);
+		}
+		const name = dict.commands.items[loot.item];
+		slot.setAttribute('aria-label', dict.treasure.take(name, loot.count));
+		slot.dataset.tooltip = dict.inventory.slot(name, loot.count);
+		slot.dataset.tooltipLines = `-${dict.inventory.lore[loot.item]}`;
+	}
+
+	function render(): void {
+		const loot = remainingLoot(lootedSlots());
+		document.querySelectorAll<HTMLButtonElement>('[data-chest-slot]').forEach((slot) => {
+			fill(slot, loot.find((l) => l.slot === Number(slot.dataset.chestSlot)));
+		});
+		const empty = document.querySelector<HTMLElement>('[data-chest-empty]');
+		if (empty) empty.hidden = loot.length > 0;
+	}
+
+	document.addEventListener('astro:page-load', () => {
+		const chest = document.querySelector<HTMLElement>('[data-chest]');
+		if (!chest) return;
+		playChestOpen();
+		render();
+		chest.addEventListener('click', (event) => {
+			const slot = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-chest-slot]') : null;
+			const loot = slot && remainingLoot(lootedSlots()).find((l) => l.slot === Number(slot.dataset.chestSlot));
+			if (!loot) return;
+			markLooted(loot.slot);
+			receiveStack({ item: loot.item, count: loot.count });
+			render();
+		});
+	});
+</script>

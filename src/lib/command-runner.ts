@@ -12,6 +12,7 @@ import { dieWithItems } from './death-drops';
 import { consumeItem, hasItem } from './hotbar';
 import { dropItems } from './item-drop-anim';
 import { finishRename, isRenaming, playerHead, playerName } from './player';
+import { totemPop } from './totem-anim';
 import { nextTrack, setMusicOn } from './music';
 import { setTheme } from './theme';
 import { fetchRealWeather, overrideWeather } from './weather';
@@ -131,6 +132,13 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 			print(commands.seed(seedOf(SEED_NAME)), 'info');
 			return;
 		case 'kill':
+			// 背包裡有不死圖騰：圖騰救你一命，不會死
+			if (hasItem('totem_of_undying')) {
+				consumeItem('totem_of_undying');
+				totemPop();
+				print(commands.totemSaved(playerName()), 'info');
+				return;
+			}
 			print(commands.kill(playerName()), 'info');
 			// 背包裡的東西會噴在死亡畫面上
 			dieWithItems();

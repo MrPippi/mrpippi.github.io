@@ -497,6 +497,32 @@ img {
 	cursor: pointer;
 }
 
+/* 不死圖騰救命（src/lib/totem-anim.ts） */
+.totem-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 23;
+	pointer-events: none;
+}
+
+.totem-pop {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 128px;
+	height: 128px;
+}
+
+.totem-particle {
+	position: absolute;
+	width: 24px;
+	height: 24px;
+	margin: -12px 0 0 -12px;
+	background-size: 800% 100%;
+	background-repeat: no-repeat;
+	image-rendering: pixelated;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

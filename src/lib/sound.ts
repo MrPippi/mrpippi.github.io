@@ -186,6 +186,8 @@ const SAMPLES = {
 	step4: '/sounds/step/stone4.webm',
 	step5: '/sounds/step/stone5.webm',
 	step6: '/sounds/step/stone6.webm',
+	chestOpen: '/sounds/block/chest/open.webm',
+	totem: '/sounds/random/use_totem.webm',
 } as const;
 type Sample = keyof typeof SAMPLES;
 const EXPLOSIONS: readonly Sample[] = ['explode1', 'explode2', 'explode3', 'explode4'];
@@ -381,5 +383,19 @@ export function playHit(): void {
 export function playDig(): void {
 	void playSample(pickSample(['dig1', 'dig2', 'dig3', 'dig4']), 0.7, 0.8, (ctx) =>
 		playNoise(ctx, { duration: 0.3, volume: 0.9, filter: 'lowpass', from: 1500, to: 300 }),
+	);
+}
+
+/** 開寶箱（原版 block/chest/open） */
+export function playChestOpen(): void {
+	void playSample('chestOpen', 0.5, 0.9 + Math.random() * 0.1, (ctx) =>
+		playTone(ctx, { type: 'square', from: 180, to: 120, start: 0, duration: 0.25, volume: 0.25 }),
+	);
+}
+
+/** 不死圖騰救了你（原版 random/use_totem） */
+export function playTotem(): void {
+	void playSample('totem', 0.7, 1, (ctx) =>
+		playTone(ctx, { type: 'triangle', from: 300, to: 900, start: 0, duration: 1.2, volume: 0.5 }),
 	);
 }

@@ -52,7 +52,7 @@ function rename(): void {
 	openChat();
 }
 
-export function useItem(item: GiveItem, from: Point | undefined): UseResult {
+export function useItem(item: GiveItem, from: Point | undefined, enchanted = false): UseResult {
 	const { inventory } = t(langFromDocument());
 	const player = playerName();
 	switch (item) {
@@ -77,7 +77,8 @@ export function useItem(item: GiveItem, from: Point | undefined): UseResult {
 			launchFirework();
 			return 'consumed';
 		case 'map':
-			openSiteMap();
+			// 附魔過的地圖是藏寶圖：多一個 X 地點
+			openSiteMap({ treasure: enchanted });
 			return 'kept';
 		case 'compass':
 			printToChat(inventory.compass);
@@ -99,5 +100,15 @@ export function useItem(item: GiveItem, from: Point | undefined): UseResult {
 		case 'experience_bottle':
 			throwXpBottle(from);
 			return 'consumed';
+		case 'heart_of_the_sea':
+			printToChat(inventory.heart);
+			return 'kept';
+		case 'totem_of_undying':
+			printToChat(inventory.totemHint);
+			return 'kept';
+		case 'diamond':
+		case 'gold_ingot':
+			printToChat(inventory.lore[item]);
+			return 'kept';
 	}
 }

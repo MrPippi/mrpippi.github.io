@@ -8,8 +8,11 @@ import { TP_PAGES, type TpPage } from './commands';
 const MARKERS = {
 	here: '/mc/map/player.png',
 	visited: '/mc/map/white_banner.png',
-	unvisited: '/mc/map/red_x.png',
+	unvisited: '/mc/map/frame.png',
 } as const;
+/** 藏寶圖的紅叉（原版埋藏的寶藏標記） */
+const TREASURE_MARKER = '/mc/map/red_x.png';
+const TREASURE_PATH = '/treasure/';
 
 function pagePath(page: TpPage): string {
 	// 文章只有中文版
@@ -39,7 +42,29 @@ function pageItem(page: TpPage, here: string, visited: readonly string[]): HTMLL
 	return item;
 }
 
-export function openSiteMap(): void {
+/** 藏寶圖上的寶藏地點 */
+function treasureItem(here: string): HTMLLIElement {
+	const { inventory } = t(langFromDocument());
+	const item = document.createElement('li');
+	const link = document.createElement('a');
+	link.href = localizePath(TREASURE_PATH, langFromDocument());
+	link.dataset.state = here === TREASURE_PATH ? 'here' : 'treasure';
+	const marker = document.createElement('img');
+	marker.src = here === TREASURE_PATH ? MARKERS.here : TREASURE_MARKER;
+	marker.alt = '';
+	marker.className = 'pixelated';
+	const name = document.createElement('span');
+	name.className = 'name mc-text';
+	name.textContent = inventory.mapTreasure;
+	const note = document.createElement('span');
+	note.className = 'status';
+	note.textContent = here === TREASURE_PATH ? inventory.mapHere : 'X';
+	link.append(marker, name, note);
+	item.append(link);
+	return item;
+}
+
+export function openSiteMap(options: { readonly treasure?: boolean } = {}): void {
 	document.querySelector('dialog.site-map')?.remove();
 	const { inventory } = t(langFromDocument());
 	const here = stripLang(location.pathname);
@@ -59,6 +84,7 @@ export function openSiteMap(): void {
 	count.textContent = inventory.mapExplored(explored, pages.length);
 	const list = document.createElement('ul');
 	list.append(...pages.map((page) => pageItem(page, here, visited)));
+	if (options.treasure) list.append(treasureItem(here));
 	const close = document.createElement('button');
 	close.type = 'button';
 	close.className = 'close mc-text';
