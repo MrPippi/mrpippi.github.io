@@ -1,10 +1,11 @@
 /**
  * 把 precipitation.ts 的雨雪畫到 <canvas>：
  * - 背景 canvas（天空裡）：雨絲、雪花。
- * - 鏡頭 canvas（蓋在內容上，不擋滑鼠）：打在畫面上的水滴。
+ * - 鏡頭 canvas（蓋在內容上，不擋滑鼠）：打在畫面上的水滴，以及按鈕上的雨珠與滴水（drips-canvas.ts）。
  * 一律對齊像素格、不做平滑，看起來跟遊戲一樣是方塊像素。
  * 「減少動態效果」時不畫（CSS 也會把 canvas 藏起來）；天氣放晴時停止動畫迴圈。
  */
+import { createDripLayer } from './drips-canvas';
 import {
 	type LensDrop,
 	type PrecipKind,
@@ -87,6 +88,7 @@ export function mountPrecipitation(sky: HTMLCanvasElement, lens: HTMLCanvasEleme
 	const skyCtx = sky.getContext('2d');
 	const lensCtx = lens.getContext('2d');
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+	const drips = createDripLayer();
 	let world: World | undefined;
 	let wanted: PrecipKind | undefined;
 	let frame = 0;
@@ -104,12 +106,14 @@ export function mountPrecipitation(sky: HTMLCanvasElement, lens: HTMLCanvasEleme
 		const size = fitCanvas(sky, skyCtx);
 		fitCanvas(lens, lensCtx);
 		world = stepWorld(world, dt, size, Math.random);
+		if (world.kind === 'rain') drips.step(dt, Math.random);
 
 		skyCtx.clearRect(0, 0, size.width, size.height);
 		lensCtx.clearRect(0, 0, size.width, size.height);
 		if (world.kind === 'rain') drawRain(skyCtx, world);
 		else drawSnow(skyCtx, world);
 		world.lens.forEach((drop) => drawLensDrop(lensCtx, drop));
+		if (world.kind === 'rain') drips.draw(lensCtx);
 		frame = requestAnimationFrame(tick);
 	};
 
@@ -119,6 +123,7 @@ export function mountPrecipitation(sky: HTMLCanvasElement, lens: HTMLCanvasEleme
 		const kind = reducedMotion.matches ? undefined : wanted;
 		if (!kind || !skyCtx || !lensCtx) {
 			world = undefined;
+			drips.reset();
 			clear();
 			return;
 		}
