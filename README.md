@@ -73,7 +73,7 @@ tags: [Minecraft, 插件]
 - **原版物品提示框**：滑鼠移到統計資料、進度、附魔書與右下角按鈕上會出現深紫色的原版提示框。其他元素加上 `data-tooltip`（與 `data-tooltip-lines`）即可使用。
 - **換頁讀取畫面**：換頁超過 0.15 秒時顯示「正在載入地形…」與泥土背景。
 - **聊天列指令**：電腦上按 `T` 開聊天、按 `/` 直接打指令（Tab 自動完成、↑↓ 輸入紀錄、Esc 關閉）。有 `/help`、`/time set day|night`、`/weather`、`/give @s <物品>`、`/tp <頁面>`、`/music on|off|next`、`/search <關鍵字>`、`/say`、`/seed`、`/kill`、`/clear`。解析在 `src/lib/commands.ts`、執行在 `src/lib/command-runner.ts`。
-- **天氣**：背景跟著台北的實際天氣（[Open-Meteo](https://open-meteo.com)，免金鑰，快取 15 分鐘）下雨、下雪或打雷：雨滴一滴滴落下、落地濺起原版水花，偶爾有水滴打在畫面上（canvas 粒子，`src/lib/precipitation*.ts`）；查不到就是晴天。地點在 `src/consts.ts` 的 `WEATHER`。開啟「減少動態效果」時只會變陰天、不會下雨。
+- **天氣**：背景跟著台北的實際天氣（[Open-Meteo](https://open-meteo.com)，免金鑰，快取 15 分鐘）下雨、下雪或打雷：雨滴一滴滴落到畫面底部，偶爾有水滴打在畫面上（canvas 粒子，`src/lib/precipitation*.ts`）；查不到就是晴天。地點在 `src/consts.ts` 的 `WEATHER`。開啟「減少動態效果」時只會變陰天、不會下雨。
 - **Twitch 開台通知**：瀏覽器端向 [decapi.me](https://decapi.me) 查詢是否開台（免金鑰，快取 3 分鐘）。開台時跳出通知、標語換成「正在直播！」、直播按鈕出現 LIVE 標籤；查不到就當作沒開台。
 - **音樂面板**：右下角音符按鈕的面板有唱片機曲目清單（點一下播放）與單曲循環開關。
 

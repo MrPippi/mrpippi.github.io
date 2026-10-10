@@ -6,11 +6,8 @@ import {
 	MAX_LENS_DROPS,
 	precipKindOf,
 	type Random,
-	SPLASH_FRAMES,
-	SPLASH_LIFE,
 	spawnDrop,
 	spawnLensDrop,
-	splashFrame,
 	stepWorld,
 	type World,
 } from '../../src/lib/precipitation';
@@ -52,13 +49,11 @@ describe('dropCount', () => {
 });
 
 describe('spawnDrop', () => {
-	it('新的雨滴從畫面上方外面開始，落點在地面範圍內', () => {
+	it('新的雨滴從畫面上方外面開始', () => {
 		const rand = seeded(1);
 		for (let i = 0; i < 200; i += 1) {
 			const drop = spawnDrop('rain', SIZE, rand);
 			expect(drop.y).toBeLessThan(0);
-			expect(drop.landY).toBeGreaterThanOrEqual(SIZE.height * 0.6);
-			expect(drop.landY).toBeLessThanOrEqual(SIZE.height);
 			expect(drop.x).toBeGreaterThanOrEqual(0);
 			expect(drop.x).toBeLessThan(SIZE.width);
 		}
@@ -76,10 +71,6 @@ describe('spawnDrop', () => {
 		expect(near.length).toBeGreaterThan(far.length);
 	});
 
-	it('雪花落到畫面底下才重來', () => {
-		const flake = spawnDrop('snow', SIZE, seeded(2));
-		expect(flake.landY).toBeGreaterThan(SIZE.height);
-	});
 });
 
 describe('stepWorld', () => {
@@ -99,24 +90,13 @@ describe('stepWorld', () => {
 		pairs.forEach(([d, n]) => expect(n?.y).toBeGreaterThan(d.y));
 	});
 
-	it('雨滴落地時濺起水花，水花過一陣子消失', () => {
-		const world: World = {
-			...createWorld('rain', SIZE, seeded(6)),
-			drops: [{ x: 100, y: 699, depth: 0.5, speed: 1000, length: 20, landY: 700, phase: 0 }],
-		};
-		const landed = stepWorld(world, 0.01, { width: 1, height: 1 }, seeded(7));
-		expect(landed.splashes).toEqual([{ x: 100, y: 700, depth: 0.5, age: 0 }]);
-		expect(landed.drops).toHaveLength(dropCount('rain', { width: 1, height: 1 }));
-		const gone = stepWorld(landed, SPLASH_LIFE, { width: 1, height: 1 }, seeded(8));
-		expect(gone.splashes).toEqual([]);
-	});
-
-	it('雪落地不會濺水花', () => {
-		const world: World = {
-			...createWorld('snow', SIZE, seeded(9)),
-			drops: [{ x: 100, y: 899, depth: 0.5, speed: 1000, length: 4, landY: 900, phase: 0 }],
-		};
-		expect(stepWorld(world, 0.01, SIZE, seeded(10)).splashes).toEqual([]);
+	it.each(['rain', 'snow'] as const)('%s 一路落到畫面底部才換成新的', (kind) => {
+		const drop = { x: 100, y: SIZE.height - 30, depth: 0.5, speed: 1000, length: 20, phase: 0 };
+		const world: World = { ...createWorld(kind, SIZE, seeded(6)), drops: [drop] };
+		const almost = stepWorld(world, 0.02, SIZE, seeded(7));
+		expect(almost.drops[0]).toEqual({ ...drop, y: SIZE.height - 10 });
+		const gone = stepWorld(almost, 0.02, SIZE, seeded(8));
+		expect(gone.drops[0]?.y).toBeLessThan(0);
 	});
 
 	it('視窗變大時補雨滴，變小時減少', () => {
@@ -159,14 +139,5 @@ describe('鏡頭水滴', () => {
 		expect(lensOpacity({ ...drop, age: 1.2 })).toBe(1);
 		expect(lensOpacity({ ...drop, age: 1.6 })).toBeCloseTo(0.5);
 		expect(lensOpacity({ ...drop, age: 2 })).toBe(0);
-	});
-});
-
-describe('splashFrame', () => {
-	it('依時間播放 4 格水花動畫', () => {
-		expect(splashFrame(0)).toBe(0);
-		expect(splashFrame(SPLASH_LIFE * 0.3)).toBe(1);
-		expect(splashFrame(SPLASH_LIFE * 0.99)).toBe(SPLASH_FRAMES - 1);
-		expect(splashFrame(SPLASH_LIFE * 2)).toBe(SPLASH_FRAMES - 1);
 	});
 });

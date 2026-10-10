@@ -1,6 +1,6 @@
 /**
  * 把 precipitation.ts 的雨雪畫到 <canvas>：
- * - 背景 canvas（天空裡）：雨絲、水花、雪花。
+ * - 背景 canvas（天空裡）：雨絲、雪花。
  * - 鏡頭 canvas（蓋在內容上，不擋滑鼠）：打在畫面上的水滴。
  * 一律對齊像素格、不做平滑，看起來跟遊戲一樣是方塊像素。
  * 「減少動態效果」時不畫（CSS 也會把 canvas 藏起來）；天氣放晴時停止動畫迴圈。
@@ -12,8 +12,6 @@ import {
 	type World,
 	createWorld,
 	lensOpacity,
-	SPLASH_FRAMES,
-	splashFrame,
 	stepWorld,
 } from './precipitation';
 
@@ -22,23 +20,12 @@ const RAIN_RGB = '120 150 225';
 const SNOW_RGB = '255 255 255';
 /** 太久沒畫（切到別的分頁）回來時，不要一次跳太遠 */
 const MAX_DT = 0.05;
-/** 原版水花材質：8×8，水花在最下面兩列 */
-const SPLASH_TEXTURE = 8;
-const SPLASH_IMAGES = Array.from({ length: SPLASH_FRAMES }, (_, i) => `/mc/particle/splash_${i}.png`);
 
 export interface PrecipitationController {
 	setKind(kind: PrecipKind | undefined): void;
 }
 
 const snap = (value: number, px: number): number => Math.round(value / px) * px;
-
-function loadSplashImages(): readonly HTMLImageElement[] {
-	return SPLASH_IMAGES.map((src) => {
-		const img = new Image();
-		img.src = src;
-		return img;
-	});
-}
 
 /** canvas 跟著視窗大小，用裝置像素比畫才清楚 */
 function fitCanvas(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Size {
@@ -69,18 +56,6 @@ function drawRain(ctx: CanvasRenderingContext2D, world: World): void {
 			ctx.fillRect(x, top + segment * i, px, segment);
 		});
 	}
-}
-
-function drawSplashes(ctx: CanvasRenderingContext2D, world: World, images: readonly HTMLImageElement[]): void {
-	for (const splash of world.splashes) {
-		const image = images[splashFrame(splash.age)];
-		if (!image?.complete || image.naturalWidth === 0) continue;
-		const scale = splash.depth > 0.55 ? 4 : 3;
-		const size = SPLASH_TEXTURE * scale;
-		ctx.globalAlpha = 0.5 + splash.depth * 0.5;
-		ctx.drawImage(image, snap(splash.x - size / 2, scale), snap(splash.y - size, scale), size, size);
-	}
-	ctx.globalAlpha = 1;
 }
 
 function drawSnow(ctx: CanvasRenderingContext2D, world: World): void {
@@ -125,7 +100,6 @@ export function mountPrecipitation(sky: HTMLCanvasElement, lens: HTMLCanvasEleme
 	const skyCtx = sky.getContext('2d');
 	const lensCtx = lens.getContext('2d');
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-	const images = loadSplashImages();
 	let world: World | undefined;
 	let wanted: PrecipKind | undefined;
 	let frame = 0;
@@ -146,12 +120,8 @@ export function mountPrecipitation(sky: HTMLCanvasElement, lens: HTMLCanvasEleme
 
 		skyCtx.clearRect(0, 0, size.width, size.height);
 		lensCtx.clearRect(0, 0, size.width, size.height);
-		if (world.kind === 'rain') {
-			drawRain(skyCtx, world);
-			drawSplashes(skyCtx, world, images);
-		} else {
-			drawSnow(skyCtx, world);
-		}
+		if (world.kind === 'rain') drawRain(skyCtx, world);
+		else drawSnow(skyCtx, world);
 		world.lens.forEach((drop) => drawLensDrop(lensCtx, drop));
 		frame = requestAnimationFrame(tick);
 	};

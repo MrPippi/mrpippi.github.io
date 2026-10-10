@@ -1,7 +1,7 @@
 ---
 // 全頁固定背景：天空漸層 + 原版太陽／月亮 + 原版雲層（以 3D 透視鋪成頭頂上的雲面，緩慢飄移）。
 // 天氣（src/lib/weather.ts）：.sky[data-weather] 為 rain／thunder／snow 時天色變暗、太陽月亮躲起來；打雷會閃電。
-// 雨雪是 canvas 粒子（src/lib/precipitation*.ts）：雨滴一滴滴落下、落地濺起原版水花，偶爾有水滴打在畫面上（.lens，蓋在內容上面）。
+// 雨雪是 canvas 粒子（src/lib/precipitation*.ts）：雨滴一滴滴落到畫面底部，偶爾有水滴打在畫面上（.lens，蓋在內容上面）。
 
 /** 星星：[left %, top %, 大小 px, 閃爍延遲 s]，用固定公式產生，每次建置一致 */
 const STARS = Array.from({ length: 48 }, (_, i) => {

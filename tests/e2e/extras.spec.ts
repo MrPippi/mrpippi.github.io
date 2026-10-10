@@ -79,9 +79,6 @@ test.describe('天氣', () => {
 		await expect.poll(snapshot).not.toBe(blank);
 		const before = await snapshot();
 		await expect.poll(snapshot).not.toBe(before);
-		// 水花材質載得到
-		const splash = await page.request.get('/mc/particle/splash_0.png');
-		expect(splash.ok()).toBe(true);
 	});
 
 	test('晴天時沒有雨，放晴後停止動畫', async ({ page }) => {
