@@ -83,3 +83,15 @@ test('換頁很快時也播完整的讀取畫面，之後淡出', async ({ page 
 	expect(Date.now() - start).toBeGreaterThanOrEqual(600);
 	await expect(page.locator('h1')).toHaveText('關於我');
 });
+
+test('按鈕上隨機冒出閃光粒子，播完就消失；減少動態效果時沒有', async ({ page }) => {
+	await page.goto('/');
+	const glitter = page.locator('.banner .glitter');
+	await expect(glitter.first()).toBeAttached({ timeout: 4000 });
+	await expect(glitter.first()).toHaveCSS('z-index', '0');
+
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.reload();
+	await page.waitForTimeout(2500);
+	await expect(glitter).toHaveCount(0);
+});

@@ -52,10 +52,6 @@ const linkProps =
 	</span>
 	{tag && <span class="tag">{tag}</span>}
 	{liveTag && <span class="tag tag--live" data-live-tag hidden>{liveTag}</span>}
-	<span class="spark spark--a" aria-hidden="true"></span>
-	<span class="spark spark--b" aria-hidden="true"></span>
-	<span class="spark spark--c" aria-hidden="true"></span>
-	<span class="spark spark--d" aria-hidden="true"></span>
 	<span class="chevron" aria-hidden="true">»</span>
 </Tag>
 
@@ -292,43 +288,19 @@ const linkProps =
 	}
 
 	/*
-	 * 閃光粒子：原版終界燭的 glitter_7 → glitter_0（8 格接成一條，public/mc/particle/glitter.png），
-	 * 放大 3 倍，在文字後方一閃一閃地縮小又變大。
+	 * 閃光粒子（src/lib/glitter.ts 隨機產生）：原版終界燭的 glitter_7 → glitter_0，
+	 * 8 格接成一條（public/mc/particle/glitter.png），放大 3 倍，在文字後方淡淡地閃一下。
 	 */
-	.spark {
+	.banner :global(.glitter) {
 		position: absolute;
 		z-index: 0;
 		width: 24px;
 		height: 24px;
+		margin: -12px 0 0 -12px;
 		background: url('/mc/particle/glitter.png') 0 0 / 800% 100% no-repeat;
 		image-rendering: pixelated;
-		opacity: 0.9;
-		animation: sparkle 1.6s steps(8, jump-none) infinite alternate;
-	}
-
-	.spark--a {
-		top: 18%;
-		right: 2.2rem;
-	}
-
-	.spark--b {
-		bottom: 22%;
-		right: 4.6rem;
-		animation-delay: -0.8s;
-	}
-
-	.spark--c {
-		top: 24%;
-		left: 42%;
-		animation-delay: -0.4s;
-		animation-duration: 2s;
-	}
-
-	.spark--d {
-		bottom: 18%;
-		left: 28%;
-		animation-delay: -1.2s;
-		animation-duration: 1.8s;
+		opacity: 0.5;
+		pointer-events: none;
 	}
 
 	.chevron {
@@ -347,16 +319,10 @@ const linkProps =
 		animation: nudge 0.6s steps(2, jump-none) infinite alternate;
 	}
 
-	.banner:disabled .spark,
 	.banner:disabled .chevron {
 		display: none;
 	}
 
-	@keyframes sparkle {
-		to {
-			background-position: 100% 0;
-		}
-	}
 
 	@keyframes nudge {
 		to {
@@ -378,3 +344,10 @@ const linkProps =
 		}
 	}
 </style>
+
+<script>
+	import { initGlitter } from '../lib/glitter';
+
+	// 只跑一次：每次都從目前頁面上的按鈕挑
+	initGlitter();
+</script>
