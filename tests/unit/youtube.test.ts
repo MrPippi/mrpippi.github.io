@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractChannelId, parseFeed, videosOnlyFeedUrl } from '../../src/lib/youtube';
+import { channelFeedUrl, extractChannelId, isLiveFromHtml, parseFeed, videosOnlyFeedUrl } from '../../src/lib/youtube';
 
 const entry = (id: string, title: string, published: string) => `
 	<entry>
@@ -66,5 +66,24 @@ describe('videosOnlyFeedUrl', () => {
 		expect(videosOnlyFeedUrl('UCdcUpJOFIJWQxrKKCONv4wg')).toBe(
 			'https://www.youtube.com/feeds/videos.xml?playlist_id=UULFdcUpJOFIJWQxrKKCONv4wg',
 		);
+	});
+});
+
+describe('channelFeedUrl', () => {
+	it('整個頻道的 RSS（備援用）', () => {
+		expect(channelFeedUrl('UCdcUpJOFIJWQxrKKCONv4wg')).toBe(
+			'https://www.youtube.com/feeds/videos.xml?channel_id=UCdcUpJOFIJWQxrKKCONv4wg',
+		);
+	});
+});
+
+describe('isLiveFromHtml', () => {
+	it('依 isLiveContent 判斷直播', () => {
+		expect(isLiveFromHtml('..."isLiveContent":true,...')).toBe(true);
+		expect(isLiveFromHtml('..."isLiveContent":false,...')).toBe(false);
+	});
+
+	it('沒有標記（例如被導到同意頁）時無法判斷', () => {
+		expect(isLiveFromHtml('<html>consent</html>')).toBeUndefined();
 	});
 });
