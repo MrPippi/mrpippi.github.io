@@ -18,7 +18,7 @@ const { item, info, url, lang } = Astro.props;
 const dict = t(lang).portfolio;
 ---
 
-<article class="card">
+<article class="card" data-project>
 	<span class="slot" aria-hidden="true">
 		<img src={item.icon} alt="" width="16" height="16" class="pixelated" />
 	</span>
@@ -169,3 +169,14 @@ const dict = t(lang).portfolio;
 		}
 	}
 </style>
+
+<script>
+	import { unlock } from '../lib/advancements';
+
+	// 點作品卡片上的任何連結（含中鍵開新分頁）都算「結構探索」
+	const onLink = (event: Event): void => {
+		if (event.target instanceof Element && event.target.closest('[data-project] a')) unlock('structure');
+	};
+	document.addEventListener('click', onLink);
+	document.addEventListener('auxclick', onLink);
+</script>

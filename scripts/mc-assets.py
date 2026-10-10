@@ -65,6 +65,14 @@ COPIES = {
     "gui/experience_bar_background.png": "gui/sprites/hud/experience_bar_background.png",
     "gui/experience_bar_progress.png": "gui/sprites/hud/experience_bar_progress.png",
     "block/dirt.png": "block/dirt.png",
+    "item/water_bucket.png": "item/water_bucket.png",
+    "block/bookshelf.png": "block/bookshelf.png",
+    "item/experience_bottle.png": "item/experience_bottle.png",
+    "item/brush.png": "item/brush.png",
+    "item/globe_banner_pattern.png": "item/globe_banner_pattern.png",
+    "block/structure_block.png": "block/structure_block.png",
+    "item/skull_banner_pattern.png": "item/skull_banner_pattern.png",
+    "item/gold_ingot.png": "item/gold_ingot.png",
 }
 ADDITIVE = {
     "sky/sun.png": "environment/celestial/sun.png",

@@ -4,8 +4,9 @@
  */
 import { navigate } from 'astro:transitions/client';
 import { langFromDocument, localizePath, t } from '../i18n';
-import { unlock } from './advancements';
+import { recordGive, unlock } from './advancements';
 import { type Action, COMMANDS, GIVE_ITEMS, TP_PAGES, seedOf } from './commands';
+import { dropItem } from './item-drop-anim';
 import { nextTrack, setMusicOn } from './music';
 import { setTheme } from './theme';
 import { showToast } from './toast';
@@ -73,6 +74,7 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 			return;
 		case 'time':
 			setTheme(action.value === 'night' ? 'dark' : 'light');
+			if (action.value === 'night') unlock('sweet-dreams');
 			print(commands.time[action.value], 'info');
 			return;
 		case 'weather':
@@ -82,6 +84,8 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 			const message = commands.gave(item, commands.player);
 			print(message, 'info');
 			showToast(item, message, GIVE_ITEMS[action.item]);
+			dropItem(GIVE_ITEMS[action.item]);
+			recordGive(action.item);
 			return;
 		}
 		case 'tp': {

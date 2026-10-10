@@ -21,14 +21,33 @@ export const ADVANCEMENTS: readonly Advancement[] = [
 	{ id: 'reader', icon: '/mc/item/writable_book.png' },
 	{ id: 'lost', icon: '/mc/item/compass.png' },
 	{ id: 'commander', icon: '/mc/item/command_block_minecart.png' },
+	{ id: 'sweet-dreams', icon: '/mc/item/clock_night.png' },
+	{ id: 'rainy-day', icon: '/mc/item/water_bucket.png' },
+	{ id: 'hoarder', icon: '/mc/item/bundle.png' },
+	{ id: 'librarian', icon: '/mc/block/bookshelf.png' },
+	{ id: 'max-level', icon: '/mc/item/experience_bottle.png' },
+	{ id: 'archaeologist', icon: '/mc/item/brush.png' },
+	{ id: 'bilingual', icon: '/mc/item/globe_banner_pattern.png' },
+	{ id: 'structure', icon: '/mc/block/structure_block.png' },
+	{ id: 'you-died', icon: '/mc/item/skull_banner_pattern.png' },
+	{ id: 'splash', icon: '/mc/item/gold_ingot.png' },
 ];
 
 export const ADVANCEMENT_EVENT = 'advancement-unlocked';
 /** 「探險家」需要逛過的頁面（中英文版都算） */
 export const EXPLORER_PATHS: readonly string[] = ['/about/', '/media/', '/contact/'];
+/** 「圖書館員」要讀幾篇文章 */
+export const LIBRARIAN_POSTS = 5;
+/** 「滿載而歸」要用 /give 拿到幾種物品 */
+export const HOARDER_ITEMS = 3;
+/** 「標語收藏家」要點幾次標語 */
+export const SPLASH_CLICKS = 10;
 
 const STORAGE_KEY = 'advancements';
 const VISITED_KEY = 'visited-pages';
+const GIVEN_KEY = 'given-items';
+const SPLASH_KEY = 'splash-clicks';
+const POST_PATH = /^\/blog\/(?!tags\/)[^/]+\/$/;
 
 function readList(key: string): readonly string[] {
 	try {
@@ -71,5 +90,26 @@ export function recordVisit(path: string): void {
 
 	unlock('welcome');
 	if (EXPLORER_PATHS.every((p) => next.includes(p))) unlock('explorer');
-	if (/^\/blog\/(?!tags\/)[^/]+\/$/.test(normalized)) unlock('reader');
+	if (POST_PATH.test(normalized)) unlock('reader');
+	if (next.filter((p) => POST_PATH.test(p)).length >= LIBRARIAN_POSTS) unlock('librarian');
+}
+
+/** 記錄 /give 拿到的物品，拿到夠多種就達成「滿載而歸」 */
+export function recordGive(item: string): void {
+	const given = readList(GIVEN_KEY);
+	const next = given.includes(item) ? given : [...given, item];
+	if (next !== given) writeList(GIVEN_KEY, next);
+	if (next.length >= HOARDER_ITEMS) unlock('hoarder');
+}
+
+/** 點了一次標題畫面的標語，累計夠多次就達成「標語收藏家」 */
+export function recordSplashClick(): void {
+	let count = 0;
+	try {
+		count = (Number.parseInt(localStorage.getItem(SPLASH_KEY) ?? '0', 10) || 0) + 1;
+		localStorage.setItem(SPLASH_KEY, String(count));
+	} catch {
+		// 無法儲存時不累計
+	}
+	if (count >= SPLASH_CLICKS) unlock('splash');
 }

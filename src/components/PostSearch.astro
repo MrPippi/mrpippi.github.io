@@ -105,6 +105,7 @@ const dict = t('zh-TW').blog;
 
 <script>
 	import { t } from '../i18n';
+	import { unlock } from '../lib/advancements';
 
 	interface PagefindResult {
 		readonly url: string;
@@ -189,6 +190,7 @@ const dict = t('zh-TW').blog;
 			status.textContent = results.length > 0 ? dict.searchCount(search.results.length) : dict.searchEmpty;
 			list.replaceChildren(...results.map(renderResult));
 			showList(true);
+			if (results.length > 0) unlock('archaeologist');
 		};
 
 		const safeRun = (query: string): void => {

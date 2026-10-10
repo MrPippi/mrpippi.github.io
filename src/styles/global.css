@@ -257,6 +257,30 @@ img {
 	image-rendering: pixelated;
 }
 
+/* /give 的掉落物（位置由 src/lib/item-drop-anim.ts 控制）：和遊戲一樣一直自轉並上下浮動 */
+.item-drop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 21;
+	pointer-events: none;
+}
+
+.item-drop img {
+	display: block;
+	animation: item-spin 3s linear infinite;
+}
+
+@keyframes item-spin {
+	50% {
+		transform: rotateY(180deg) translateY(-6px);
+	}
+
+	to {
+		transform: rotateY(360deg);
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

@@ -68,7 +68,7 @@ const firstDeath = dict.notFound.deaths[0].replace('{name}', dict.profile.name);
 
 <script>
 	import { navigate } from 'astro:transitions/client';
-	import { HTML_LANG, langFromPath, localizePath, t } from '../i18n';
+	import { HTML_LANG, langFromPath, localizePath, stripLang, t } from '../i18n';
 	import { unlock } from '../lib/advancements';
 
 	/** 原版死亡畫面的按鈕要等一下才能按 */
@@ -106,7 +106,8 @@ const firstDeath = dict.notFound.deaths[0].replace('{name}', dict.profile.name);
 			if (titleScreen) titleScreen.disabled = false;
 		}, ENABLE_DELAY_MS);
 
-		unlock('lost');
+		// /kill 是故意死掉，不算迷路
+		unlock(stripLang(location.pathname) === '/kill/' ? 'you-died' : 'lost');
 	}
 
 	document.addEventListener('astro:page-load', setup);

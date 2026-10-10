@@ -89,6 +89,7 @@ const dict = t('zh-TW').blog;
 </style>
 
 <script>
+	import { unlock } from '../lib/advancements';
 	import { playPling } from '../lib/sound';
 
 	let controller: AbortController | undefined;
@@ -120,6 +121,7 @@ const dict = t('zh-TW').blog;
 			bar.setAttribute('aria-valuenow', String(percent));
 			// 短文一打開就是 100%，那種不算「升級」
 			if (percent === 100 && !leveledUp && fromScroll) playPling();
+			if (percent === 100 && fromScroll) unlock('max-level');
 			leveledUp ||= percent === 100;
 		};
 		const schedule = (): void => {

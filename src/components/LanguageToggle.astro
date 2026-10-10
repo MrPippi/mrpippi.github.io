@@ -17,6 +17,7 @@ import McButton from './McButton.astro';
 <script>
 	import { navigate } from 'astro:transitions/client';
 	import { langFromDocument, switchLangPath, t } from '../i18n';
+	import { unlock } from '../lib/advancements';
 
 	const button = document.querySelector<HTMLButtonElement>('[data-lang-toggle]');
 
@@ -30,6 +31,7 @@ import McButton from './McButton.astro';
 
 	button?.addEventListener('click', () => {
 		const target = langFromDocument() === 'en' ? 'zh-TW' : 'en';
+		unlock('bilingual');
 		void navigate(switchLangPath(location.pathname, target));
 	});
 

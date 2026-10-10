@@ -214,6 +214,7 @@ const STARS = Array.from({ length: 48 }, (_, i) => {
 </style>
 
 <script>
+	import { unlock } from '../lib/advancements';
 	import { mountPrecipitation } from '../lib/precipitation-canvas';
 	import { precipKindOf } from '../lib/precipitation';
 	import { currentWeather, initWeather, WEATHER_EVENT } from '../lib/weather';
@@ -223,7 +224,11 @@ const STARS = Array.from({ length: 48 }, (_, i) => {
 	const lensCanvas = document.querySelector<HTMLCanvasElement>('[data-lens]');
 	if (precipCanvas && lensCanvas) {
 		const precipitation = mountPrecipitation(precipCanvas, lensCanvas);
-		const sync = (): void => precipitation.setKind(precipKindOf(currentWeather()));
+		const sync = (): void => {
+			const weather = currentWeather();
+			precipitation.setKind(precipKindOf(weather));
+			if (weather === 'rain' || weather === 'thunder') unlock('rainy-day');
+		};
 		document.addEventListener(WEATHER_EVENT, sync);
 		sync();
 	}

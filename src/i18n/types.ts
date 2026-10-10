@@ -3,7 +3,26 @@ import type { GiveItem, TpPage } from '../lib/commands';
 import type { Weather } from '../lib/weather';
 
 export type SkillKey = 'plugins' | 'web' | 'deploy' | 'ai';
-export type AdvancementId = 'welcome' | 'explorer' | 'dj' | 'night-owl' | 'social' | 'enchanter' | 'reader' | 'lost' | 'commander';
+export type AdvancementId =
+	| 'welcome'
+	| 'explorer'
+	| 'dj'
+	| 'night-owl'
+	| 'social'
+	| 'enchanter'
+	| 'reader'
+	| 'lost'
+	| 'commander'
+	| 'sweet-dreams'
+	| 'rainy-day'
+	| 'hoarder'
+	| 'librarian'
+	| 'max-level'
+	| 'archaeologist'
+	| 'bilingual'
+	| 'structure'
+	| 'you-died'
+	| 'splash';
 
 export interface Dictionary {
 	readonly site: { readonly title: string; readonly description: string; readonly titleSuffix: string };

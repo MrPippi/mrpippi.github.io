@@ -132,3 +132,11 @@ export function playPling(): void {
 	playTone(ctx, { type: 'sine', from: 1318, to: 1318, start: 0, duration: 0.12, volume: 0.6 });
 	playTone(ctx, { type: 'sine', from: 1760, to: 1760, start: 0.08, duration: 0.22, volume: 0.6 });
 }
+
+/** 撿起物品的「啵」聲：短促上升，音高每次略有不同（和遊戲一樣） */
+export function playPop(): void {
+	const ctx = activeContext();
+	if (!ctx) return;
+	const pitch = 0.8 + Math.random() * 0.4;
+	playTone(ctx, { type: 'sine', from: 500 * pitch, to: 1100 * pitch, start: 0, duration: 0.07, volume: 0.6 });
+}

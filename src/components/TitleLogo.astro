@@ -46,7 +46,8 @@ const splashes = dict.splashes;
 		white-space: nowrap;
 		transform: translate(-50%, -50%) rotate(-20deg);
 		animation: splash-pulse 0.45s ease-in-out infinite alternate;
-		pointer-events: none;
+		cursor: pointer;
+		user-select: none;
 	}
 
 	@keyframes splash-pulse {
@@ -64,20 +65,34 @@ const splashes = dict.splashes;
 </style>
 
 <script>
-	// 每次進到標題畫面（含 ClientRouter 換頁）都重新抽一句標語
-	function pickSplash(): void {
-		const splash = document.querySelector<HTMLElement>('[data-splash]');
-		if (!splash) return;
+	import { recordSplashClick } from '../lib/advancements';
+	import { playClick } from '../lib/sound';
+
+	/** 抽一句和目前不同的標語 */
+	function pickSplash(splash: HTMLElement): void {
 		try {
-			const options: unknown = JSON.parse(splash.dataset.splashes ?? '[]');
-			if (Array.isArray(options) && options.length > 0) {
-				const pick = options[Math.floor(Math.random() * options.length)];
-				if (typeof pick === 'string') splash.textContent = pick;
-			}
+			const parsed: unknown = JSON.parse(splash.dataset.splashes ?? '[]');
+			const options = Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [];
+			const others = options.length > 1 ? options.filter((v) => v !== splash.textContent) : options;
+			const pick = others[Math.floor(Math.random() * others.length)];
+			if (pick !== undefined) splash.textContent = pick;
 		} catch {
 			// 解析失敗就保留預設標語
 		}
 	}
 
-	document.addEventListener('astro:page-load', pickSplash);
+	// 每次進到標題畫面（含 ClientRouter 換頁）都重新抽一句標語
+	document.addEventListener('astro:page-load', () => {
+		const splash = document.querySelector<HTMLElement>('[data-splash]');
+		if (splash) pickSplash(splash);
+	});
+
+	// 點標語換一句（彩蛋，累計次數解鎖進度）
+	document.addEventListener('click', (event) => {
+		const splash = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-splash]') : null;
+		if (!splash) return;
+		playClick();
+		pickSplash(splash);
+		recordSplashClick();
+	});
 </script>
