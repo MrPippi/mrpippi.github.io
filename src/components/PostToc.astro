@@ -1,0 +1,66 @@
+---
+// 文章目錄：列出 ## 與 ### 標題，標題夠多（MIN_HEADINGS 個以上）才顯示；可以收合，預設展開。
+import type { MarkdownHeading } from 'astro';
+import { t } from '../i18n';
+
+interface Props {
+	headings: readonly MarkdownHeading[];
+}
+
+const MIN_HEADINGS = 3;
+const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3);
+const dict = t('zh-TW').blog;
+---
+
+{
+	items.length >= MIN_HEADINGS && (
+		<details class="toc" open>
+			<summary class="mc-text">{dict.toc}</summary>
+			<ol>
+				{items.map((h) => (
+					<li class:list={[`depth-${h.depth}`]}>
+						<a href={`#${h.slug}`}>{h.text}</a>
+					</li>
+				))}
+			</ol>
+		</details>
+	)
+}
+
+<style>
+	.toc {
+		margin: 0 0 1.75rem;
+		padding: 0.75rem 1rem;
+		border: 2px solid rgb(255 255 255 / 0.12);
+		background: rgb(0 0 0 / 0.35);
+	}
+
+	summary {
+		color: var(--yellow);
+		font-size: 18px;
+		cursor: pointer;
+	}
+
+	ol {
+		margin: 0.5rem 0 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.92rem;
+		line-height: 1.9;
+	}
+
+	.depth-3 {
+		padding-left: 1.25rem;
+	}
+
+	a {
+		color: var(--text-dim);
+		text-decoration: none;
+	}
+
+	a:hover,
+	a:focus-visible {
+		color: var(--text);
+		text-decoration: underline;
+	}
+</style>

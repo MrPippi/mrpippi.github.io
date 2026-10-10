@@ -7,11 +7,11 @@
 ```sh
 npm install
 npm run dev          # http://localhost:4321
-npm run build        # 型別檢查 + 輸出到 dist/
+npm run build        # 型別檢查 + 輸出到 dist/ + 建立站內搜尋索引（Pagefind）
 npm run preview      # 預覽建置結果
 npm test             # 單元測試（Vitest）
 npm run check:links  # 檢查 dist/ 的站內連結
-npm run test:e2e     # 瀏覽器測試與截圖（Playwright，先 build；本機使用已安裝的 Edge）
+npm run test:e2e     # 瀏覽器測試與截圖（Playwright，先 build；本機使用已安裝的 Edge；Twitch／天氣 API 會被攔截成固定回應）
 ```
 
 ## 頁面
@@ -51,6 +51,11 @@ tags: [Minecraft, 插件]
 
 文章清單會顯示閱讀時間與標籤，每個標籤也有自己的頁面（`/blog/tags/<標籤>/`）。有正式文章後，主選單的「文章」按鈕才會解鎖。
 
+文章頁：標題夠多時顯示目錄、標題旁有 `#` 連結、程式碼區塊有「複製」按鈕、底部有上一篇／下一篇，左下角的原版經驗條顯示閱讀進度（讀到底會「叮」一聲）。
+文章裡想放小圖示時用原版物品圖代替 Emoji：`<img class="mc-item" src="/mc/item/cake.png" alt="" />`。
+
+**站內搜尋**：`npm run build` 最後用 [Pagefind](https://pagefind.app) 為文章本文（`data-pagefind-body`）建立索引，`/blog/` 的搜尋欄在瀏覽器端搜尋，中文也能搜。開發模式（`npm run dev`）沒有索引，搜尋欄會顯示提示；要測試請 `npm run build && npm run preview`。網址可以帶 `?q=關鍵字`。
+
 ## 作品集
 
 `/portfolio/`（英文 `/en/portfolio/`）列出 `src/consts.ts` 的 `PORTFOLIO` 裡的 GitHub 專案。介紹寫在設定裡（中英文各一份），語言、星數、更新時間與網站連結在建置時從 GitHub API 抓；抓不到時只顯示介紹與連結。只放公開 repo：清單裡的 repo 若變成私人或被刪除，建置時會自動略過。
@@ -62,11 +67,15 @@ tags: [Minecraft, 插件]
 
 ## 進度與彩蛋
 
-- **進度**：定義在 `src/lib/advancements.ts`，達成時右上角跳出「進度達成！」，關於我頁面可以看到全部進度。目前有：歡迎光臨、探險家、DJ 皮皮、夜貓子、交個朋友、附魔師、書蟲、迷路了。紀錄存在訪客自己的瀏覽器裡。
+- **進度**：定義在 `src/lib/advancements.ts`，達成時右上角跳出「進度達成！」，關於我頁面可以看到全部進度。目前有：歡迎光臨、探險家、DJ 皮皮、夜貓子、交個朋友、附魔師、書蟲、迷路了、這不算作弊吧？。紀錄存在訪客自己的瀏覽器裡。
 - **附魔書**：關於我頁面的文字用附魔台的銀河字母顯示，點一下會逐字解讀。
 - **404 死亡畫面**：找不到的網址會顯示「你死了！」、隨機死因與「分數：404」，按鈕 1 秒後才能按（同遊戲），並解鎖「迷路了」進度。
 - **原版物品提示框**：滑鼠移到統計資料、進度、附魔書與右下角按鈕上會出現深紫色的原版提示框。其他元素加上 `data-tooltip`（與 `data-tooltip-lines`）即可使用。
 - **換頁讀取畫面**：換頁超過 0.15 秒時顯示「正在載入地形…」與泥土背景。
+- **聊天列指令**：電腦上按 `T` 開聊天、按 `/` 直接打指令（Tab 自動完成、↑↓ 輸入紀錄、Esc 關閉）。有 `/help`、`/time set day|night`、`/weather`、`/give @s <物品>`、`/tp <頁面>`、`/music on|off|next`、`/search <關鍵字>`、`/say`、`/seed`、`/kill`、`/clear`。解析在 `src/lib/commands.ts`、執行在 `src/lib/command-runner.ts`。
+- **天氣**：背景跟著台北的實際天氣（[Open-Meteo](https://open-meteo.com)，免金鑰，快取 15 分鐘）下雨、下雪或打雷，用的是原版雨雪材質；查不到就是晴天。地點在 `src/consts.ts` 的 `WEATHER`。開啟「減少動態效果」時只會變陰天、不會下雨。
+- **Twitch 開台通知**：瀏覽器端向 [decapi.me](https://decapi.me) 查詢是否開台（免金鑰，快取 3 分鐘）。開台時跳出通知、標語換成「正在直播！」、直播按鈕出現 LIVE 標籤；查不到就當作沒開台。
+- **音樂面板**：右下角音符按鈕的面板有唱片機曲目清單（點一下播放）與單曲循環開關。
 
 ## Minecraft 素材
 

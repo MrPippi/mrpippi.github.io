@@ -8,7 +8,7 @@ const splashes = dict.splashes;
 <h1 class="logo">
 	<span class="visually-hidden">{dict.profile.name} </span>
 	<span class="wordmark-box" aria-hidden="true">
-		<img class="wordmark" src="/icon.png" alt="" width="602" height="144" decoding="async" />
+		<img class="wordmark" src="/icon.png" alt="" width="602" height="144" fetchpriority="high" />
 		<!-- 黃色標語釘在 Logo 右下角，和遊戲一樣斜放並脈動 -->
 		<span class="splash mc-text" data-splash data-splashes={JSON.stringify(splashes)}>{splashes[0]}</span>
 	</span>

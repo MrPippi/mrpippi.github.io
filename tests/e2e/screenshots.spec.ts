@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test } from './fixtures';
 
 /**
  * 每個頁面在白天／夜晚各截一張全頁圖，附在測試報告裡（CI 會上傳成 artifact），

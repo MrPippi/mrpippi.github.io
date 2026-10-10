@@ -1,5 +1,6 @@
 ---
 import PostList from '../../components/PostList.astro';
+import PostSearch from '../../components/PostSearch.astro';
 import TagChip from '../../components/TagChip.astro';
 import { t } from '../../i18n';
 import MenuLayout from '../../layouts/MenuLayout.astro';
@@ -16,14 +17,17 @@ const dict = t('zh-TW').blog;
 			<p class="empty">{dict.empty}</p>
 		) : (
 			<>
+				<PostSearch />
 				{tags.length > 0 && (
-					<nav class="tags" aria-label={dict.tagsLabel}>
+					<nav class="tags" aria-label={dict.tagsLabel} data-search-hide>
 						{tags.map(({ tag, count }) => (
 							<TagChip tag={tag} count={count} />
 						))}
 					</nav>
 				)}
-				<PostList posts={posts} />
+				<div data-search-hide>
+					<PostList posts={posts} />
+				</div>
 			</>
 		)
 	}
@@ -34,6 +38,10 @@ const dict = t('zh-TW').blog;
 		margin: 0;
 		color: var(--text-muted);
 		text-align: center;
+	}
+
+	.tags[hidden] {
+		display: none;
 	}
 
 	.tags {

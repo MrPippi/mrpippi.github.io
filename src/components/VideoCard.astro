@@ -4,14 +4,24 @@ import FormattedDate from './FormattedDate.astro';
 
 interface Props {
 	video: Video;
+	/** 第一排的縮圖一進頁面就看得到（常是 LCP），不要延遲載入 */
+	eager?: boolean;
 }
 
-const { video } = Astro.props;
+const { video, eager = false } = Astro.props;
 ---
 
 <a class="video" href={video.url} target="_blank" rel="noopener noreferrer">
 	<span class="thumb">
-		<img src={video.thumbnail} alt="" width="320" height="180" loading="lazy" decoding="async" />
+		<img
+			src={video.thumbnail}
+			alt=""
+			width="320"
+			height="180"
+			loading={eager ? 'eager' : 'lazy'}
+			fetchpriority={eager ? 'high' : undefined}
+			decoding="async"
+		/>
 	</span>
 	<span class="title">{video.title}</span>
 	<span class="date"><FormattedDate date={video.published} /></span>

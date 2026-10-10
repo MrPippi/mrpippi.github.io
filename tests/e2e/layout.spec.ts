@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 /**
  * 版面檢查（桌機與手機都會跑，見 playwright.config.ts）：

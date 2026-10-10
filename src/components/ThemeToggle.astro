@@ -11,19 +11,10 @@ import PixelGlyph from './PixelGlyph.astro';
 
 <script>
 	import { langFromDocument, t } from '../i18n';
-	import { unlock } from '../lib/advancements';
+	import { THEME_EVENT, effectiveTheme, toggleTheme } from '../lib/theme';
 
-	type Theme = 'light' | 'dark';
-
-	const STORAGE_KEY = 'theme';
 	const media = window.matchMedia('(prefers-color-scheme: dark)');
 	const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
-
-	function effectiveTheme(): Theme {
-		const explicit = document.documentElement.dataset.theme;
-		if (explicit === 'light' || explicit === 'dark') return explicit;
-		return media.matches ? 'dark' : 'light';
-	}
 
 	function syncLabel(): void {
 		if (!button) return;
@@ -33,31 +24,11 @@ import PixelGlyph from './PixelGlyph.astro';
 		button.dataset.tooltip = label;
 	}
 
-	function apply(next: Theme): void {
-		document.documentElement.dataset.theme = next;
-		try {
-			localStorage.setItem(STORAGE_KEY, next);
-		} catch {
-			// 無法儲存時只在本次瀏覽生效
-		}
-		syncLabel();
-		if (next === 'dark') unlock('night-owl');
-	}
-
-	function toggle(): void {
-		const next: Theme = effectiveTheme() === 'dark' ? 'light' : 'dark';
-		const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		if (!document.startViewTransition || reduced) {
-			apply(next);
-			return;
-		}
-		document.startViewTransition(() => apply(next));
-	}
-
-	// 換語言（ClientRouter 換頁）時也要更新文字
+	// 換語言（ClientRouter 換頁）或用 /time 指令切換時也要更新文字
 	document.addEventListener('astro:page-load', syncLabel);
+	document.addEventListener(THEME_EVENT, syncLabel);
 	media.addEventListener('change', syncLabel);
-	button?.addEventListener('click', toggle);
+	button?.addEventListener('click', toggleTheme);
 </script>
 
 <style is:global>

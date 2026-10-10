@@ -2,24 +2,32 @@
 import { render } from 'astro:content';
 import Comments from '../../components/Comments.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
+import PostNav from '../../components/PostNav.astro';
+import PostToc from '../../components/PostToc.astro';
+import ReadingXp from '../../components/ReadingXp.astro';
 import TagChip from '../../components/TagChip.astro';
 import { t } from '../../i18n';
 import MenuLayout from '../../layouts/MenuLayout.astro';
 import { getPublishedPosts, type Post, readingMinutes } from '../../lib/posts';
 
 export async function getStaticPaths() {
+	// 新到舊排序：前一個是較新的、後一個是較舊的
 	const posts = await getPublishedPosts();
-	return posts.map((post) => ({
+	return posts.map((post, index) => ({
 		params: { slug: post.id },
-		props: post,
+		props: { post, newer: posts[index - 1], older: posts[index + 1] },
 	}));
 }
 
-type Props = Post;
+interface Props {
+	post: Post;
+	newer: Post | undefined;
+	older: Post | undefined;
+}
 
-const post = Astro.props;
+const { post, newer, older } = Astro.props;
 const { title, description, pubDate, updatedDate, draft, tags } = post.data;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 const dict = t('zh-TW');
 ---
 
@@ -45,11 +53,70 @@ const dict = t('zh-TW');
 			</div>
 		)
 	}
-	<article class="prose">
+	<PostToc headings={headings} />
+	<!-- data-pagefind-*：建置後由 Pagefind 建立站內搜尋索引，只收錄文章本文 -->
+	<article class="prose" data-reading-target data-pagefind-body>
+		<h2 data-pagefind-meta="title" data-pagefind-ignore hidden>{title}</h2>
+		<p data-pagefind-meta="description" data-pagefind-ignore hidden>{description}</p>
 		<Content />
 	</article>
+	<PostNav older={older} newer={newer} />
 	<Comments />
+	<ReadingXp slot="hud" />
 </MenuLayout>
+
+<script>
+	import { t } from '../../i18n';
+
+	const { blog: dict, contact } = t('zh-TW');
+	const COPIED_MS = 1500;
+
+	/** 標題旁加上 # 連結，方便分享到某一段 */
+	function addAnchors(article: HTMLElement): void {
+		article.querySelectorAll<HTMLHeadingElement>('h2[id], h3[id]').forEach((heading) => {
+			if (heading.querySelector('.anchor')) return;
+			const link = document.createElement('a');
+			link.className = 'anchor';
+			link.href = `#${heading.id}`;
+			link.textContent = '#';
+			link.setAttribute('aria-label', dict.anchor(heading.textContent ?? ''));
+			heading.append(link);
+		});
+	}
+
+	/** 程式碼區塊右上角的「複製」按鈕 */
+	function addCopyButtons(article: HTMLElement): void {
+		article.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
+			if (pre.parentElement?.classList.contains('code-block')) return;
+			const wrapper = document.createElement('div');
+			wrapper.className = 'code-block';
+			pre.replaceWith(wrapper);
+			wrapper.append(pre);
+
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'copy-code mc-text';
+			button.textContent = dict.copy;
+			button.addEventListener('click', async () => {
+				try {
+					await navigator.clipboard.writeText(pre.querySelector('code')?.textContent ?? pre.textContent ?? '');
+					button.textContent = dict.copied;
+				} catch {
+					button.textContent = contact.copyFailed;
+				}
+				window.setTimeout(() => (button.textContent = dict.copy), COPIED_MS);
+			});
+			wrapper.append(button);
+		});
+	}
+
+	document.addEventListener('astro:page-load', () => {
+		const article = document.querySelector<HTMLElement>('article.prose');
+		if (!article) return;
+		addAnchors(article);
+		addCopyButtons(article);
+	});
+</script>
 
 <style>
 	.meta {

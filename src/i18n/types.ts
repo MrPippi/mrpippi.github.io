@@ -1,7 +1,9 @@
 /** 每個語系的翻譯檔都要符合這個形狀；新增字串時兩個檔案都要補上。 */
+import type { GiveItem, TpPage } from '../lib/commands';
+import type { Weather } from '../lib/weather';
 
 export type SkillKey = 'plugins' | 'web' | 'deploy' | 'ai';
-export type AdvancementId = 'welcome' | 'explorer' | 'dj' | 'night-owl' | 'social' | 'enchanter' | 'reader' | 'lost';
+export type AdvancementId = 'welcome' | 'explorer' | 'dj' | 'night-owl' | 'social' | 'enchanter' | 'reader' | 'lost' | 'commander';
 
 export interface Dictionary {
 	readonly site: { readonly title: string; readonly description: string; readonly titleSuffix: string };
@@ -76,6 +78,18 @@ export interface Dictionary {
 		readonly draft: string;
 		readonly tagTitle: (tag: string) => string;
 		readonly tagDescription: (tag: string) => string;
+		readonly toc: string;
+		readonly older: string;
+		readonly newer: string;
+		readonly copy: string;
+		readonly copied: string;
+		readonly anchor: (heading: string) => string;
+		readonly progress: string;
+		readonly searchLabel: string;
+		readonly searchPlaceholder: string;
+		readonly searchEmpty: string;
+		readonly searchUnavailable: string;
+		readonly searchCount: (n: number) => string;
 	};
 	readonly enchant: { readonly hint: string; readonly tooltip: string };
 	readonly comments: { readonly heading: string; readonly hint: string };
@@ -113,7 +127,35 @@ export interface Dictionary {
 		readonly stateOn: string;
 		readonly stateOff: string;
 		readonly next: string;
+		/** 單曲循環按鈕（顯示目前狀態） */
+		readonly loopOn: string;
+		readonly loopOff: string;
 		readonly unsupportedTitle: string;
 		readonly unsupportedBody: string;
+	};
+	/** Twitch 開台通知 */
+	readonly live: { readonly toastTitle: string; readonly toastBody: string; readonly badge: string; readonly splash: string };
+	/** 聊天列指令（彩蛋，按 T 或 / 開啟） */
+	readonly commands: {
+		readonly inputLabel: string;
+		/** 訪客在聊天裡的名字 */
+		readonly player: string;
+		readonly helpTitle: string;
+		readonly unknown: (name: string) => string;
+		readonly usage: (usage: string) => string;
+		readonly helpHint: string;
+		readonly failed: string;
+		readonly time: Readonly<Record<'day' | 'night', string>>;
+		readonly weatherSet: (name: string) => string;
+		readonly weatherNow: (name: string) => string;
+		readonly weatherNames: Readonly<Record<Weather, string>>;
+		readonly gave: (item: string, player: string) => string;
+		readonly items: Readonly<Record<GiveItem, string>>;
+		readonly tp: (page: string) => string;
+		readonly pages: Readonly<Record<TpPage, string>>;
+		readonly music: Readonly<Record<'on' | 'off' | 'next', string>>;
+		readonly search: (query: string) => string;
+		readonly seed: (seed: number) => string;
+		readonly kill: (player: string) => string;
 	};
 }

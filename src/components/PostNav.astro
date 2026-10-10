@@ -1,0 +1,84 @@
+---
+// 文章底部的上一篇／下一篇（上一篇 = 較舊、下一篇 = 較新）。
+import { t } from '../i18n';
+import type { Post } from '../lib/posts';
+
+interface Props {
+	older: Post | undefined;
+	newer: Post | undefined;
+}
+
+const { older, newer } = Astro.props;
+const dict = t('zh-TW').blog;
+---
+
+{
+	(older || newer) && (
+		<nav class="post-nav" aria-label={`${dict.older} / ${dict.newer}`}>
+			{older ? (
+				<a class="link older" href={`/blog/${older.id}/`} rel="prev">
+					<span class="label mc-text">« {dict.older}</span>
+					<span class="title">{older.data.title}</span>
+				</a>
+			) : (
+				<span />
+			)}
+			{newer && (
+				<a class="link newer" href={`/blog/${newer.id}/`} rel="next">
+					<span class="label mc-text">{dict.newer} »</span>
+					<span class="title">{newer.data.title}</span>
+				</a>
+			)}
+		</nav>
+	)
+}
+
+<style>
+	.post-nav {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 12px;
+		margin-top: 2.5rem;
+	}
+
+	.link {
+		display: grid;
+		gap: 0.2rem;
+		padding: 0.75rem 1rem;
+		border: 2px solid rgb(255 255 255 / 0.12);
+		background: rgb(0 0 0 / 0.35);
+		color: var(--text-dim);
+		text-decoration: none;
+	}
+
+	.link:hover,
+	.link:focus-visible {
+		border-color: rgb(255 255 255 / 0.6);
+		color: var(--text);
+	}
+
+	.newer {
+		grid-column: 2;
+		text-align: right;
+	}
+
+	.label {
+		color: var(--yellow);
+		font-size: 15px;
+	}
+
+	.title {
+		font-size: 0.92rem;
+		line-height: 1.5;
+	}
+
+	@media (max-width: 480px) {
+		.post-nav {
+			grid-template-columns: 1fr;
+		}
+
+		.newer {
+			grid-column: 1;
+		}
+	}
+</style>

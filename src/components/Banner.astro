@@ -13,6 +13,8 @@ type Props = Omit<HTMLAttributes<'button'>, 'class'> & {
 	sub?: string;
 	/** 右上角的小標籤，例如「施工中」 */
 	tag?: string;
+	/** 開台時才顯示的紅色 LIVE 標籤（src/lib/twitch.ts 會把它打開） */
+	liveTag?: string;
 	disabled?: boolean;
 	external?: boolean;
 	size?: 'lg' | 'md';
@@ -25,6 +27,7 @@ const {
 	icon,
 	sub,
 	tag,
+	liveTag,
 	disabled = false,
 	external = false,
 	size = 'lg',
@@ -48,6 +51,7 @@ const linkProps =
 		{sub && <span class="sub">{sub}</span>}
 	</span>
 	{tag && <span class="tag">{tag}</span>}
+	{liveTag && <span class="tag tag--live" data-live-tag hidden>{liveTag}</span>}
 	<span class="spark spark--a" aria-hidden="true"></span>
 	<span class="spark spark--b" aria-hidden="true"></span>
 	<span class="chevron" aria-hidden="true">»</span>
@@ -266,6 +270,21 @@ const linkProps =
 		font-weight: 700;
 		font-synthesis: none;
 		font-size: 13px;
+	}
+
+	.tag--live {
+		background: #d42020;
+		animation: live-blink 1s steps(2, jump-none) infinite alternate;
+	}
+
+	.tag[hidden] {
+		display: none;
+	}
+
+	@keyframes live-blink {
+		to {
+			background: #8a1010;
+		}
 	}
 
 	/* 閃爍星點：中心一格 + 上下左右四格，組成像素十字 */

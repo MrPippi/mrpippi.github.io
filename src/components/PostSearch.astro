@@ -1,0 +1,209 @@
+---
+// 站內搜尋（仿創造模式物品欄的搜尋欄）：建置後由 Pagefind 產生 /pagefind/ 索引，在瀏覽器端搜尋，不需要伺服器。
+// 有輸入時隱藏文章清單（[data-search-hide]），改顯示結果；網址 ?q= 會帶入關鍵字（聊天列 /search 指令用）。
+import { t } from '../i18n';
+
+const dict = t('zh-TW').blog;
+---
+
+<search class="search" data-post-search>
+	<label class="visually-hidden" for="post-search-input">{dict.searchLabel}</label>
+	<input
+		id="post-search-input"
+		class="field mc-text"
+		type="search"
+		placeholder={dict.searchPlaceholder}
+		autocomplete="off"
+		spellcheck="false"
+		data-search-input
+	/>
+	<p class="status" data-search-status aria-live="polite"></p>
+	<ul class="results" data-search-results hidden></ul>
+</search>
+
+<style>
+	.search {
+		display: block;
+		margin-bottom: 1.25rem;
+	}
+
+	/* 原版文字輸入框：黑底、灰色外框，聚焦時白框 */
+	.field {
+		width: 100%;
+		height: 40px;
+		padding: 0 10px;
+		border: 2px solid #a0a0a0;
+		background: #000;
+		color: var(--text);
+		font-size: 18px;
+	}
+
+	.field::placeholder {
+		color: #707070;
+	}
+
+	.field:focus-visible {
+		outline: none;
+		border-color: #fff;
+	}
+
+	.status {
+		min-height: 1.4em;
+		margin: 0.4rem 0 0;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+	}
+
+	.status:empty {
+		min-height: 0;
+		margin: 0;
+	}
+
+	.results {
+		display: grid;
+		gap: 10px;
+		margin: 0.5rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.results[hidden] {
+		display: none;
+	}
+
+	.results :global(a) {
+		display: grid;
+		gap: 0.25rem;
+		padding: 0.75rem 1rem;
+		border: 2px solid rgb(255 255 255 / 0.12);
+		background: rgb(0 0 0 / 0.35);
+		color: var(--text-dim);
+		text-decoration: none;
+	}
+
+	.results :global(a:hover),
+	.results :global(a:focus-visible) {
+		border-color: rgb(255 255 255 / 0.6);
+		color: var(--text);
+	}
+
+	.results :global(.result-title) {
+		color: var(--text);
+		font-size: 18px;
+	}
+
+	.results :global(.result-excerpt) {
+		font-size: 0.9rem;
+		line-height: 1.7;
+	}
+
+	.results :global(mark) {
+		background: none;
+		color: var(--yellow);
+	}
+</style>
+
+<script>
+	import { t } from '../i18n';
+
+	interface PagefindResult {
+		readonly url: string;
+		readonly excerpt: string;
+		readonly meta: { readonly title?: string };
+	}
+	interface Pagefind {
+		search(query: string): Promise<{ results: readonly { data(): Promise<PagefindResult> }[] } | null>;
+		debouncedSearch(query: string, options?: object, ms?: number): Promise<{ results: readonly { data(): Promise<PagefindResult> }[] } | null>;
+	}
+
+	const dict = t('zh-TW').blog;
+	const MAX_RESULTS = 10;
+	const PAGEFIND_URL = '/pagefind/pagefind.js';
+	let pagefind: Promise<Pagefind | undefined> | undefined;
+
+	/** 第一次搜尋時才下載 Pagefind；開發模式（沒有建置索引）會失敗，顯示提示 */
+	function loadPagefind(): Promise<Pagefind | undefined> {
+		pagefind ??= import(/* @vite-ignore */ PAGEFIND_URL).catch((error: unknown) => {
+			console.warn('[search] 無法載入 Pagefind：', error);
+			pagefind = undefined; // 下次搜尋再試一次
+			return undefined;
+		});
+		return pagefind;
+	}
+
+	/** Pagefind 的摘要只有跳脫過的文字和 <mark>，其他標籤一律移除 */
+	function safeExcerpt(html: string): string {
+		return html.replace(/<(?!\/?mark>)[^>]*>/g, '');
+	}
+
+	function renderResult(data: PagefindResult): HTMLLIElement {
+		const item = document.createElement('li');
+		const link = document.createElement('a');
+		link.href = data.url.replace(/index\.html$/, '');
+		const title = document.createElement('span');
+		title.className = 'result-title mc-text';
+		title.textContent = data.meta.title ?? data.url;
+		const excerpt = document.createElement('span');
+		excerpt.className = 'result-excerpt';
+		excerpt.innerHTML = safeExcerpt(data.excerpt);
+		link.append(title, excerpt);
+		item.append(link);
+		return item;
+	}
+
+	function setup(): void {
+		const root = document.querySelector<HTMLElement>('[data-post-search]');
+		const input = root?.querySelector<HTMLInputElement>('[data-search-input]');
+		const status = root?.querySelector<HTMLElement>('[data-search-status]');
+		const list = root?.querySelector<HTMLUListElement>('[data-search-results]');
+		if (!root || !input || !status || !list) return;
+		const hideWhenSearching = [...document.querySelectorAll<HTMLElement>('[data-search-hide]')];
+
+		const showList = (searching: boolean): void => {
+			list.hidden = !searching;
+			hideWhenSearching.forEach((el) => (el.hidden = searching));
+		};
+
+		const run = async (query: string): Promise<void> => {
+			const url = new URL(location.href);
+			if (query) url.searchParams.set('q', query);
+			else url.searchParams.delete('q');
+			history.replaceState(history.state, '', url);
+
+			if (!query) {
+				status.textContent = '';
+				list.replaceChildren();
+				showList(false);
+				return;
+			}
+			const engine = await loadPagefind();
+			if (!engine) {
+				status.textContent = dict.searchUnavailable;
+				return;
+			}
+			const search = await engine.debouncedSearch(query, {}, 200);
+			const stale = (): boolean => input.value.trim() !== query; // 已被較新的輸入取代
+			if (search === null || stale()) return;
+			const results = await Promise.all(search.results.slice(0, MAX_RESULTS).map((r) => r.data()));
+			if (stale()) return;
+			status.textContent = results.length > 0 ? dict.searchCount(search.results.length) : dict.searchEmpty;
+			list.replaceChildren(...results.map(renderResult));
+			showList(true);
+		};
+
+		const safeRun = (query: string): void => {
+			run(query).catch((error: unknown) => {
+				console.error('[search] 搜尋失敗：', error);
+				status.textContent = dict.searchUnavailable;
+			});
+		};
+		input.addEventListener('input', () => safeRun(input.value.trim()));
+		const initial = new URLSearchParams(location.search).get('q')?.trim() ?? '';
+		if (initial) {
+			input.value = initial;
+			safeRun(initial);
+		}
+	}
+
+	document.addEventListener('astro:page-load', setup);
+</script>

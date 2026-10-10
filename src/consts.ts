@@ -5,7 +5,10 @@ import type { SkillKey } from './i18n/types';
 
 export const PROFILE = {
 	handle: 'MrPippi',
+	/** 原尺寸頭像（分享預覽圖 og:image 用） */
 	avatar: 'https://github.com/MrPippi.png',
+	/** 關於我頁面顯示 112px，抓 2 倍大小就好（原圖 460px，省下約 40 KB） */
+	avatarThumb: 'https://avatars.githubusercontent.com/MrPippi?s=224',
 } as const;
 
 export interface SkillRow {
@@ -40,6 +43,13 @@ export const YOUTUBE = {
 export const TWITCH = {
 	url: 'https://www.twitch.tv/mr_pippi',
 	handle: 'mr_pippi',
+} as const;
+
+/** 背景天氣跟著這個地點的實際天氣（Open-Meteo，免金鑰） */
+export const WEATHER = {
+	latitude: 25.033,
+	longitude: 121.5654,
+	timeZone: 'Asia/Taipei',
 } as const;
 
 export interface PortfolioItem {

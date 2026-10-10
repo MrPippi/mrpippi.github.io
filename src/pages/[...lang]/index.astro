@@ -31,7 +31,13 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 				<Banner href={localizePath('/portfolio/', lang)} tone="red" icon="/mc/item/bundle.png" sub={dict.menu.portfolio.sub}>
 					{dict.menu.portfolio.title}
 				</Banner>
-				<Banner href={localizePath('/media/', lang)} tone="teal" icon="/mc/item/music_disc_cat.png" sub={dict.menu.media.sub}>
+				<Banner
+					href={localizePath('/media/', lang)}
+					tone="teal"
+					icon="/mc/item/music_disc_cat.png"
+					sub={dict.menu.media.sub}
+					liveTag={dict.live.badge}
+				>
 					{dict.menu.media.title}
 				</Banner>
 				<Banner

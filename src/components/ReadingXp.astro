@@ -1,0 +1,117 @@
+---
+// 閱讀進度：原版經驗條（182×5 放大 2 倍）固定在左下角，綠色數字是讀了幾 %；讀到底時「叮」一聲（像升級）。
+// 進度以文章本體（[data-reading-target]）計算，不含留言區。
+import { t } from '../i18n';
+
+const dict = t('zh-TW').blog;
+---
+
+<div class="xp" data-reading-xp>
+	<span class="level mc-text" data-xp-level aria-hidden="true">0</span>
+	<div
+		class="bar"
+		role="progressbar"
+		aria-label={dict.progress}
+		aria-valuemin="0"
+		aria-valuemax="100"
+		aria-valuenow="0"
+		data-xp-bar
+	>
+		<span class="fill" data-xp-fill></span>
+	</div>
+</div>
+
+<style>
+	.xp {
+		position: fixed;
+		left: 12px;
+		bottom: calc(14px + env(safe-area-inset-bottom));
+		z-index: 9;
+		display: grid;
+		justify-items: center;
+		/* 右下角按鈕列（4 顆 40px 按鈕）旁邊留空 */
+		width: min(364px, calc(100vw - 24px - 4 * 40px - 4 * 8px - 12px));
+		pointer-events: none;
+	}
+
+	/* 聊天列打開時讓位 */
+	:global(body:has([data-chat][data-open])) .xp {
+		visibility: hidden;
+	}
+
+	.level {
+		color: #80ff20;
+		font-size: 18px;
+		line-height: 1;
+		/* 原版經驗等級：綠字黑色描邊 */
+		text-shadow:
+			var(--mc-px) 0 0 #000,
+			calc(var(--mc-px) * -1) 0 0 #000,
+			0 var(--mc-px) 0 #000,
+			0 calc(var(--mc-px) * -1) 0 #000;
+	}
+
+	.bar {
+		position: relative;
+		width: 100%;
+		height: 10px;
+		background: url('/mc/gui/experience_bar_background.png') 0 0 / 100% 100%;
+		image-rendering: pixelated;
+	}
+
+	.fill {
+		position: absolute;
+		inset: 0;
+		background: url('/mc/gui/experience_bar_progress.png') 0 0 / 100% 100%;
+		image-rendering: pixelated;
+		clip-path: inset(0 calc(100% - var(--progress, 0%)) 0 0);
+	}
+</style>
+
+<script>
+	import { playPling } from '../lib/sound';
+
+	let controller: AbortController | undefined;
+
+	/** 文章讀了多少（0–1）：已經捲進畫面的文章高度比例，文章底部到達畫面底部算 1 */
+	function progressOf(target: HTMLElement): number {
+		const rect = target.getBoundingClientRect();
+		if (rect.height <= 0) return 1;
+		return Math.min(1, Math.max(0, (window.innerHeight - rect.top) / rect.height));
+	}
+
+	function setup(): void {
+		controller?.abort();
+		const root = document.querySelector<HTMLElement>('[data-reading-xp]');
+		const target = document.querySelector<HTMLElement>('[data-reading-target]');
+		const bar = root?.querySelector<HTMLElement>('[data-xp-bar]');
+		const level = root?.querySelector<HTMLElement>('[data-xp-level]');
+		if (!root || !target || !bar || !level) return;
+
+		controller = new AbortController();
+		let frame = 0;
+		let leveledUp = false;
+
+		const update = (fromScroll: boolean): void => {
+			frame = 0;
+			const percent = Math.round(progressOf(target) * 100);
+			root.style.setProperty('--progress', `${percent}%`);
+			level.textContent = String(percent);
+			bar.setAttribute('aria-valuenow', String(percent));
+			// 短文一打開就是 100%，那種不算「升級」
+			if (percent === 100 && !leveledUp && fromScroll) playPling();
+			leveledUp ||= percent === 100;
+		};
+		const schedule = (): void => {
+			frame ||= requestAnimationFrame(() => update(true));
+		};
+
+		window.addEventListener('scroll', schedule, { passive: true, signal: controller.signal });
+		window.addEventListener('resize', schedule, { passive: true, signal: controller.signal });
+		update(false);
+	}
+
+	// ClientRouter 換頁：每次進到文章頁重新綁定，離開時移除監聽
+	document.addEventListener('astro:page-load', setup);
+	document.addEventListener('astro:before-swap', () => controller?.abort());
+</script>

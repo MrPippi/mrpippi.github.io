@@ -14,6 +14,8 @@ export function getStaticPaths() {
 
 const lang = langFromPath(Astro.url.pathname);
 const dict = t(lang);
+/** 第一排（桌機一排 2～3 部）縮圖不延遲載入 */
+const EAGER_THUMBNAILS = 2;
 const videos = await fetchLatestVideos(YOUTUBE.channelId, YOUTUBE.latestCount, YOUTUBE.url);
 
 const CHANNELS = [
@@ -40,7 +42,14 @@ const CHANNELS = [
 	<section class="channels" aria-label={dict.media.channelsLabel}>
 		{
 			CHANNELS.map((ch) => (
-				<Banner href={ch.href} tone={ch.tone} sub={`${ch.handle} · ${ch.note}`} size="md" external>
+				<Banner
+					href={ch.href}
+					tone={ch.tone}
+					sub={`${ch.handle} · ${ch.note}`}
+					size="md"
+					external
+					liveTag={ch.name === 'Twitch' ? dict.live.badge : undefined}
+				>
 					<Icon name={ch.icon} slot="icon" />
 					{ch.name}
 				</Banner>
@@ -53,8 +62,8 @@ const CHANNELS = [
 		{
 			videos.length > 0 ? (
 				<div class="grid">
-					{videos.map((video) => (
-						<VideoCard video={video} />
+					{videos.map((video, index) => (
+						<VideoCard video={video} eager={index < EAGER_THUMBNAILS} />
 					))}
 				</div>
 			) : (

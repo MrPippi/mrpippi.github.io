@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
+import CommandBar from '../components/CommandBar.astro';
 import LanguageToggle from '../components/LanguageToggle.astro';
 import LoadingScreen from '../components/LoadingScreen.astro';
 import MusicToggle from '../components/MusicToggle.astro';
@@ -109,6 +110,7 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 		</div>
 		<div transition:persist="overlays">
 			<Tooltip />
+			<CommandBar />
 			<LoadingScreen />
 		</div>
 		<slot />
@@ -116,10 +118,14 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 </html>
 
 <script>
-	// 進度：記錄每次進入的頁面（含 ClientRouter 換頁）
+	// 每次進入頁面（含 ClientRouter 換頁）：記錄進度、檢查 Twitch 是否開台
 	import { recordVisit } from '../lib/advancements';
+	import { checkLive } from '../lib/twitch';
 
-	document.addEventListener('astro:page-load', () => recordVisit(location.pathname));
+	document.addEventListener('astro:page-load', () => {
+		recordVisit(location.pathname);
+		void checkLive();
+	});
 </script>
 
 <style>

@@ -57,6 +57,15 @@ COPIES = {
     "item/command_block_minecart.png": "item/command_block_minecart.png",
     "item/cake.png": "item/cake.png",
     "item/nether_star.png": "item/nether_star.png",
+    "item/music_disc_13.png": "item/music_disc_13.png",
+    "item/music_disc_blocks.png": "item/music_disc_blocks.png",
+    "item/music_disc_chirp.png": "item/music_disc_chirp.png",
+    "item/music_disc_far.png": "item/music_disc_far.png",
+    "item/music_disc_mall.png": "item/music_disc_mall.png",
+    "sky/rain.png": "environment/rain.png",
+    "sky/snow.png": "environment/snow.png",
+    "gui/experience_bar_background.png": "gui/sprites/hud/experience_bar_background.png",
+    "gui/experience_bar_progress.png": "gui/sprites/hud/experience_bar_progress.png",
     "block/dirt.png": "block/dirt.png",
 }
 ADDITIVE = {

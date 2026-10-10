@@ -1,5 +1,6 @@
 ---
 // 全頁固定背景：天空漸層 + 原版太陽／月亮 + 原版雲層（以 3D 透視鋪成頭頂上的雲面，緩慢飄移）。
+// 天氣（src/lib/weather.ts）：.sky[data-weather] 為 rain／thunder／snow 時天色變暗、太陽月亮躲起來，疊上原版雨雪材質；打雷會閃電。
 
 /** 星星：[left %, top %, 大小 px, 閃爍延遲 s]，用固定公式產生，每次建置一致 */
 const STARS = Array.from({ length: 48 }, (_, i) => {
@@ -11,7 +12,7 @@ const STARS = Array.from({ length: 48 }, (_, i) => {
 });
 ---
 
-<div class="sky" aria-hidden="true">
+<div class="sky" data-sky data-weather="clear" aria-hidden="true">
 	<div class="night only-dark">
 		{
 			STARS.map(([left, top, size, delay]) => (
@@ -23,6 +24,12 @@ const STARS = Array.from({ length: 48 }, (_, i) => {
 	<img class="celestial only-dark pixelated" src="/mc/sky/moon.png" alt="" width="32" height="32" />
 	<div class="cloud-layer">
 		<div class="clouds"></div>
+	</div>
+	<div class="weather">
+		<div class="tint"></div>
+		<div class="precip precip--near"></div>
+		<div class="precip precip--far"></div>
+		<div class="flash"></div>
 	</div>
 </div>
 
@@ -91,6 +98,128 @@ const STARS = Array.from({ length: 48 }, (_, i) => {
 		}
 	}
 
+	/* ---------- 天氣 ---------- */
+	.weather {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	.weather > div {
+		position: absolute;
+		inset: 0;
+		display: none;
+	}
+
+	.sky:not([data-weather='clear']) .weather > :is(.tint, .precip) {
+		display: block;
+	}
+
+	.sky[data-weather='thunder'] .flash {
+		display: block;
+	}
+
+	.sky:not([data-weather='clear']) .celestial {
+		opacity: 0;
+	}
+
+	.sky:not([data-weather='clear']) .clouds {
+		filter: grayscale(1) brightness(0.75);
+	}
+
+	.celestial,
+	.tint {
+		transition: opacity 1.5s ease;
+	}
+
+	.tint {
+		background: linear-gradient(rgb(40 46 56 / 0.55), rgb(70 78 90 / 0.35));
+	}
+
+	.sky[data-weather='thunder'] .tint {
+		background: linear-gradient(rgb(18 20 28 / 0.75), rgb(40 44 54 / 0.55));
+	}
+
+	/*
+	 * 原版 rain.png／snow.png（64×256）往下掉；近的大而快、遠的小而慢。
+	 * 圖層往上多鋪一格材質，用 transform 位移一格高度後循環：只動合成層，不必每格重畫。
+	 */
+	.sky .weather > .precip {
+		top: calc(var(--tile) * -1);
+		background-image: url('/mc/sky/rain.png');
+		background-repeat: repeat;
+		image-rendering: pixelated;
+		will-change: transform;
+		animation: fall linear infinite;
+	}
+
+	.precip--near {
+		--tile: 512px;
+		background-size: 128px var(--tile);
+		opacity: 0.75;
+		animation-duration: 0.55s;
+	}
+
+	.precip--far {
+		--tile: 256px;
+		background-size: 64px var(--tile);
+		background-position: 23px 0;
+		opacity: 0.45;
+		animation-duration: 0.45s;
+	}
+
+	.sky[data-weather='snow'] .precip {
+		background-image: url('/mc/sky/snow.png');
+	}
+
+	.sky[data-weather='snow'] .precip--near {
+		animation-duration: 7s;
+	}
+
+	.sky[data-weather='snow'] .precip--far {
+		animation-duration: 11s;
+	}
+
+	/* 閃電：每 11 秒左右閃兩下 */
+	.flash {
+		background: #dfe8ff;
+		opacity: 0;
+		animation: lightning 11s steps(1, end) infinite;
+	}
+
+	@keyframes fall {
+		to {
+			transform: translateY(var(--tile));
+		}
+	}
+
+	@keyframes lightning {
+		0%,
+		62% {
+			opacity: 0;
+		}
+		63% {
+			opacity: 0.55;
+		}
+		64% {
+			opacity: 0.1;
+		}
+		65% {
+			opacity: 0.4;
+		}
+		67%,
+		100% {
+			opacity: 0;
+		}
+	}
+
+	/* 減少動態效果：不顯示會動的雨雪和閃電，只留下陰天的天色 */
+	@media (prefers-reduced-motion: reduce) {
+		.sky .weather > :is(.precip, .flash) {
+			display: none;
+		}
+	}
+
 	@keyframes cloud-drift {
 		to {
 			background-position: 1536px 0;
@@ -111,3 +240,10 @@ const STARS = Array.from({ length: 48 }, (_, i) => {
 		}
 	}
 </style>
+
+<script>
+	import { initWeather } from '../lib/weather';
+
+	// 天空在換頁時保留（transition:persist），所以只在第一次載入時查一次天氣
+	void initWeather();
+</script>

@@ -205,6 +205,48 @@ img {
 	border-left: 4px solid var(--text-muted);
 }
 
+/* 標題旁的 # 連結（文章頁的 script 加上）：滑過標題才出現 */
+.prose .anchor {
+	margin-left: 0.4em;
+	color: var(--text-muted);
+	text-decoration: none;
+	opacity: 0;
+}
+
+.prose :is(h2, h3):hover .anchor,
+.prose .anchor:focus-visible {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.prose .anchor {
+		opacity: 0.6;
+	}
+}
+
+/* 程式碼區塊的「複製」按鈕（文章頁的 script 加上） */
+.prose .code-block {
+	position: relative;
+}
+
+.prose .copy-code {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	padding: 2px 8px;
+	border: 2px solid rgb(255 255 255 / 0.25);
+	background: rgb(0 0 0 / 0.6);
+	color: var(--text-dim);
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.prose .copy-code:hover,
+.prose .copy-code:focus-visible {
+	border-color: #fff;
+	color: #ffffa0;
+}
+
 /* 文章裡用原版物品圖代替 Emoji：<img class="mc-item" src="/mc/item/xxx.png" alt="" /> */
 .prose .mc-item {
 	display: inline-block;

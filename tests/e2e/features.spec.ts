@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('404 死亡畫面', () => {
 	test('中文：你死了、分數 404、按鈕 1 秒後才能按，解鎖「迷路了」', async ({ page }) => {

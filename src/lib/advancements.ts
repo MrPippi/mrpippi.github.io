@@ -20,6 +20,7 @@ export const ADVANCEMENTS: readonly Advancement[] = [
 	{ id: 'enchanter', icon: '/mc/item/enchanted_book.png' },
 	{ id: 'reader', icon: '/mc/item/writable_book.png' },
 	{ id: 'lost', icon: '/mc/item/compass.png' },
+	{ id: 'commander', icon: '/mc/item/command_block_minecart.png' },
 ];
 
 export const ADVANCEMENT_EVENT = 'advancement-unlocked';

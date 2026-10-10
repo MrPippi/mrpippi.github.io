@@ -1,30 +1,33 @@
 /**
  * 背景音樂：public/sounds/menu/creative1–6.webm 隨機輪播，預設關閉。
- * - 一首播完隨機換下一首（不會連續重複同一首），也可以手動「下一首」。
+ * - 一首播完隨機換下一首（不會連續重複同一首），也可以手動「下一首」、從曲目清單點播，或開啟單曲循環。
  * - 開關與音量存在 localStorage；換頁時把曲目與播放位置存進 sessionStorage，重新整理後接著播。
  * - 瀏覽器不允許沒有使用者操作就自動播放，被擋時等第一次點擊或按鍵再開始。
  * - 只在開啟音樂時才下載，而且一次只下載正在播的那一首。
  * - 每換一首新曲目（或開始播放）都會發出 MUSIC_EVENT，給「正在播放」通知與設定面板使用。
  */
 
-interface Track {
+export interface Track {
 	readonly src: string;
 	readonly title: string;
+	/** 曲目清單上的唱片圖示（純裝飾，原版 Creative 曲目沒有唱片） */
+	readonly disc: string;
 }
 
-const TRACKS: readonly Track[] = [
-	{ src: '/sounds/menu/creative1.webm', title: 'Biome Fest' },
-	{ src: '/sounds/menu/creative2.webm', title: 'Blind Spots' },
-	{ src: '/sounds/menu/creative3.webm', title: 'Haunt Muskie' },
-	{ src: '/sounds/menu/creative4.webm', title: 'Aria Math' },
-	{ src: '/sounds/menu/creative5.webm', title: 'Dreiton' },
-	{ src: '/sounds/menu/creative6.webm', title: 'Taswell' },
+export const TRACKS: readonly Track[] = [
+	{ src: '/sounds/menu/creative1.webm', title: 'Biome Fest', disc: '/mc/item/music_disc_cat.png' },
+	{ src: '/sounds/menu/creative2.webm', title: 'Blind Spots', disc: '/mc/item/music_disc_13.png' },
+	{ src: '/sounds/menu/creative3.webm', title: 'Haunt Muskie', disc: '/mc/item/music_disc_blocks.png' },
+	{ src: '/sounds/menu/creative4.webm', title: 'Aria Math', disc: '/mc/item/music_disc_chirp.png' },
+	{ src: '/sounds/menu/creative5.webm', title: 'Dreiton', disc: '/mc/item/music_disc_far.png' },
+	{ src: '/sounds/menu/creative6.webm', title: 'Taswell', disc: '/mc/item/music_disc_mall.png' },
 ];
 export const ARTIST = 'C418';
 export const MUSIC_EVENT = 'music-change';
 
 const STORAGE_KEY = 'music';
 const VOLUME_KEY = 'music-volume';
+const LOOP_KEY = 'music-loop';
 const SESSION_KEY = 'music-state';
 const DEFAULT_VOLUME = 0.35;
 
@@ -69,6 +72,29 @@ export function setMusicVolume(volume: number): void {
 		// 無法儲存時只在本次瀏覽生效
 	}
 	if (player) player.volume = clamped;
+}
+
+export function isLooping(): boolean {
+	try {
+		return localStorage.getItem(LOOP_KEY) === 'on';
+	} catch {
+		return false;
+	}
+}
+
+/** 單曲循環：開啟時一首播完會重播同一首，否則隨機換下一首 */
+export function setLooping(on: boolean): void {
+	try {
+		localStorage.setItem(LOOP_KEY, on ? 'on' : 'off');
+	} catch {
+		// 無法儲存時只在本次瀏覽生效
+	}
+	if (player) player.loop = on;
+}
+
+/** 目前載入的曲目編號（還沒載入過是 -1） */
+export function currentIndex(): number {
+	return current;
 }
 
 export function currentTitle(): string | undefined {
@@ -132,6 +158,8 @@ function getPlayer(): HTMLAudioElement {
 	if (player) return player;
 	const audio = new Audio();
 	audio.volume = getMusicVolume();
+	// 單曲循環交給 <audio loop>：不會觸發 ended，也不會重跳「正在播放」通知
+	audio.loop = isLooping();
 	audio.addEventListener('ended', () => {
 		load(audio, randomTrack(current));
 		void audio.play().catch(() => undefined);
@@ -189,6 +217,14 @@ export async function setMusicOn(on: boolean): Promise<boolean> {
 export async function nextTrack(): Promise<boolean> {
 	const audio = getPlayer();
 	load(audio, randomTrack(current));
+	return setMusicOn(true);
+}
+
+/** 從曲目清單點播指定曲目（音樂關閉時會順便打開）；已在播這首就不重頭播。 */
+export async function playTrack(index: number): Promise<boolean> {
+	if (!Number.isInteger(index) || index < 0 || index >= TRACKS.length) return false;
+	const audio = getPlayer();
+	if (index !== current) load(audio, index);
 	return setMusicOn(true);
 }
 

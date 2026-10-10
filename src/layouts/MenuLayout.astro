@@ -33,6 +33,8 @@ const { heading, title, description, backHref = localizePath('/', lang), backLab
 			<McButton href={backHref}>{backLabel}</McButton>
 		</footer>
 	</div>
+	<!-- 固定在畫面上的元件（例如閱讀進度條）放這裡：面板有 backdrop-filter，放在裡面的 position: fixed 會跟著面板跑 -->
+	<slot name="hud" />
 </BaseLayout>
 
 <style>
