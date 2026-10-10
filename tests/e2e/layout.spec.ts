@@ -55,3 +55,17 @@ for (const path of PAGES) {
 		}
 	});
 }
+
+test('標題畫面：版本號與版權不會蓋住選單按鈕', async ({ page }) => {
+	for (const path of ['/', '/en/']) {
+		await page.goto(path);
+		await page.evaluate(() => document.fonts.ready);
+		const corner = await page.locator('footer.corner').boundingBox();
+		expect(corner).toBeTruthy();
+		if (!corner) return;
+		for (const banner of await page.locator('.menu .banner').all()) {
+			const box = await banner.boundingBox();
+			if (box) expect(overlaps(box, corner)).toBe(false);
+		}
+	}
+});

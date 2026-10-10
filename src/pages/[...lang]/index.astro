@@ -64,9 +64,10 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 </BaseLayout>
 
 <style>
+	/* 上：Logo 與選單（置中）；下：版本號與版權。頁尾跟著內容往下排，選單再長也不會被它蓋住 */
 	.title-screen {
-		position: relative;
 		display: grid;
+		grid-template-rows: 1fr auto;
 		min-height: 100vh;
 		min-height: 100dvh;
 		padding: 0 var(--gutter);
@@ -80,7 +81,7 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 		width: 100%;
 		max-width: 760px;
 		margin: 0 auto;
-		padding: 5rem 0 6rem;
+		padding: 5rem 0 2.5rem;
 	}
 
 	.menu {
@@ -101,15 +102,14 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 		}
 	}
 
-	/* 版本號與版權放在右下角按鈕列的上方，不被按鈕蓋住 */
+	/* 版本號與版權：在選單下方，並留出右下角按鈕列的高度 */
 	.corner {
-		position: absolute;
-		inset: auto 0 var(--controls-space);
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: space-between;
 		gap: 0.25rem 1rem;
-		padding: 0.6rem 0.75rem;
+		margin: 0 calc(var(--gutter) * -1);
+		padding: 0.6rem 0.75rem var(--controls-space);
 		color: var(--text);
 		font-size: 18px;
 		line-height: 1.4;
