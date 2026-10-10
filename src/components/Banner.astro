@@ -1,5 +1,5 @@
 ---
-// 彩色像素橫幅按鈕：深色外框 + 底部厚度 + 內側亮邊，左側大圖示超出邊框，粗描邊白字，右側閃爍星點。
+// 彩色像素橫幅按鈕：深色外框 + 底部厚度 + 內側亮邊，左側大圖示超出邊框，粗描邊白字，文字後方有原版閃光粒子。
 // 給 href 渲染成連結，否則是 <button>。圖示用 icon（物品圖路徑）或 slot="icon"（SVG）。
 import type { HTMLAttributes } from 'astro/types';
 
@@ -54,6 +54,8 @@ const linkProps =
 	{liveTag && <span class="tag tag--live" data-live-tag hidden>{liveTag}</span>}
 	<span class="spark spark--a" aria-hidden="true"></span>
 	<span class="spark spark--b" aria-hidden="true"></span>
+	<span class="spark spark--c" aria-hidden="true"></span>
+	<span class="spark spark--d" aria-hidden="true"></span>
 	<span class="chevron" aria-hidden="true">»</span>
 </Tag>
 
@@ -217,8 +219,10 @@ const linkProps =
 		height: 40px;
 	}
 
+	/* 文字在閃光粒子前面 */
 	.label {
 		position: relative;
+		z-index: 1;
 		display: grid;
 		gap: 0.15rem;
 		min-width: 0;
@@ -287,30 +291,44 @@ const linkProps =
 		}
 	}
 
-	/* 閃爍星點：中心一格 + 上下左右四格，組成像素十字 */
+	/*
+	 * 閃光粒子：原版終界燭的 glitter_7 → glitter_0（8 格接成一條，public/mc/particle/glitter.png），
+	 * 放大 3 倍，在文字後方一閃一閃地縮小又變大。
+	 */
 	.spark {
 		position: absolute;
-		width: 4px;
-		height: 4px;
-		background: var(--light);
-		box-shadow:
-			4px 0 0 var(--light),
-			-4px 0 0 var(--light),
-			0 4px 0 var(--light),
-			0 -4px 0 var(--light);
-		opacity: 0.85;
-		animation: sparkle 1.6s steps(2, jump-none) infinite alternate;
+		z-index: 0;
+		width: 24px;
+		height: 24px;
+		background: url('/mc/particle/glitter.png') 0 0 / 800% 100% no-repeat;
+		image-rendering: pixelated;
+		opacity: 0.9;
+		animation: sparkle 1.6s steps(8, jump-none) infinite alternate;
 	}
 
 	.spark--a {
-		top: 22%;
+		top: 18%;
 		right: 2.2rem;
 	}
 
 	.spark--b {
-		bottom: 26%;
-		right: 4.4rem;
+		bottom: 22%;
+		right: 4.6rem;
 		animation-delay: -0.8s;
+	}
+
+	.spark--c {
+		top: 24%;
+		left: 42%;
+		animation-delay: -0.4s;
+		animation-duration: 2s;
+	}
+
+	.spark--d {
+		bottom: 18%;
+		left: 28%;
+		animation-delay: -1.2s;
+		animation-duration: 1.8s;
 	}
 
 	.chevron {
@@ -336,7 +354,7 @@ const linkProps =
 
 	@keyframes sparkle {
 		to {
-			opacity: 0.2;
+			background-position: 100% 0;
 		}
 	}
 

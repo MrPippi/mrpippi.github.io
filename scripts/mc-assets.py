@@ -110,6 +110,8 @@ EXPLOSION = ("particle/explosion.png", [f"particle/explosion_{i}.png" for i in r
 # 煙火火花：遊戲裡從 spark_7 播到 spark_0（由大變小），灰階圖，網頁上再染成煙火的顏色
 SPARK = ("particle/spark.png", [f"particle/spark_{i}.png" for i in range(7, -1, -1)])
 # 藥水碎裂的粒子（經驗瓶）：同樣是灰階，從 effect_7 播到 effect_0
+# 按鈕上的閃光（終界燭的粒子）：從 glitter_7 播到 glitter_0
+GLITTER = ("particle/glitter.png", [f"particle/glitter_{i}.png" for i in range(7, -1, -1)])
 EFFECT = ("particle/effect.png", [f"particle/effect_{i}.png" for i in range(7, -1, -1)])
 GRASS_TINT = (0x91, 0xBD, 0x59)  # 平原生態域的草地顏色
 FAVICON_SCALE = 4
@@ -189,6 +191,7 @@ def main() -> None:
     save(strip(EXPLOSION[1]), EXPLOSION[0])
     save(strip(SPARK[1]), SPARK[0])
     save(strip(EFFECT[1]), EFFECT[0])
+    save(strip(GLITTER[1]), GLITTER[0])
     favicon().save(ROOT / "public" / "favicon.png", optimize=True)
 
     files = sorted(OUTPUT.rglob("*.png"))
