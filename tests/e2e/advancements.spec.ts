@@ -222,8 +222,8 @@ test.describe('物品欄', () => {
 		await run(page, 'give @s redstone 5');
 		await expect(page.locator('[data-chat-log] li').last()).toHaveText('已將 [紅石粉] × 5 給予 訪客');
 		await expect(hotbar(page)).toHaveClass(/visible/);
-		// 數量多時掉落物疊成兩個
-		await expect(page.locator('[data-item-drop] img')).toHaveCount(2);
+		// 分成 5 個掉落物，陸續掉下來
+		await expect(page.locator('[data-item-drop]')).toHaveCount(5);
 
 		await expect(slot(page, 0).locator('img')).toHaveAttribute('src', '/mc/item/redstone.png', { timeout: 6000 });
 		await expect(slot(page, 0).locator('.count')).toHaveText('5');

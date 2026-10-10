@@ -8,7 +8,7 @@ import { recordGive, unlock } from './advancements';
 import { type Action, COMMANDS, GIVE_ITEMS, TP_PAGES, isCreeperCall, seedOf } from './commands';
 import { igniteCreeper } from './explosion-anim';
 import { receiveItems, showHotbar, slotCenter } from './hotbar';
-import { dropItem } from './item-drop-anim';
+import { dropItems } from './item-drop-anim';
 import { nextTrack, setMusicOn } from './music';
 import { setTheme } from './theme';
 import { fetchRealWeather, overrideWeather } from './weather';
@@ -88,10 +88,10 @@ export async function runAction(action: Action, print: Print): Promise<void> {
 			print(commands.gave(name, count, commands.player), 'info');
 			// 物品欄先出現，掉落物撿起來後飛進對應的格子
 			showHotbar();
-			dropItem(GIVE_ITEMS[item], {
-				count,
-				target: () => slotCenter(item, count),
-				onPickup: () => receiveItems(item, count, count > 1 ? `${name} ×${count}` : name),
+			const label = count > 1 ? `${name} ×${count}` : name;
+			dropItems(GIVE_ITEMS[item], count, {
+				target: (share) => slotCenter(item, share),
+				onPickup: (share) => receiveItems(item, share, label),
 			});
 			recordGive(item);
 			if (item === 'diamond_pickaxe') unlock('diamonds');

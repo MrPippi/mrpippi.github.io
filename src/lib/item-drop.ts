@@ -69,6 +69,17 @@ export function pickupKeyframes(plan: DropPlan, target: Point): readonly Keyfram
 	];
 }
 
+/** 一次給很多個時最多分成幾個掉落物 */
+export const MAX_SCATTER = 8;
+
+/** 把 count 個分成最多 max 份（數量盡量平均，多的放前面），每份是一個掉落物 */
+export function splitCount(count: number, max: number = MAX_SCATTER): readonly number[] {
+	const total = Math.max(0, Math.floor(count));
+	const parts = Math.min(total, Math.max(1, Math.floor(max)));
+	const base = Math.floor(total / parts);
+	return Array.from({ length: parts }, (_, i) => base + (i < total % parts ? 1 : 0));
+}
+
 /** 掉落物疊幾個顯示：和原版一樣，數量越多疊越多個（最多 5 個） */
 export function renderedCopies(count: number): number {
 	if (count <= 1) return 1;

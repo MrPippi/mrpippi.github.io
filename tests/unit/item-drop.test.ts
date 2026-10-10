@@ -8,6 +8,7 @@ import {
 	pickupKeyframes,
 	planDrop,
 	renderedCopies,
+	splitCount,
 } from '../../src/lib/item-drop';
 
 const viewport = { width: 1000, height: 800 };
@@ -72,5 +73,22 @@ describe('renderedCopies', () => {
 		[64, 5],
 	])('%i 個疊成 %i 個', (count, copies) => {
 		expect(renderedCopies(count)).toBe(copies);
+	});
+});
+
+describe('splitCount', () => {
+	it.each([
+		[1, [1]],
+		[3, [1, 1, 1]],
+		[8, [1, 1, 1, 1, 1, 1, 1, 1]],
+		[10, [2, 2, 1, 1, 1, 1, 1, 1]],
+		[64, [8, 8, 8, 8, 8, 8, 8, 8]],
+		[0, []],
+	])('%i 個分成 %j', (count, parts) => {
+		expect(splitCount(count)).toEqual(parts);
+	});
+
+	it('總數不變', () => {
+		expect(splitCount(37, 5).reduce((a, b) => a + b, 0)).toBe(37);
 	});
 });
