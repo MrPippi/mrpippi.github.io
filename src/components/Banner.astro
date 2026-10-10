@@ -35,7 +35,7 @@ const classes = ['banner', `banner--${disabled ? 'gray' : tone}`, `banner--${siz
 const Tag = href && !disabled ? 'a' : 'button';
 const linkProps =
 	Tag === 'a'
-		? { href, target: external ? '_blank' : undefined, rel: external ? 'noopener noreferrer' : undefined }
+		? { href, target: external ? '_blank' : undefined, rel: external ? 'noopener noreferrer' : undefined, ...rest }
 		: { type: 'button' as const, disabled, ...rest };
 ---
 

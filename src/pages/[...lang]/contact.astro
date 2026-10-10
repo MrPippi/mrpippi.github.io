@@ -18,13 +18,29 @@ const dict = t(lang);
 	<div class="links">
 		{
 			CONTACTS.map((link) => (
-				<Banner href={link.href} tone={link.tone} sub={link.sub} size="md" external>
+				<Banner
+					href={link.href}
+					tone={link.tone}
+					sub={link.sub}
+					size="md"
+					external
+					data-tooltip={link.label}
+					data-tooltip-lines={dict.contact.openTip}
+				>
 					<Icon name={link.icon} slot="icon" />
 					{link.label}
 				</Banner>
 			))
 		}
-		<Banner tone="blurple" size="md" sub={dict.contact.discordSub(DISCORD.username)} data-copy-discord data-username={DISCORD.username}>
+		<Banner
+			tone="blurple"
+			size="md"
+			sub={`@${DISCORD.username}`}
+			data-tooltip="Discord"
+			data-tooltip-lines={dict.contact.copyTip}
+			data-copy-discord
+			data-username={DISCORD.username}
+		>
 			<Icon name="discord" slot="icon" />
 			Discord
 		</Banner>

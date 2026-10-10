@@ -34,6 +34,7 @@ export interface Dictionary {
 		readonly heading: string;
 		readonly description: string;
 		readonly lead: string;
+		/** 星數的無障礙說明（畫面上是下界之星圖示 + 數字） */
 		readonly stars: (n: number) => string;
 		readonly updated: string;
 		readonly github: string;
@@ -54,7 +55,9 @@ export interface Dictionary {
 		readonly heading: string;
 		readonly description: string;
 		readonly lead: string;
-		readonly discordSub: (username: string) => string;
+		/** 按鈕的 Tooltip 說明：外部連結會開新分頁、Discord 會複製名稱 */
+		readonly openTip: string;
+		readonly copyTip: string;
 		readonly hintBefore: string;
 		readonly hintLink: string;
 		readonly hintAfter: string;

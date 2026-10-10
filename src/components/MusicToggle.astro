@@ -20,7 +20,7 @@ import PixelGlyph from './PixelGlyph.astro';
 
 	<div id="music-panel" class="panel" data-music-panel hidden>
 		<p class="now">
-			<img src="/mc/gui/music_notes.png" alt="" width="16" height="16" class="notes pixelated" />
+			<span class="notes" data-notes aria-hidden="true"></span>
 			<span class="now-text">
 				<span class="now-label mc-text" data-now-label></span>
 				<span class="now-title mc-text" data-now-title></span>
@@ -87,13 +87,17 @@ import PixelGlyph from './PixelGlyph.astro';
 		margin: 0 0 4px;
 	}
 
-	/* 原版音符圖示是 16×128 的 8 格動畫，播放時逐格跑 */
+	/* 原版音符圖示是 16×128 的灰階 8 格動畫，播放時逐格跑。
+	   灰階圖乘上 --note-color 上色，再用同一張圖當遮罩去掉透明區 */
 	.notes {
+		--notes-sheet: url('/mc/gui/music_notes.png');
 		width: 32px;
 		height: 32px;
-		object-fit: cover;
-		object-position: 0 0;
 		flex-shrink: 0;
+		background: var(--notes-sheet) 0 0 / 100% auto, var(--note-color, #fff);
+		background-blend-mode: multiply;
+		mask: var(--notes-sheet) 0 0 / 100% auto no-repeat;
+		image-rendering: pixelated;
 	}
 
 	:global(.music-control[data-playing='true']) .notes {
@@ -133,7 +137,8 @@ import PixelGlyph from './PixelGlyph.astro';
 
 	@keyframes notes {
 		to {
-			object-position: 0 100%;
+			background-position: 0 100%, 0 0;
+			mask-position: 0 100%;
 		}
 	}
 
@@ -174,6 +179,13 @@ import PixelGlyph from './PixelGlyph.astro';
 	const soundSlider = root?.querySelector<HTMLInputElement>('#sound-volume');
 	const nowLabel = root?.querySelector('[data-now-label]');
 	const nowTitle = root?.querySelector('[data-now-title]');
+	const notes = root?.querySelector<HTMLElement>('[data-notes]');
+
+	/** 音符換一個隨機的鮮豔顏色（每首新曲目換一次） */
+	function randomizeNoteColor(): void {
+		const hue = Math.floor(Math.random() * 360);
+		notes?.style.setProperty('--note-color', `hsl(${hue} 90% 65%)`);
+	}
 
 	const dict = () => t(langFromDocument());
 	const percent = (input: HTMLInputElement | null | undefined) => Number(input?.value ?? 0);
@@ -250,6 +262,7 @@ import PixelGlyph from './PixelGlyph.astro';
 	// 每換一首新曲目，跳出原版風格的「正在播放」通知（不出聲）
 	document.addEventListener(MUSIC_EVENT, (event) => {
 		const { newTrack, title } = (event as CustomEvent<MusicChange>).detail;
+		if (newTrack) randomizeNoteColor();
 		render();
 		if (newTrack && title) {
 			showToast(dict().music.nowPlaying, `${ARTIST} - ${title}`, '/mc/item/music_disc_cat.png', {
@@ -261,5 +274,6 @@ import PixelGlyph from './PixelGlyph.astro';
 
 	// 換頁（含切換語言）時更新文字
 	document.addEventListener('astro:page-load', render);
+	randomizeNoteColor();
 	initMusic();
 </script>

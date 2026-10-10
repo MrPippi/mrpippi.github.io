@@ -36,7 +36,11 @@ const dict = t(lang).portfolio;
 							{info.language}
 						</span>
 					)}
-					<span>{dict.stars(info.stars)}</span>
+					<span class="stars" title={dict.stars(info.stars)}>
+							<img src="/mc/item/nether_star.png" alt="" width="16" height="16" class="pixelated" />
+							<span aria-hidden="true">{info.stars}</span>
+							<span class="visually-hidden">{dict.stars(info.stars)}</span>
+						</span>
 					<span>
 						{dict.updated} <FormattedDate date={info.pushedAt} />
 					</span>
@@ -125,6 +129,17 @@ const dict = t(lang).portfolio;
 		display: inline-flex;
 		align-items: center;
 		gap: 0.35rem;
+	}
+
+	.stars {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+	}
+
+	.stars img {
+		width: 16px;
+		height: 16px;
 	}
 
 	.dot {

@@ -1,5 +1,4 @@
 ---
-import { PROFILE } from '../consts';
 import { langFromPath, t } from '../i18n';
 
 const dict = t(langFromPath(Astro.url.pathname));
@@ -9,7 +8,7 @@ const splashes = dict.splashes;
 <h1 class="logo">
 	<span class="visually-hidden">{dict.profile.name} </span>
 	<span class="wordmark-box" aria-hidden="true">
-		<span class="wordmark">{PROFILE.handle.toUpperCase()}</span>
+		<img class="wordmark" src="/icon.png" alt="" width="602" height="144" decoding="async" />
 		<!-- 黃色標語釘在 Logo 右下角，和遊戲一樣斜放並脈動 -->
 		<span class="splash mc-text" data-splash data-splashes={JSON.stringify(splashes)}>{splashes[0]}</span>
 	</span>
@@ -28,20 +27,12 @@ const splashes = dict.splashes;
 		display: inline-block;
 	}
 
-	/* 石材字：上亮下暗漸層 + 黑色描邊 + 往下的厚度，皆以遊戲像素（--mc-px）為單位 */
+	/* 像素風 Logo 圖（public/icon.png），隨螢幕寬度縮小 */
 	.wordmark {
-		--mc-px: calc(1em / 9);
 		display: block;
-		font-family: var(--font-ui);
-		font-size: 108px; /* 12 倍 */
-		background: linear-gradient(#ffffff, #c8c8c8 55%, #8a8a8a);
-		-webkit-background-clip: text;
-		background-clip: text;
-		color: transparent;
-		filter: drop-shadow(var(--outline) 0 0 #000) drop-shadow(calc(var(--outline) * -1) 0 0 #000)
-			drop-shadow(0 var(--outline) 0 #000) drop-shadow(0 calc(var(--outline) * -1) 0 #000)
-			drop-shadow(0 calc(var(--mc-px) * 0.75) 0 #2e2e2e);
-		--outline: calc(var(--mc-px) / 4);
+		width: min(602px, calc(100vw - 32px));
+		height: auto;
+		image-rendering: pixelated;
 	}
 
 	.splash {
@@ -64,17 +55,7 @@ const splashes = dict.splashes;
 		}
 	}
 
-	@media (max-width: 720px) {
-		.wordmark {
-			font-size: 72px; /* 8 倍 */
-		}
-	}
-
 	@media (max-width: 480px) {
-		.wordmark {
-			font-size: 54px; /* 6 倍 */
-		}
-
 		.splash {
 			left: 80%;
 			top: 100%;

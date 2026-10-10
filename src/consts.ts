@@ -103,12 +103,13 @@ export interface ContactLink {
 	readonly icon: BrandIcon;
 	/** 橫幅按鈕顏色 */
 	readonly tone: 'green' | 'teal' | 'yellow' | 'purple' | 'red' | 'blurple' | 'gray';
+	/** 橫幅副標：統一只放帳號名稱（@handle），其他說明放 Tooltip */
 	readonly sub: string;
 }
 
 // 想公開 Email 的話再加：{ label: 'Email', href: 'mailto:<you>@example.com', icon: 'mail', tone: 'teal', sub: '<you>@example.com' },
 export const CONTACTS: readonly ContactLink[] = [
-	{ label: 'GitHub', href: 'https://github.com/MrPippi', icon: 'github', tone: 'gray', sub: 'MrPippi' },
+	{ label: 'GitHub', href: 'https://github.com/MrPippi', icon: 'github', tone: 'gray', sub: '@MrPippi' },
 	{ label: 'YouTube', href: YOUTUBE.url, icon: 'youtube', tone: 'red', sub: '@Mr_Pippi' },
-	{ label: 'Twitch', href: TWITCH.url, icon: 'twitch', tone: 'purple', sub: TWITCH.handle },
+	{ label: 'Twitch', href: TWITCH.url, icon: 'twitch', tone: 'purple', sub: `@${TWITCH.handle}` },
 ];
