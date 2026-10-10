@@ -68,33 +68,19 @@ function drawSnow(ctx: CanvasRenderingContext2D, world: World): void {
 	}
 }
 
-/** 圓形水珠第 row 列的半寬（像素格） */
-function halfWidth(size: number, row: number): number {
-	const radius = size / 2;
-	const offset = row + 0.5 - radius;
-	return Math.max(1, Math.round(Math.sqrt(Math.max(0, radius * radius - offset * offset))));
-}
-
-/** 鏡頭水滴：半透明的像素圓形水珠，左上亮點、下緣較深；往下滑的留一道淡淡水痕 */
+/** 鏡頭水滴：一格方塊像素；往下滑的在上面留一道同樣寬、比較淡的水痕 */
 function drawLensDrop(ctx: CanvasRenderingContext2D, drop: LensDrop): void {
-	const px = 4;
+	const side = drop.size;
 	const opacity = lensOpacity(drop);
-	const center = snap(drop.x, px);
-	const top = snap(drop.y, px);
-	const trail = Math.min(drop.travelled, 200);
-	if (trail > px) {
-		const trailWidth = Math.max(1, Math.floor(drop.size / 3)) * px;
-		ctx.fillStyle = `rgb(200 220 255 / ${0.18 * opacity})`;
-		ctx.fillRect(center - trailWidth / 2, snap(top - trail, px), trailWidth, trail);
+	const x = snap(drop.x, side);
+	const y = snap(drop.y, side);
+	const trail = snap(Math.min(drop.travelled, 200), side);
+	if (trail > 0) {
+		ctx.fillStyle = `rgb(200 220 255 / ${0.2 * opacity})`;
+		ctx.fillRect(x, y - trail, side, trail);
 	}
-	for (let row = 0; row < drop.size; row += 1) {
-		const half = halfWidth(drop.size, row) * px;
-		const isEdge = row === drop.size - 1;
-		ctx.fillStyle = isEdge ? `rgb(40 70 150 / ${0.45 * opacity})` : `rgb(200 220 255 / ${0.38 * opacity})`;
-		ctx.fillRect(center - half, top + row * px, half * 2, px);
-	}
-	ctx.fillStyle = `rgb(255 255 255 / ${0.85 * opacity})`;
-	ctx.fillRect(center - halfWidth(drop.size, 1) * px + px, top + px, px, px); // 反光
+	ctx.fillStyle = `rgb(200 220 255 / ${0.6 * opacity})`;
+	ctx.fillRect(x, y, side, side);
 }
 
 export function mountPrecipitation(sky: HTMLCanvasElement, lens: HTMLCanvasElement): PrecipitationController {

@@ -36,7 +36,7 @@ export interface Drop {
 export interface LensDrop {
 	readonly x: number;
 	readonly y: number;
-	/** 水滴大小（像素格數） */
+	/** 水滴是一格方塊像素，這是它的邊長（px） */
 	readonly size: number;
 	readonly age: number;
 	readonly life: number;
@@ -78,7 +78,7 @@ const SETTINGS: Readonly<Record<PrecipKind, KindSettings>> = {
 	snow: { density: 1 / 9000, maxCount: 240, speed: [30, 100], length: [2, 7], pixel: [2, 2], fadeChance: 0, lensRate: 0 },
 };
 
-const LENS_SIZE: Range = [4, 9];
+const LENS_SIZE: Range = [4, 8];
 const LENS_LIFE: Range = [2.5, 5];
 const LENS_SLIDE: Range = [12, 60];
 /** 有多少比例的鏡頭水滴會往下滑 */
