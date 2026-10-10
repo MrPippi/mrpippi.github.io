@@ -65,6 +65,8 @@ const linkProps =
 		display: flex;
 		align-items: center;
 		width: 100%;
+		/* 放在 grid 裡時不要被不換行的小字撐寬，小字改成省略號 */
+		min-width: 0;
 		margin: 0;
 		padding: 0 3.25rem 0 6.5rem;
 		border: 4px solid var(--dark);

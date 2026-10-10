@@ -73,7 +73,7 @@ const CHANNELS = [
 <style>
 	.channels {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 		gap: 16px;
 		margin-bottom: 2.5rem;
 	}
@@ -85,7 +85,7 @@ const CHANNELS = [
 
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
 		gap: 1.25rem 1rem;
 	}
 

@@ -33,7 +33,7 @@ export default defineConfig({
 		{
 			name: 'mobile',
 			use: { ...devices['Pixel 7'], channel: CI ? undefined : 'msedge' },
-			testMatch: /screenshots\.spec\.ts/,
+			testMatch: /(screenshots|layout)\.spec\.ts/,
 		},
 	],
 });
