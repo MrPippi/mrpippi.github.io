@@ -51,6 +51,10 @@ tags: [Minecraft, 插件]
 
 文章清單會顯示閱讀時間與標籤，每個標籤也有自己的頁面（`/blog/tags/<標籤>/`）。有正式文章後，主選單的「文章」按鈕才會解鎖。
 
+## 作品集
+
+`/portfolio/`（英文 `/en/portfolio/`）列出 `src/consts.ts` 的 `PORTFOLIO` 裡的 GitHub 專案。介紹寫在設定裡（中英文各一份），語言、星數、更新時間與網站連結在建置時從 GitHub API 抓；抓不到時只顯示介紹與連結。只放公開 repo：清單裡的 repo 若變成私人或被刪除，建置時會自動略過。
+
 ## 文章留言
 
 文章頁底部用 [giscus](https://giscus.app/zh-TW)：留言存在這個 repo 的 GitHub Discussions（Announcements 分類），訪客用 GitHub 帳號登入留言。設定在 `src/consts.ts` 的 `GISCUS`。

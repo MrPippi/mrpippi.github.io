@@ -8,8 +8,10 @@ test.describe('404 死亡畫面', () => {
 		await expect(page.locator('[data-death-message]')).toContainText('皮皮');
 		await expect(page.locator('.score')).toContainText('404');
 
+		// 一開始是停用的（看伺服器送出的 HTML，不受載入速度影響），之後才能按
+		const html = (await response?.text()) ?? '';
+		expect(html).toMatch(/<button[^>]*disabled[^>]*data-title-screen|<button[^>]*data-title-screen[^>]*disabled/);
 		const titleScreen = page.locator('[data-title-screen]');
-		await expect(titleScreen).toBeDisabled();
 		await expect(titleScreen).toBeEnabled({ timeout: 3000 });
 		expect(await page.evaluate(() => localStorage.getItem('advancements'))).toContain('lost');
 

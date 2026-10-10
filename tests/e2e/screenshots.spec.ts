@@ -4,7 +4,7 @@ import { test } from '@playwright/test';
  * 每個頁面在白天／夜晚各截一張全頁圖，附在測試報告裡（CI 會上傳成 artifact），
  * 方便在 PR 裡人工檢查版面有沒有跑掉。動畫與轉場先關掉，截圖才穩定。
  */
-const PAGES = ['/', '/about/', '/media/', '/contact/', '/blog/', '/en/', '/en/about/'];
+const PAGES = ['/', '/about/', '/portfolio/', '/media/', '/contact/', '/blog/', '/en/', '/en/about/'];
 const THEMES = ['light', 'dark'] as const;
 
 for (const theme of THEMES) {

@@ -17,6 +17,10 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+# 建置時抓 GitHub API（作品集）用，避免共用 IP 被限流
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build:
     runs-on: ubuntu-latest

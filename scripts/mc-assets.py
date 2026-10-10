@@ -48,6 +48,8 @@ COPIES = {
     "item/goat_horn.png": "item/goat_horn.png",
     "item/enchanted_book.png": "item/enchanted_book.png",
     "item/compass.png": "item/compass_00.png",
+    "item/bundle.png": "item/bundle.png",
+    "item/knowledge_book.png": "item/knowledge_book.png",
     "block/dirt.png": "block/dirt.png",
 }
 ADDITIVE = {

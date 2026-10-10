@@ -1,0 +1,156 @@
+---
+// 作品集卡片：左邊是放在物品欄格子裡的物品圖示，右邊是專案名稱、介紹、語言／星數／更新時間與連結。
+import type { PortfolioItem } from '../consts';
+import { type Lang, t } from '../i18n';
+import { languageColor, type RepoInfo } from '../lib/github';
+import FormattedDate from './FormattedDate.astro';
+import McButton from './McButton.astro';
+
+interface Props {
+	item: PortfolioItem;
+	/** GitHub API 資料；抓不到時為 undefined，只顯示基本資訊 */
+	info: RepoInfo | undefined;
+	url: string;
+	lang: Lang;
+}
+
+const { item, info, url, lang } = Astro.props;
+const dict = t(lang).portfolio;
+---
+
+<article class="card">
+	<span class="slot" aria-hidden="true">
+		<img src={item.icon} alt="" width="16" height="16" class="pixelated" />
+	</span>
+	<div class="body">
+		<h2 class="name mc-text">
+			<a href={url} target="_blank" rel="noopener noreferrer">{item.repo}</a>
+		</h2>
+		<p class="desc">{item.description[lang]}</p>
+		{
+			info && (
+				<p class="meta">
+					{info.language && (
+						<span class="lang">
+							<span class="dot" style={`background:${languageColor(info.language)}`} />
+							{info.language}
+						</span>
+					)}
+					<span>{dict.stars(info.stars)}</span>
+					<span>
+						{dict.updated} <FormattedDate date={info.pushedAt} />
+					</span>
+				</p>
+			)
+		}
+		<div class="links">
+			<McButton href={url} external>{dict.github}</McButton>
+			{info?.homepage && <McButton href={info.homepage} external>{dict.website}</McButton>}
+		</div>
+	</div>
+</article>
+
+<style>
+	.card {
+		display: flex;
+		gap: 1rem;
+		padding: 1rem;
+		border: 2px solid rgb(255 255 255 / 0.12);
+		background: rgb(0 0 0 / 0.35);
+	}
+
+	.card:hover,
+	.card:focus-within {
+		border-color: rgb(255 255 255 / 0.6);
+	}
+
+	/* 原版物品欄格子：左上暗、右下亮的內凹框 */
+	.slot {
+		display: grid;
+		place-items: center;
+		flex-shrink: 0;
+		width: 64px;
+		height: 64px;
+		border: 4px solid transparent;
+		border-image: url('/mc/gui/slot.png') 1 fill / 4px / 0 stretch;
+		image-rendering: pixelated;
+	}
+
+	.slot img {
+		width: 48px;
+		height: 48px;
+	}
+
+	.body {
+		display: grid;
+		gap: 0.4rem;
+		min-width: 0;
+	}
+
+	.name {
+		margin: 0;
+		font-size: 18px;
+		overflow-wrap: anywhere;
+	}
+
+	/* 專案名稱用原版「稀有物品」的青色 */
+	.name a {
+		color: #55ffff;
+		text-decoration: none;
+		text-shadow: var(--mc-px) var(--mc-px) 0 #153f3f;
+	}
+
+	.name a:hover,
+	.name a:focus-visible {
+		text-decoration: underline;
+	}
+
+	.desc {
+		margin: 0;
+		color: var(--text-dim);
+		font-size: 0.92rem;
+		line-height: 1.7;
+	}
+
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 1rem;
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.8rem;
+	}
+
+	.lang {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.dot {
+		width: 10px;
+		height: 10px;
+		box-shadow: 0 0 0 1px rgb(0 0 0 / 0.6);
+	}
+
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 0.25rem;
+	}
+
+	/* 連結按鈕依文字寬度並排，不撐滿整列 */
+	.links :global(.mc-btn) {
+		width: auto;
+		min-width: 120px;
+		height: 36px;
+		font-size: 15px;
+	}
+
+	@media (max-width: 480px) {
+		.card {
+			flex-direction: column;
+		}
+	}
+</style>

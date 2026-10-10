@@ -27,6 +27,7 @@ export const zhTW: Dictionary = {
 	menu: {
 		label: '主選單',
 		about: { title: '關於我', sub: '自我介紹與技能' },
+		portfolio: { title: '作品集', sub: 'GitHub 專案' },
 		media: { title: '直播 & 影片', sub: 'YouTube · Twitch' },
 		blog: { title: '文章', sub: '開發筆記', wip: '施工中' },
 		contact: { title: '聯絡', sub: 'GitHub · Discord' },
@@ -48,6 +49,16 @@ export const zhTW: Dictionary = {
 		],
 		stats: '統計資料',
 		skills: { plugins: 'Minecraft 插件', web: '網頁', deploy: '部署', ai: 'AI 與自動化' },
+	},
+	portfolio: {
+		heading: '作品集',
+		description: '皮皮在 GitHub 上的專案：Minecraft 插件、Claude 工具與自動化機器人。',
+		lead: '我在 GitHub 上的公開專案：',
+		stars: (n) => `★ ${n}`,
+		updated: '更新於',
+		github: 'GitHub',
+		website: '網站',
+		more: '在 GitHub 看所有專案',
 	},
 	media: {
 		heading: '直播 & 影片',

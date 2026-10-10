@@ -10,6 +10,7 @@ export interface Dictionary {
 	readonly menu: {
 		readonly label: string;
 		readonly about: { readonly title: string; readonly sub: string };
+		readonly portfolio: { readonly title: string; readonly sub: string };
 		readonly media: { readonly title: string; readonly sub: string };
 		readonly blog: { readonly title: string; readonly sub: string; readonly wip: string };
 		readonly contact: { readonly title: string; readonly sub: string };
@@ -28,6 +29,16 @@ export interface Dictionary {
 		readonly paragraphs: readonly string[];
 		readonly stats: string;
 		readonly skills: Readonly<Record<SkillKey, string>>;
+	};
+	readonly portfolio: {
+		readonly heading: string;
+		readonly description: string;
+		readonly lead: string;
+		readonly stars: (n: number) => string;
+		readonly updated: string;
+		readonly github: string;
+		readonly website: string;
+		readonly more: string;
 	};
 	readonly media: {
 		readonly heading: string;

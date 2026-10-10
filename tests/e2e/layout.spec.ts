@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
  * - 子頁標題不能被右下角按鈕列蓋住。
  * - 按鈕列固定在畫面右下角，捲到最底時頁面最後的內容（返回按鈕、頁尾）不能被它蓋住。
  */
-const PAGES = ['/', '/about/', '/media/', '/contact/', '/blog/', '/en/', '/en/about/', '/en/media/', '/en/contact/'];
+const PAGES = ['/', '/about/', '/portfolio/', '/media/', '/contact/', '/blog/', '/en/', '/en/about/', '/en/portfolio/', '/en/media/', '/en/contact/'];
 
 type Box = { x: number; y: number; width: number; height: number };
 const overlaps = (a: Box, b: Box) =>

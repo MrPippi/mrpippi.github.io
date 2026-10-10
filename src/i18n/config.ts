@@ -1,6 +1,6 @@
 /**
  * 語系設定。中文是預設語系（網址不加前綴），英文在 /en/ 底下。
- * 文章只有中文，所以英文版只有標題畫面、關於我、直播 & 影片、聯絡四頁。
+ * 文章只有中文，所以英文版只有標題畫面、關於我、作品集、直播 & 影片、聯絡五頁。
  */
 
 export const LANGS = ['zh-TW', 'en'] as const;
@@ -16,7 +16,7 @@ export const TIME_ZONE = 'Asia/Taipei';
 export const OG_LOCALE: Record<Lang, string> = { 'zh-TW': 'zh_TW', en: 'en_US' };
 
 /** 兩種語言都有的頁面（不含語系前綴） */
-export const BILINGUAL_PATHS: readonly string[] = ['/', '/about/', '/media/', '/contact/'];
+export const BILINGUAL_PATHS: readonly string[] = ['/', '/about/', '/portfolio/', '/media/', '/contact/'];
 
 const EN_PREFIX = '/en';
 

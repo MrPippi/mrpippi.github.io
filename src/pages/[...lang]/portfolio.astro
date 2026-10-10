@@ -1,0 +1,62 @@
+---
+import ProjectCard from '../../components/ProjectCard.astro';
+import McButton from '../../components/McButton.astro';
+import { PORTFOLIO } from '../../consts';
+import { langFromPath, langStaticPaths, t } from '../../i18n';
+import MenuLayout from '../../layouts/MenuLayout.astro';
+import { fetchPublicRepos } from '../../lib/github';
+
+export function getStaticPaths() {
+	return langStaticPaths();
+}
+
+const lang = langFromPath(Astro.url.pathname);
+const dict = t(lang);
+const repos = await fetchPublicRepos(PORTFOLIO.owner);
+const profileUrl = `https://github.com/${PORTFOLIO.owner}`;
+
+// 抓得到 GitHub 資料時，清單裡卻找不到的 repo（改成私人或已刪除）不顯示，避免訪客點到 404
+const projects = PORTFOLIO.items
+	.map((item) => ({ item, info: repos?.get(item.repo.toLowerCase()) }))
+	.filter(({ item, info }) => {
+		if (!repos || info) return true;
+		console.warn(`[github] ${item.repo} 不是公開 repo，作品集略過`);
+		return false;
+	});
+---
+
+<MenuLayout heading={dict.portfolio.heading} description={dict.portfolio.description}>
+	<p class="lead">{dict.portfolio.lead}</p>
+	<div class="grid">
+		{
+			projects.map(({ item, info }) => (
+				<ProjectCard item={item} info={info} url={info?.url ?? `${profileUrl}/${item.repo}`} lang={lang} />
+			))
+		}
+	</div>
+	<div class="more">
+		<McButton href={profileUrl} external>{dict.portfolio.more}</McButton>
+	</div>
+</MenuLayout>
+
+<style>
+	.lead {
+		margin: 0 0 1.25rem;
+		color: var(--text-dim);
+	}
+
+	.grid {
+		display: grid;
+		gap: 12px;
+	}
+
+	.more {
+		display: flex;
+		justify-content: center;
+		margin-top: 1.75rem;
+	}
+
+	.more :global(.mc-btn) {
+		width: min(320px, 100%);
+	}
+</style>

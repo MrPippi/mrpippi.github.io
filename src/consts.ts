@@ -1,5 +1,6 @@
 // 和語言無關的網站資料（網址、帳號、圖示）。
 // 顯示在畫面上的文字都在 src/i18n/zh-TW.ts（中文）與 src/i18n/en.ts（英文）。
+import type { Lang } from './i18n/config';
 import type { SkillKey } from './i18n/types';
 
 export const PROFILE = {
@@ -39,6 +40,33 @@ export const YOUTUBE = {
 export const TWITCH = {
 	url: 'https://www.twitch.tv/mr_pippi',
 	handle: 'mr_pippi',
+} as const;
+
+export interface PortfolioItem {
+	/** GitHub repo 名稱（只放公開 repo，私人 repo 訪客點進去會是 404） */
+	readonly repo: string;
+	/** public/mc/item/ 下的物品圖 */
+	readonly icon: string;
+	/** 網站上顯示的介紹；GitHub 上的描述太短或只有英文時用這個 */
+	readonly description: Readonly<Record<Lang, string>>;
+}
+
+/**
+ * 作品集：依這個順序顯示。語言、星數、更新時間在建置時從 GitHub API 抓。
+ * 新增專案時加一筆即可（記得執行 npm run mc-assets 確認圖示存在）。
+ */
+export const PORTFOLIO = {
+	owner: 'MrPippi',
+	items: [
+		{
+			repo: 'MJP-Paper-Skills',
+			icon: '/mc/item/knowledge_book.png',
+			description: {
+				'zh-TW': '給 Claude 用的 Minecraft Paper 插件開發技能集，附線上文件網站。',
+				en: 'Claude skills for building Minecraft Paper plugins, with a documentation site.',
+			},
+		},
+	] satisfies readonly PortfolioItem[],
 } as const;
 
 /**

@@ -28,6 +28,9 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 				<Banner href={localizePath('/about/', lang)} tone="green" icon="/mc/item/name_tag.png" sub={dict.menu.about.sub}>
 					{dict.menu.about.title}
 				</Banner>
+				<Banner href={localizePath('/portfolio/', lang)} tone="red" icon="/mc/item/bundle.png" sub={dict.menu.portfolio.sub}>
+					{dict.menu.portfolio.title}
+				</Banner>
 				<Banner href={localizePath('/media/', lang)} tone="teal" icon="/mc/item/music_disc_cat.png" sub={dict.menu.media.sub}>
 					{dict.menu.media.title}
 				</Banner>
@@ -41,7 +44,13 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 				>
 					{dict.menu.blog.title}
 				</Banner>
-				<Banner href={localizePath('/contact/', lang)} tone="yellow" icon="/mc/item/goat_horn.png" sub={dict.menu.contact.sub}>
+				<Banner
+					href={localizePath('/contact/', lang)}
+					tone="yellow"
+					icon="/mc/item/goat_horn.png"
+					sub={dict.menu.contact.sub}
+					class="wide"
+				>
 					{dict.menu.contact.title}
 				</Banner>
 			</nav>
@@ -79,6 +88,11 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 18px 16px;
 		width: min(720px, 100%);
+	}
+
+	/* 5 顆按鈕：最後一顆（聯絡）佔滿一整列 */
+	.menu > :global(.wide) {
+		grid-column: 1 / -1;
 	}
 
 	@media (max-width: 640px) {

@@ -28,6 +28,7 @@ export const en: Dictionary = {
 	menu: {
 		label: 'Main menu',
 		about: { title: 'About', sub: 'Who I am & skills' },
+		portfolio: { title: 'Projects', sub: 'On GitHub' },
 		media: { title: 'Videos', sub: 'YouTube · Twitch streams' },
 		blog: { title: 'Blog', sub: 'Dev notes (in Chinese)', wip: 'Coming soon' },
 		contact: { title: 'Contact', sub: 'GitHub · Discord' },
@@ -49,6 +50,16 @@ export const en: Dictionary = {
 		],
 		stats: 'Statistics',
 		skills: { plugins: 'Minecraft plugins', web: 'Web', deploy: 'Deployment', ai: 'AI & automation' },
+	},
+	portfolio: {
+		heading: 'Projects',
+		description: "Pippi's projects on GitHub: Minecraft plugins, Claude tools and automation bots.",
+		lead: 'My public projects on GitHub:',
+		stars: (n) => `★ ${n}`,
+		updated: 'Updated',
+		github: 'GitHub',
+		website: 'Website',
+		more: 'All projects on GitHub',
 	},
 	media: {
 		heading: 'Streams & Videos',

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-const PAGES = ['/', '/about/', '/media/', '/contact/', '/blog/', '/en/', '/en/about/', '/en/media/', '/en/contact/'];
+const PAGES = ['/', '/about/', '/portfolio/', '/media/', '/contact/', '/blog/', '/en/', '/en/about/', '/en/portfolio/', '/en/media/', '/en/contact/'];
 
 /** 收集頁面上的 JS 錯誤（不含外部字型等網路請求失敗） */
 function trackErrors(page: Page): string[] {
