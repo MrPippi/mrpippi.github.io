@@ -3,7 +3,6 @@
  * - 按鈕「喀」：原版 ui/click（public/sounds/，Opus WebM）；瀏覽器無法解碼時退回合成音。
  * - 提示「叮」：Web Audio API 即時合成。
  * - 其他（叮、升級、撿起物品、苦力怕、煙火、吃東西…）：原版音效（public/sounds/），用到時才下載；無法載入時退回合成音。
- * - 山羊角目前沒有原版音檔，用合成音。
  * AudioContext 一載入就建立（此時是暫停狀態），先解碼好點擊音；第一次使用者操作時才恢復出聲。
  */
 
@@ -166,6 +165,14 @@ const SAMPLES = {
 	twinkle: '/sounds/fireworks/twinkle1.webm',
 	portal: '/sounds/mob/enderman/portal.webm',
 	beacon: '/sounds/block/beacon/activate.webm',
+	horn0: '/sounds/item/goat_horn/call0.webm',
+	horn1: '/sounds/item/goat_horn/call1.webm',
+	horn2: '/sounds/item/goat_horn/call2.webm',
+	horn3: '/sounds/item/goat_horn/call3.webm',
+	horn4: '/sounds/item/goat_horn/call4.webm',
+	horn5: '/sounds/item/goat_horn/call5.webm',
+	horn6: '/sounds/item/goat_horn/call6.webm',
+	horn7: '/sounds/item/goat_horn/call7.webm',
 } as const;
 type Sample = keyof typeof SAMPLES;
 const EXPLOSIONS: readonly Sample[] = ['explode1', 'explode2', 'explode3', 'explode4'];
@@ -282,12 +289,14 @@ export function playExplosion(): void {
 	);
 }
 
-/** 山羊角：低沉的號角聲 */
+const HORNS: readonly Sample[] = ['horn0', 'horn1', 'horn2', 'horn3', 'horn4', 'horn5', 'horn6', 'horn7'];
+
+/** 山羊角：隨機播原版 8 種叫聲之一（item/goat_horn/call0–7） */
 export function playHorn(): void {
-	const ctx = activeContext();
-	if (!ctx) return;
-	playTone(ctx, { type: 'sawtooth', from: 233, to: 208, start: 0, duration: 1.4, volume: 0.35 });
-	playTone(ctx, { type: 'triangle', from: 466, to: 415, start: 0, duration: 1.2, volume: 0.25 });
+	void playSample(pickSample(HORNS), 0.6, 1, (ctx) => {
+		playTone(ctx, { type: 'sawtooth', from: 233, to: 208, start: 0, duration: 1.4, volume: 0.35 });
+		playTone(ctx, { type: 'triangle', from: 466, to: 415, start: 0, duration: 1.2, volume: 0.25 });
+	});
 }
 
 /** 煙火升空（原版 fireworks/launch1） */

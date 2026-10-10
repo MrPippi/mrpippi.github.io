@@ -29,6 +29,7 @@ const JOBS = [
 	['fireworks', '64k', ['launch1', 'blast1', 'twinkle1']],
 	['mob/enderman', '64k', ['portal']],
 	['block/beacon', '64k', ['activate']],
+	['item/goat_horn', '64k', ['call0', 'call1', 'call2', 'call3', 'call4', 'call5', 'call6', 'call7']],
 ];
 
 function transcode(input, output, bitrate) {

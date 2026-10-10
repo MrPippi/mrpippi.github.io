@@ -114,6 +114,8 @@ test.describe('Twitch 開台狀態', () => {
 
 	test('開台時：LIVE 標籤、直播標語與通知', async ({ page }) => {
 		await mockExternalApis(page, { twitchUptime: '1 hour, 2 minutes', twitchTitle: '來挖礦' });
+		// 固定在白天：半夜跑測試時「失眠」進度的通知會排在開台通知前面
+		await page.clock.setFixedTime(new Date(2026, 9, 10, 14, 0));
 		await page.goto('/');
 		await expect(page.locator('[data-live-tag]')).toBeVisible();
 		await expect(page.locator('[data-splash]')).toHaveText('正在直播！');
