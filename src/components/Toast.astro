@@ -13,7 +13,7 @@
 <style>
 	.toast {
 		position: fixed;
-		top: 60px;
+		top: 12px;
 		right: 12px;
 		z-index: 20;
 		display: flex;
@@ -30,13 +30,6 @@
 		pointer-events: none;
 	}
 
-	/* 窄螢幕上，右上角的位置會蓋住子頁標題，改到畫面底部 */
-	@media (max-width: 760px) {
-		.toast {
-			top: auto;
-			bottom: calc(16px + env(safe-area-inset-bottom));
-		}
-	}
 
 	/* 「正在播放」：原版 now_playing 框（160×32，九宮格邊框 4），標題改成淡紫色 */
 	.toast[data-variant='music'] {

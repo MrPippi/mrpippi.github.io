@@ -68,7 +68,7 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 		}
 
 		<!--
-			換頁不重新載入（ClientRouter）：天空、右上角按鈕與背景音樂播放器都留在原地，音樂不會中斷。
+			換頁不重新載入（ClientRouter）：天空、右下角按鈕與背景音樂播放器都留在原地，音樂不會中斷。
 		-->
 		<ClientRouter />
 
@@ -119,12 +119,12 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 
 <style>
 	/*
-	 * 右上角：語言、音樂設定、音效、主題切換。
-	 * 跟著頁面捲動（absolute），不固定在畫面上，往下捲時才不會蓋住內容裡的按鈕。
+	 * 右下角：語言、音樂設定、音效、主題切換。固定在畫面上，捲動時一直跟著。
+	 * 各頁面底部留了 --controls-space 的空間，捲到最底時內容不會被它蓋住。
 	 */
 	.controls {
-		position: absolute;
-		top: 12px;
+		position: fixed;
+		bottom: calc(12px + env(safe-area-inset-bottom));
 		right: 12px;
 		z-index: 10;
 		display: flex;

@@ -87,9 +87,10 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 		}
 	}
 
+	/* 版本號與版權放在右下角按鈕列的上方，不被按鈕蓋住 */
 	.corner {
 		position: absolute;
-		inset: auto 0 0;
+		inset: auto 0 var(--controls-space);
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: space-between;
