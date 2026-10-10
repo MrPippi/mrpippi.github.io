@@ -45,8 +45,8 @@ for (const path of PAGES) {
 		const viewport = page.viewportSize();
 		expect(controls && viewport).toBeTruthy();
 		if (!controls || !viewport) return;
-		// 固定在右下角
-		expect(viewport.height - (controls.y + controls.height)).toBeLessThan(40);
+		// 固定在右下角（電腦版標題畫面會往上移到版權文字上方，所以容許 80px 內）
+		expect(viewport.height - (controls.y + controls.height)).toBeLessThan(80);
 		expect(viewport.width - (controls.x + controls.width)).toBeLessThan(40);
 		// 頁面最後的內容：子頁的返回按鈕、標題畫面的版本號與版權
 		const lastItems = page.locator('footer a, footer button, footer span');
@@ -66,6 +66,29 @@ test('標題畫面：版本號與版權不會蓋住選單按鈕', async ({ page 
 		for (const banner of await page.locator('.menu .banner').all()) {
 			const box = await banner.boundingBox();
 			if (box) expect(overlaps(box, corner)).toBe(false);
+		}
+	}
+});
+
+test('電腦版標題畫面：右下角按鈕列在版權文字上方、不重疊', async ({ page }, testInfo) => {
+	test.skip(testInfo.project.name !== 'desktop', '只檢查電腦版');
+	for (const path of ['/', '/en/']) {
+		await page.goto(path);
+		await page.evaluate(() => document.fonts.ready);
+		const controls = await page.locator('.controls').boundingBox();
+		const texts = await Promise.all((await page.locator('footer.corner span').all()).map((el) => el.boundingBox()));
+		expect(controls).toBeTruthy();
+		if (!controls) return;
+		for (const text of texts) {
+			if (!text) continue;
+			expect(overlaps(text, controls)).toBe(false);
+			// 按鈕列的底部要在文字頂端之上
+			expect(controls.y + controls.height).toBeLessThanOrEqual(text.y + 1);
+		}
+		// 選單按鈕也不能被按鈕列蓋住
+		for (const banner of await page.locator('.menu .banner').all()) {
+			const box = await banner.boundingBox();
+			if (box) expect(overlaps(box, controls)).toBe(false);
 		}
 	}
 });

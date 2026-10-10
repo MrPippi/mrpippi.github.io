@@ -114,4 +114,20 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 		font-size: 18px;
 		line-height: 1.4;
 	}
+
+	/*
+	 * 電腦版：右下角按鈕列放在版權文字的「上方」。頁尾上方預留按鈕的高度，
+	 * 按鈕列改成貼齊在文字上面（按鈕是全站共用、固定在畫面上的元素，所以用 :has 只在標題畫面調整）。
+	 */
+	@media (min-width: 761px) {
+		/* 頁尾：上方留 60px 給按鈕列（40px 按鈕 + 間距），文字距底 12px */
+		.corner {
+			padding: 60px 0.75rem 12px;
+		}
+
+		/* 按鈕列底部 = 文字距底 12px + 文字行高 18px × 1.4 + 間距 8px（按鈕列不在頁尾裡，不能用頁尾的 CSS 變數） */
+		:global(:root:has(.title-screen) .controls) {
+			bottom: calc(12px + 18px * 1.4 + 8px + env(safe-area-inset-bottom));
+		}
+	}
 </style>
