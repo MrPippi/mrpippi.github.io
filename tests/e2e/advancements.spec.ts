@@ -193,7 +193,10 @@ test.describe('隱藏進度', () => {
 
 	test('聊天列呼喚苦力怕：1.5 秒後爆炸，解鎖「嘶嘶…」', async ({ page }) => {
 		await page.goto('/');
+		// 點燃時先下載原版爆炸音效
+		const explodeSound = page.waitForResponse(/\/sounds\/random\/explode\d\.webm$/);
 		await chat(page, 'creeper');
+		expect((await explodeSound).ok()).toBe(true);
 		await expect(page.locator('.explosion-puff').first()).toBeAttached({ timeout: 3000 });
 		await expect(page.locator('[data-chat-log] li').last()).toHaveText('訪客 被苦力怕炸死了');
 		expect(await unlocked(page)).toContain('creeper');

@@ -2,6 +2,7 @@
  * 介面音效。
  * - 按鈕「喀」：原版 ui/click（public/sounds/，Opus WebM）；瀏覽器無法解碼時退回合成音。
  * - 提示「叮」：Web Audio API 即時合成。
+ * - 撿起物品、苦力怕點燃與爆炸：原版 random/ 音效（public/sounds/random/），用到時才下載；無法載入時退回合成音。
  * AudioContext 一載入就建立（此時是暫停狀態），先解碼好點擊音；第一次使用者操作時才恢復出聲。
  */
 
@@ -81,13 +82,16 @@ function activeContext(): AudioContext | undefined {
 	return ctx;
 }
 
-function playBuffer(ctx: AudioContext, buffer: AudioBuffer, volume: number): void {
+/** 播放解碼好的音檔；rate 是音高（播放速度），stopAfter 秒後停止 */
+function playBuffer(ctx: AudioContext, buffer: AudioBuffer, volume: number, rate = 1, stopAfter?: number): void {
 	const source = ctx.createBufferSource();
 	const gain = ctx.createGain();
 	source.buffer = buffer;
+	source.playbackRate.value = rate;
 	gain.gain.value = volume * getSoundVolume();
 	source.connect(gain).connect(ctx.destination);
 	source.start();
+	if (stopAfter !== undefined) source.stop(ctx.currentTime + stopAfter);
 }
 
 interface Tone {
@@ -133,14 +137,69 @@ export function playPling(): void {
 	playTone(ctx, { type: 'sine', from: 1760, to: 1760, start: 0.08, duration: 0.22, volume: 0.6 });
 }
 
-/** 撿起物品的「啵」聲：短促上升，音高每次略有不同（和遊戲一樣） */
-export function playPop(): void {
-	const ctx = activeContext();
-	if (!ctx) return;
-	const pitch = 0.8 + Math.random() * 0.4;
-	playTone(ctx, { type: 'sine', from: 500 * pitch, to: 1100 * pitch, start: 0, duration: 0.07, volume: 0.6 });
+/** 原版音效（public/sounds/random/，由 scripts/audio.mjs 轉檔）：用到時才下載，載入失敗就用合成音 */
+const SAMPLES = {
+	pop: '/sounds/random/pop.webm',
+	fuse: '/sounds/random/fuse.webm',
+	explode1: '/sounds/random/explode1.webm',
+	explode2: '/sounds/random/explode2.webm',
+	explode3: '/sounds/random/explode3.webm',
+	explode4: '/sounds/random/explode4.webm',
+} as const;
+type Sample = keyof typeof SAMPLES;
+const EXPLOSIONS: readonly Sample[] = ['explode1', 'explode2', 'explode3', 'explode4'];
+const samples = new Map<Sample, Promise<AudioBuffer | undefined>>();
+
+function loadSample(ctx: AudioContext, name: Sample): Promise<AudioBuffer | undefined> {
+	const cached = samples.get(name);
+	if (cached) return cached;
+	const loading = fetch(SAMPLES[name])
+		.then((res) => {
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+			return res.arrayBuffer();
+		})
+		.then((data) => ctx.decodeAudioData(data))
+		.catch((error: unknown) => {
+			console.warn(`[sound] ${name} 載入失敗，改用合成音：`, error);
+			return undefined;
+		});
+	samples.set(name, loading);
+	return loading;
 }
 
+/** 先下載等一下會用到的音效（例如苦力怕點燃時先載入爆炸聲） */
+export function preloadSamples(names: readonly Sample[]): void {
+	const ctx = getContext();
+	if (ctx) names.forEach((name) => void loadSample(ctx, name));
+}
+
+/** 原版的隨機音高：1 ± spread（兩個亂數相減，越接近 1 越常見） */
+function randomPitch(spread: number): number {
+	return 1 + (Math.random() - Math.random()) * spread;
+}
+
+async function playSample(
+	name: Sample,
+	volume: number,
+	rate: number,
+	fallback: (ctx: AudioContext) => void,
+	stopAfter?: number,
+): Promise<void> {
+	const ctx = activeContext();
+	if (!ctx) return;
+	const buffer = await loadSample(ctx, name);
+	if (buffer) playBuffer(ctx, buffer, volume, rate, stopAfter);
+	else fallback(ctx);
+}
+
+/** 撿起物品的「啵」聲（原版 random/pop，音高約 2 倍並隨機變化） */
+export function playPop(): void {
+	const rate = Math.min(2, Math.max(0.5, randomPitch(0.7) * 2));
+	void playSample('pop', 0.4, rate, (ctx) => {
+		const pitch = 0.8 + Math.random() * 0.4;
+		playTone(ctx, { type: 'sine', from: 500 * pitch, to: 1100 * pitch, start: 0, duration: 0.07, volume: 0.6 });
+	});
+}
 interface Noise {
 	readonly duration: number;
 	readonly volume: number;
@@ -178,17 +237,22 @@ function playNoise(ctx: AudioContext, noise: Noise): void {
 	source.start(t0);
 }
 
-/** 苦力怕點燃的「嘶——」：越來越大聲，到爆炸前一刻 */
+/** 苦力怕點燃的「嘶——」（原版 random/fuse，和遊戲一樣半速播放），爆炸時停止 */
 export function playHiss(ms: number): void {
-	const ctx = activeContext();
-	if (!ctx) return;
 	const duration = ms / 1000;
-	playNoise(ctx, { duration, volume: 0.6, filter: 'highpass', from: 5000, to: 2500, attack: duration * 0.9 });
+	void playSample(
+		'fuse',
+		0.6,
+		0.5,
+		(ctx) => playNoise(ctx, { duration, volume: 0.6, filter: 'highpass', from: 5000, to: 2500, attack: duration * 0.9 }),
+		duration,
+	);
 }
 
-/** 爆炸聲：低沉的轟一聲慢慢消失 */
+/** 爆炸聲：隨機挑 explode1–4 其中一個，音高約 0.7 倍並隨機變化 */
 export function playExplosion(): void {
-	const ctx = activeContext();
-	if (!ctx) return;
-	playNoise(ctx, { duration: 1.4, volume: 2.5, filter: 'lowpass', from: 1500, to: 60 });
+	const name = EXPLOSIONS[Math.floor(Math.random() * EXPLOSIONS.length)] ?? 'explode1';
+	void playSample(name, 0.8, randomPitch(0.2) * 0.7, (ctx) =>
+		playNoise(ctx, { duration: 1.4, volume: 2.5, filter: 'lowpass', from: 1500, to: 60 }),
+	);
 }

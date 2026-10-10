@@ -4,7 +4,7 @@
  * 減少動態效果時不播放。
  */
 import { BOUNCE_MS, fallKeyframes, ITEM_SIZE, pickupKeyframes, planDrop, type Viewport } from './item-drop';
-import { playPop } from './sound';
+import { playPop, preloadSamples } from './sound';
 
 /** 落地後躺多久才被撿起來 */
 const LINGER_MS = 1800;
@@ -43,6 +43,7 @@ export function dropItem(icon: string): void {
 	if (document.querySelectorAll('[data-item-drop]').length >= MAX_ITEMS) return;
 	const item = createItem(icon);
 	document.body.append(item);
+	preloadSamples(['pop']);
 	animate(item, { width: window.innerWidth, height: window.innerHeight })
 		.catch(() => undefined) // 換頁時動畫被取消，直接移除即可
 		.finally(() => item.remove());

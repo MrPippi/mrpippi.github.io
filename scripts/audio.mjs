@@ -21,6 +21,7 @@ const FFMPEG = process.env.FFMPEG_PATH || 'ffmpeg';
 const JOBS = [
 	['menu', '40k', ['creative1', 'creative2', 'creative3', 'creative4', 'creative5', 'creative6']],
 	['ui', '64k', ['click']],
+	['random', '64k', ['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop']],
 ];
 
 function transcode(input, output, bitrate) {

@@ -13,7 +13,7 @@ import {
 	SHAKE_MS,
 	shakeKeyframes,
 } from './explosion';
-import { playExplosion, playHiss } from './sound';
+import { playExplosion, playHiss, preloadSamples } from './sound';
 
 const FLASH_MS = 400;
 const FLASH_OPACITY = 0.7;
@@ -77,6 +77,8 @@ export async function igniteCreeper(): Promise<boolean> {
 	if (lit) return false;
 	lit = true;
 	try {
+		// 嘶聲播放時先下載爆炸聲，爆炸時就不會慢半拍
+		preloadSamples(['explode1', 'explode2', 'explode3', 'explode4']);
 		playHiss(FUSE_MS);
 		await wait(FUSE_MS);
 		playExplosion();
