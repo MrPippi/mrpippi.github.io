@@ -11,6 +11,7 @@ import SoundToggle from '../components/SoundToggle.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import Toast from '../components/Toast.astro';
 import Tooltip from '../components/Tooltip.astro';
+import { BUILD_ID } from '../build-info';
 import { ANALYTICS, PROFILE } from '../consts';
 import { BILINGUAL_PATHS, HTML_LANG, LANGS, OG_LOCALE, langFromPath, localizePath, stripLang, t } from '../i18n';
 
@@ -43,6 +44,7 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 		<link rel="alternate" type="application/rss+xml" title={t('zh-TW').site.title} href={new URL('rss.xml', Astro.site)} />
 		{alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
 		<meta name="generator" content={Astro.generator} />
+		<meta name="build-id" content={BUILD_ID} />
 
 		<meta property="og:type" content="website" />
 		<meta property="og:locale" content={OG_LOCALE[lang]} />
@@ -127,6 +129,15 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 	document.addEventListener('astro:page-load', () => {
 		recordVisit(location.pathname);
 		void checkLive();
+	});
+
+	// 剛部署完時，換頁可能拿到瀏覽器快取的舊版頁面；新舊版本混在一起時改成整頁載入，不要硬換
+	const buildId = (doc: Document): string | null | undefined =>
+		doc.querySelector('meta[name="build-id"]')?.getAttribute('content');
+	document.addEventListener('astro:before-swap', (event) => {
+		const current = buildId(document);
+		const next = buildId(event.newDocument);
+		if (current && next && current !== next) event.swap = () => location.assign(event.to);
 	});
 </script>
 

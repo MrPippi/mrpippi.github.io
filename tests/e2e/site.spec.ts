@@ -91,3 +91,26 @@ test('日夜切換只顯示下一個主題的圖示', async ({ page }) => {
 	await expect(toggle.locator('.only-dark')).toBeVisible();
 	await expect(toggle.locator('.only-light')).toBeHidden();
 });
+
+test('換頁拿到不同版本的頁面時改成整頁載入', async ({ page }) => {
+	await page.route('**/about/', async (route) => {
+		const response = await route.fetch();
+		const html = (await response.text()).replace(/name="build-id" content="[^"]*"/, 'name="build-id" content="older"');
+		await route.fulfill({ response, body: html });
+	});
+	await page.goto('/');
+	await page.evaluate(() => ((window as unknown as { marker: number }).marker = 1));
+	await page.locator('a[href="/about/"]').first().click();
+	await expect(page).toHaveURL(/\/about\/$/);
+	await expect(page.locator('h1')).toHaveText('關於我');
+	// 整頁重新載入過，window 上的標記不見了
+	expect(await page.evaluate(() => (window as unknown as { marker?: number }).marker)).toBeUndefined();
+});
+
+test('同一版本換頁不重新載入', async ({ page }) => {
+	await page.goto('/');
+	await page.evaluate(() => ((window as unknown as { marker: number }).marker = 1));
+	await page.locator('a[href="/about/"]').first().click();
+	await expect(page.locator('h1')).toHaveText('關於我');
+	expect(await page.evaluate(() => (window as unknown as { marker?: number }).marker)).toBe(1);
+});
