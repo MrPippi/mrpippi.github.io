@@ -178,7 +178,7 @@ test.describe('文章', () => {
 		await expect(results.first()).toBeVisible();
 		await expect(page).toHaveURL(/\?q=Claude$/);
 
-		await input.fill('沒有這個關鍵字zzz');
+		await input.fill('qzxjvqzx');
 		await expect(page.locator('[data-search-status]')).toHaveText('找不到符合的文章');
 
 		await input.fill('');
