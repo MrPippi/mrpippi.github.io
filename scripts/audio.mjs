@@ -25,11 +25,12 @@ const JOBS = [
 	[
 		'random',
 		'64k',
-		['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop', 'orb', 'levelup', 'eat1', 'eat2', 'eat3', 'break', 'click', 'glass1', 'glass2', 'glass3', 'use_totem'],
+		['explode1', 'explode2', 'explode3', 'explode4', 'fuse', 'pop', 'orb', 'levelup', 'eat1', 'eat2', 'eat3', 'break', 'click', 'glass1', 'glass2', 'glass3'],
 	],
 	['fireworks', '64k', ['launch1', 'blast1', 'twinkle1']],
 	['dig', '64k', ['stone1', 'stone2', 'stone3', 'stone4']],
 	['block/chest', '64k', ['open', 'close1']],
+	['item/totem', '64k', ['use_totem']],
 	['step', '64k', ['stone1', 'stone2', 'stone3', 'stone4', 'stone5', 'stone6']],
 	['mob/enderman', '64k', ['portal']],
 	['block/beacon', '64k', ['activate']],
@@ -51,6 +52,9 @@ let after = 0;
 for (const [folder, bitrate, only] of JOBS) {
 	const dir = join(SOURCE, folder);
 	const files = readdirSync(dir).filter((f) => f.endsWith('.ogg') && (!only || only.includes(basename(f, '.ogg'))));
+	// 列出來的檔名找不到就停下來，不要默默少轉一個（網站會讀不到、改播合成音）
+	const missing = (only ?? []).filter((name) => !files.includes(`${name}.ogg`));
+	if (missing.length > 0) throw new Error(`找不到 ${folder}/${missing.join(', ')}.ogg`);
 	mkdirSync(join(OUTPUT, folder), { recursive: true });
 	for (const file of files) {
 		const input = join(dir, file);
