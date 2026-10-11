@@ -57,6 +57,10 @@ export interface Spark {
 	/** 壽命（刻） */
 	readonly life: number;
 	readonly color: string;
+	/** 每刻速度乘上的阻力（預設 0.91，原版火花） */
+	readonly friction?: number;
+	/** 每刻往下加的速度（預設 0.15；負的往上飄） */
+	readonly gravity?: number;
 }
 
 export interface FireworkPlan {
@@ -95,8 +99,8 @@ export function planFirework(viewport: Viewport, rand: Random, count: number = S
 export function sparkPath(spark: Spark): readonly Point[] {
 	const step = (state: { p: Point; vx: number; vy: number }) => ({
 		p: { x: state.p.x + state.vx, y: state.p.y + state.vy },
-		vx: state.vx * FRICTION,
-		vy: state.vy * FRICTION + GRAVITY,
+		vx: state.vx * (spark.friction ?? FRICTION),
+		vy: state.vy * (spark.friction ?? FRICTION) + (spark.gravity ?? GRAVITY),
 	});
 	return Array.from({ length: spark.life }).reduce<readonly { p: Point; vx: number; vy: number }[]>(
 		(states, _) => [...states, step(states[states.length - 1] ?? { p: { x: 0, y: 0 }, vx: spark.vx, vy: spark.vy })],
