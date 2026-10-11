@@ -197,6 +197,9 @@ export const zhTW: Dictionary = {
 		totemHint: '不死圖騰放在背包裡就好：/kill 的時候會救你一命',
 		mapTreasure: '埋藏的寶藏',
 		treasureFound: '地圖上出現了一個 X！打開地圖看看',
+		starterKit: '新手禮包',
+		starterKitHint: '點一下打開',
+		starterKitOpened: '你打開了新手禮包！物品都放進物品欄了，點選中的格子就能使用',
 	},
 	treasure: {
 		heading: '埋藏的寶藏',

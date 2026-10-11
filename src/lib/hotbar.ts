@@ -40,11 +40,14 @@ const LONG_PRESS_MS = 450;
 const REPEAT_MS = 150;
 /** 冷卻時間（和原版一樣：終界珍珠 1 秒、山羊角 7 秒） */
 const COOLDOWN_MS: Partial<Record<GiveItem, number>> = { ender_pearl: 1000, goat_horn: 7000 };
+/** 這麼久沒有任何操作（滑鼠、觸控、鍵盤、捲動）就把物品欄淡出 */
+export const IDLE_MS = 10_000;
 /** 鑽石鎬能挖幾次 */
 export const PICKAXE_DURABILITY = 8;
 
 let selected = 0;
 let incomingUntil = 0;
+let idleTimer = 0;
 /** 用了附魔書、等著選要附魔的物品 */
 let enchanting = false;
 const cooldowns = new Map<string, { readonly start: number; readonly end: number }>();
@@ -176,7 +179,15 @@ function setInventory(inventory: Inventory): void {
 	render(inventory);
 }
 
+/** 有操作：物品欄回來，重新計時 */
+function wake(): void {
+	root()?.classList.remove('idle');
+	window.clearTimeout(idleTimer);
+	idleTimer = window.setTimeout(() => root()?.classList.add('idle'), IDLE_MS);
+}
+
 function showName(label: string): void {
+	wake();
 	const name = root()?.querySelector<HTMLElement>('[data-hotbar-name]');
 	if (!name) return;
 	name.textContent = label;
@@ -201,6 +212,7 @@ function targetOf(slots: readonly number[]): Point | undefined {
 
 /** /give 時先顯示物品欄（物品還在掉落中，背包可能還是空的） */
 export function showHotbar(): void {
+	wake();
 	incomingUntil = Date.now() + INCOMING_MS;
 	render();
 	window.setTimeout(() => render(), INCOMING_MS);
@@ -423,6 +435,11 @@ export function initHotbar(): void {
 		{ passive: false },
 	);
 	document.addEventListener('keydown', onKeydown);
+	['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((type) =>
+		document.addEventListener(type, wake, { passive: true }),
+	);
+	window.addEventListener('scroll', wake, { passive: true });
+	wake();
 	// 換頁（可能換語言）時更新格子的名稱
 	document.addEventListener('astro:page-load', () => render());
 	render();

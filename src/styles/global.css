@@ -544,3 +544,91 @@ img {
 		transition: none !important;
 	}
 }
+
+/* 新手禮包（src/lib/starter-kit-anim.ts）：物品欄的位置上方，一個會晃的束口袋，點一下打開 */
+.starter-kit {
+	position: fixed;
+	left: 50%;
+	bottom: calc(var(--hotbar-bottom, 12px) + 8px);
+	z-index: 21;
+	display: grid;
+	justify-items: center;
+	gap: 2px;
+	padding: 4px 10px 6px;
+	border: 0;
+	background: rgb(0 0 0 / 0.55);
+	color: var(--text);
+	font: inherit;
+	transform: translateX(-50%);
+	cursor: pointer;
+	animation: kit-in 0.4s ease-out both;
+}
+
+.starter-kit img {
+	width: 48px;
+	height: 48px;
+	animation: kit-wobble 1.6s ease-in-out 0.4s infinite;
+}
+
+.starter-kit .label {
+	color: var(--yellow);
+	font-size: 16px;
+}
+
+.starter-kit .hint {
+	color: var(--text-muted);
+	font-family: var(--font-ui);
+	font-size: 13px;
+}
+
+.starter-kit:hover,
+.starter-kit:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: -2px;
+}
+
+/* 打開時噴出來的物品（位置由 transform 控制） */
+.kit-item {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 22;
+	width: 36px;
+	height: 36px;
+	pointer-events: none;
+}
+
+@keyframes kit-in {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(16px);
+	}
+}
+
+/* 像原版物品欄裡快滿的束口袋：左右晃一下、停一下 */
+@keyframes kit-wobble {
+	0%,
+	60%,
+	100% {
+		transform: rotate(0);
+	}
+
+	70% {
+		transform: rotate(-12deg);
+	}
+
+	80% {
+		transform: rotate(10deg);
+	}
+
+	90% {
+		transform: rotate(-6deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.starter-kit,
+	.starter-kit img {
+		animation: none;
+	}
+}

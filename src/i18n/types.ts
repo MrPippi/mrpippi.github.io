@@ -166,6 +166,9 @@ export interface Dictionary {
 		readonly totemHint: string;
 		readonly mapTreasure: string;
 		readonly treasureFound: string;
+		readonly starterKit: string;
+		readonly starterKitHint: string;
+		readonly starterKitOpened: string;
 	};
 	/** 附魔地圖上 X 標記的隱藏頁面：寶箱 */
 	readonly treasure: {

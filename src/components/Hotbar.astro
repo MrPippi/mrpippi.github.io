@@ -37,6 +37,12 @@ const slots = Array.from({ length: HOTBAR_SIZE }, (_, i) => i);
 		opacity: 1;
 	}
 
+	/* 一段時間沒操作就慢慢淡出（src/lib/hotbar.ts 的 IDLE_MS），一動就回來 */
+	.hotbar:global(.visible.idle) {
+		opacity: 0;
+		transition-duration: 1.2s;
+	}
+
 	.name {
 		min-height: 1em;
 		margin: 0 0 10px;

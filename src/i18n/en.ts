@@ -198,6 +198,9 @@ export const en: Dictionary = {
 		totemHint: 'Just keep the Totem of Undying in your inventory: it saves you from /kill',
 		mapTreasure: 'Buried Treasure',
 		treasureFound: 'An X appeared on the map! Open it and take a look',
+		starterKit: 'Starter Kit',
+		starterKitHint: 'Tap to open',
+		starterKitOpened: 'You opened the Starter Kit! The items are in your hotbar: click the selected slot to use one',
 	},
 	treasure: {
 		heading: 'Buried Treasure',

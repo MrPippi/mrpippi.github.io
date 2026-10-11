@@ -126,11 +126,13 @@ const alternates = BILINGUAL_PATHS.includes(basePath)
 <script>
 	// 每次進入頁面（含 ClientRouter 換頁）：記錄進度、檢查 Twitch 是否開台
 	import { recordVisit } from '../lib/advancements';
+	import { offerStarterKit } from '../lib/starter-kit-anim';
 	import { checkLive } from '../lib/twitch';
 
 	document.addEventListener('astro:page-load', () => {
 		recordVisit(location.pathname);
 		void checkLive();
+		offerStarterKit();
 	});
 
 	// 剛部署完時，換頁可能拿到瀏覽器快取的舊版頁面；新舊版本混在一起時改成整頁載入，不要硬換

@@ -304,3 +304,54 @@ test.describe('傾斜手機看天空', () => {
 		expect(value).toBe('0px');
 	});
 });
+
+test.describe('新手禮包', () => {
+	test.beforeEach(async ({ page }) => {
+		// 這組測試要看到禮包：不讓共用設定把它標成打開過
+		await page.addInitScript(() => {
+			sessionStorage.setItem('keep-starter-kit', '1');
+			if (!sessionStorage.getItem('kit-reset')) {
+				localStorage.removeItem('starter-kit');
+				sessionStorage.setItem('kit-reset', '1');
+			}
+		});
+	});
+
+	test('第一次來出現禮包，點開後物品進物品欄，之後不再出現', async ({ page }) => {
+		await page.goto('/');
+		const kit = page.locator('[data-starter-kit]');
+		await expect(kit).toBeVisible();
+		await expect(kit).toContainText('新手禮包');
+		await kit.click();
+		await expect(kit).toHaveCount(0);
+		await expect(slot(page, 0)).toHaveAttribute('data-tooltip', /地圖/);
+		await expect(slot(page, 4)).toHaveAttribute('data-tooltip', /命名牌/);
+		await expect(page.locator('[data-chat-log] li').last()).toContainText('新手禮包');
+		await page.goto('/about/');
+		await expect(page.locator('[data-hotbar]')).toHaveClass(/visible/);
+		await expect(kit).toHaveCount(0);
+	});
+
+	test('沒點開就換頁，禮包還在', async ({ page }) => {
+		await page.goto('/');
+		await expect(page.locator('[data-starter-kit]')).toBeVisible();
+		await page.goto('/about/');
+		await expect(page.locator('[data-starter-kit]')).toBeVisible();
+	});
+});
+
+test.describe('物品欄閒置隱藏', () => {
+	test('一段時間沒操作就淡出，動一下就回來', async ({ page }) => {
+		await page.clock.install();
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await run(page, 'give @s diamond');
+		const hotbar = page.locator('[data-hotbar]');
+		await expect(hotbar).toHaveClass(/visible/);
+		await expect(hotbar).not.toHaveClass(/idle/);
+		await page.clock.fastForward(11_000);
+		await expect(hotbar).toHaveClass(/idle/);
+		await page.mouse.move(200, 200);
+		await expect(hotbar).not.toHaveClass(/idle/);
+	});
+});

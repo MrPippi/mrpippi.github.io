@@ -34,10 +34,13 @@ export async function mockExternalApis(page: Page, mocks: ExternalMocks = {}): P
 	);
 }
 
-/** 所有測試共用：預設攔截第三方 API */
+/** 所有測試共用：預設攔截第三方 API，並當作已經打開過新手禮包（物品欄從空的開始） */
 export const test = base.extend({
 	page: async ({ page }, use) => {
 		await mockExternalApis(page);
+		await page.addInitScript(() => {
+			if (!sessionStorage.getItem('keep-starter-kit')) localStorage.setItem('starter-kit', 'opened');
+		});
 		await use(page);
 	},
 });

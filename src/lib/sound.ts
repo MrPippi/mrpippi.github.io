@@ -188,6 +188,9 @@ export const SAMPLES = {
 	step6: '/sounds/step/stone6.webm',
 	chestOpen: '/sounds/block/chest/open.webm',
 	totem: '/sounds/item/totem/use_totem.webm',
+	bundle1: '/sounds/item/bundle/drop_contents1.webm',
+	bundle2: '/sounds/item/bundle/drop_contents2.webm',
+	bundle3: '/sounds/item/bundle/drop_contents3.webm',
 } as const;
 type Sample = keyof typeof SAMPLES;
 const EXPLOSIONS: readonly Sample[] = ['explode1', 'explode2', 'explode3', 'explode4'];
@@ -390,6 +393,13 @@ export function playDig(): void {
 export function playChestOpen(): void {
 	void playSample('chestOpen', 0.5, 0.9 + Math.random() * 0.1, (ctx) =>
 		playTone(ctx, { type: 'square', from: 180, to: 120, start: 0, duration: 0.25, volume: 0.25 }),
+	);
+}
+
+/** 打開束口袋倒出物品（原版 item/bundle/drop_contents） */
+export function playBundleOpen(): void {
+	void playSample(pickSample(['bundle1', 'bundle2', 'bundle3']), 0.8, 1, (ctx) =>
+		playTone(ctx, { type: 'square', from: 300, to: 200, start: 0, duration: 0.15, volume: 0.2 }),
 	);
 }
 

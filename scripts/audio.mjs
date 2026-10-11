@@ -31,6 +31,7 @@ const JOBS = [
 	['dig', '64k', ['stone1', 'stone2', 'stone3', 'stone4']],
 	['block/chest', '64k', ['open', 'close1']],
 	['item/totem', '64k', ['use_totem']],
+	['item/bundle', '64k', ['drop_contents1', 'drop_contents2', 'drop_contents3']],
 	['step', '64k', ['stone1', 'stone2', 'stone3', 'stone4', 'stone5', 'stone6']],
 	['mob/enderman', '64k', ['portal']],
 	['block/beacon', '64k', ['activate']],
