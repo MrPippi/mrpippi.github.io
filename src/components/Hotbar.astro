@@ -208,6 +208,14 @@ const slots = Array.from({ length: HOTBAR_SIZE }, (_, i) => i);
 		}
 	}
 
+	/* 物品欄出現時，頁面底部多留它的高度，捲到最底時最後的內容不會被蓋住（閒置淡出時照留，免得版面跳動） */
+	body:has([data-hotbar].visible) {
+		--page-bottom-space: max(
+			var(--controls-space),
+			calc(var(--hotbar-bottom) + min(364px, 100vw - 24px) * 22 / 182 + 12px)
+		);
+	}
+
 	/* 物品欄出現時，聊天列移到它上面（和遊戲一樣） */
 	body:has([data-hotbar].visible) .chat {
 		bottom: calc(var(--hotbar-bottom) + var(--hotbar-height));

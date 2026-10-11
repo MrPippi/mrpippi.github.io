@@ -51,6 +51,8 @@
 	--gutter: 16px;
 	/* 右下角按鈕列佔用的高度（40px 按鈕 + 上下 12px），頁面底部要留這麼多空間 */
 	--controls-space: calc(64px + env(safe-area-inset-bottom));
+	/* 頁面底部要留多少空白：平常是按鈕列，物品欄出現時再加上它（Hotbar.astro） */
+	--page-bottom-space: var(--controls-space);
 	/* 遊戲像素：Minecraft 字型 1 em = 9 像素，字級用 9 的倍數最銳利（18px = 2 倍、27px = 3 倍） */
 	--mc-px: calc(1em / 9);
 

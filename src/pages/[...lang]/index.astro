@@ -115,7 +115,7 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 		justify-content: space-between;
 		gap: 0.25rem 1rem;
 		margin: 0 calc(var(--gutter) * -1);
-		padding: 0.6rem 0.75rem var(--controls-space);
+		padding: 0.6rem 0.75rem var(--page-bottom-space);
 		color: var(--text);
 		font-size: 18px;
 		line-height: 1.4;
@@ -134,6 +134,15 @@ const version = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'n
 		/* 按鈕列底部 = 文字距底 12px + 文字行高 18px × 1.4 + 間距 8px（按鈕列不在頁尾裡，不能用頁尾的 CSS 變數） */
 		:global(:root:has(.title-screen) .controls) {
 			bottom: calc(12px + 18px * 1.4 + 8px + env(safe-area-inset-bottom));
+		}
+
+		/* 物品欄出現時（在畫面底部中央），版權文字和按鈕列一起移到它上面 */
+		:global(body:has([data-hotbar].visible)) .corner {
+			padding-bottom: var(--page-bottom-space);
+		}
+
+		:global(body:has([data-hotbar].visible):has(.title-screen) .controls) {
+			bottom: calc(var(--page-bottom-space) + 18px * 1.4 + 8px);
 		}
 	}
 </style>

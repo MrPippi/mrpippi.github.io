@@ -107,3 +107,20 @@ test('聊天按鈕只在觸控裝置顯示，點了會打開聊天列', async ({
 	await page.locator('[data-chat-input]').press('Enter');
 	await expect(page.locator('[data-hotbar]')).toHaveClass(/visible/);
 });
+
+for (const path of PAGES) {
+	test(`${path} 拿著物品時，捲到最底不會被物品欄蓋住`, async ({ page }) => {
+		await page.addInitScript(() => localStorage.setItem('inventory', JSON.stringify([{ item: 'diamond', count: 1 }])));
+		await page.goto(path);
+		await page.evaluate(() => document.fonts.ready);
+		await expect(page.locator('[data-hotbar]')).toHaveClass(/visible/);
+		await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+		const bar = await page.locator('[data-hotbar] .bar').boundingBox();
+		expect(bar).toBeTruthy();
+		if (!bar) return;
+		const lastItems = page.locator('footer a, footer button, footer span, .menu .banner');
+		for (const box of await Promise.all((await lastItems.all()).map((el) => el.boundingBox()))) {
+			if (box) expect(overlaps(box, bar)).toBe(false);
+		}
+	});
+}
