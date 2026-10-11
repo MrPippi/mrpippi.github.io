@@ -202,3 +202,14 @@ test.describe('藏寶圖與寶藏', () => {
 		expect(await page.evaluate(() => localStorage.getItem('inventory'))).not.toContain('totem');
 	});
 });
+
+test('不死圖騰的動畫播完就消失，不會停在畫面中央', async ({ page }) => {
+	await page.goto('/');
+	await page.evaluate(() => localStorage.setItem('inventory', JSON.stringify([{ item: 'totem_of_undying', count: 1 }])));
+	await page.reload();
+	await run(page, 'kill');
+	const totem = page.locator('.totem-pop');
+	await expect(totem).toBeAttached();
+	// 40 刻 = 2 秒
+	await expect(totem).toHaveCount(0, { timeout: 2600 });
+});

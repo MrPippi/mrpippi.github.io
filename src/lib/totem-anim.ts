@@ -68,8 +68,11 @@ export function totemPop(): void {
 			transform: `translate(-50%, -50%) translate(${frame.x.toFixed(1)}px, ${frame.y.toFixed(1)}px) rotateY(${frame.rotateY.toFixed(1)}deg) rotateZ(${frame.rotateZ.toFixed(1)}deg)`,
 			offset: tick / TOTEM_TICKS,
 		})),
-		{ duration: TOTEM_TICKS * TICK_MS, fill: 'forwards' },
-	);
+		{ duration: TOTEM_TICKS * TICK_MS },
+	)
+		// 和原版一樣，動畫一結束圖騰就消失（粒子會繼續飄一陣子）
+		.finished.catch(() => undefined)
+		.finally(() => totem.remove());
 
 	// 粒子：每刻噴幾顆，持續 EMIT_TICKS 刻
 	let tick = 0;
