@@ -239,6 +239,42 @@ test.describe('觸控裝置', () => {
 	});
 });
 
+/** 用 CDP 模擬手指按住 ms 毫秒再放開（Playwright 的 touchscreen 只有 tap） */
+async function touchHold(page: Page, x: number, y: number, ms: number): Promise<void> {
+	const cdp = await page.context().newCDPSession(page);
+	await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+	await page.waitForTimeout(ms);
+	await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+}
+
+test.describe('觸控挖礦', () => {
+	test.use({ hasTouch: true });
+
+	test('拿鑽石鎬長按按鈕：挖掉它，不選取文字、不換頁', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await run(page, 'give @s diamond_pickaxe');
+		const banner = page.locator('a.banner[href="/about/"]');
+		const box = await banner.boundingBox();
+		if (!box) throw new Error('找不到按鈕');
+		await touchHold(page, box.x + box.width / 2, box.y + box.height / 2, 1600);
+		await expect(banner).toHaveCSS('visibility', 'hidden');
+		expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('');
+		await page.waitForTimeout(300);
+		await expect(page).toHaveURL(/\/$/);
+	});
+
+	test('拿鑽石鎬短按按鈕：照常換頁', async ({ page }) => {
+		await page.goto('/');
+		await run(page, 'give @s diamond_pickaxe');
+		const banner = page.locator('a.banner[href="/about/"]');
+		const box = await banner.boundingBox();
+		if (!box) throw new Error('找不到按鈕');
+		await touchHold(page, box.x + box.width / 2, box.y + box.height / 2, 50);
+		await expect(page).toHaveURL(/\/about\/$/);
+	});
+});
+
 test.describe('傾斜手機看天空', () => {
 	test('陀螺儀角度改變時天空跟著平移', async ({ page }) => {
 		await page.goto('/');

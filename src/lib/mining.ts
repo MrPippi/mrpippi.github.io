@@ -96,7 +96,7 @@ function shatter(target: HTMLElement): void {
 	window.setTimeout(() => layer.remove(), 20 * TICK_MS);
 }
 
-function startMining(target: HTMLElement, total: number): void {
+function startMining(target: HTMLElement, total: number, touch: boolean): void {
 	const rect = target.getBoundingClientRect();
 	const layout = crackLayout(rect.width, rect.height, Math.random);
 	const crack = document.createElement('canvas');
@@ -121,7 +121,11 @@ function startMining(target: HTMLElement, total: number): void {
 		crack.remove();
 		['pointerup', 'pointercancel', 'pointerleave'].forEach((type) => target.removeEventListener(type, cancel));
 	};
-	const cancel = (): void => cleanup();
+	const cancel = (event: Event): void => {
+		cleanup();
+		// 觸控時 touchstart 被擋掉，瀏覽器不會送出點擊：短按就自己點一下按鈕
+		if (touch && event.type === 'pointerup' && !suppressClick) target.click();
+	};
 	// 挖了一陣子才放開，不要當成點按鈕
 	target.addEventListener(
 		'click',
@@ -169,10 +173,21 @@ export function initMining(): void {
 		const target = event.target.closest<HTMLElement>(TARGETS);
 		const pickaxe = holdingPickaxe();
 		if (!target || !pickaxe) return;
-		startMining(target, pickaxe.enchanted ? ENCHANTED_MINE_MS : MINE_MS);
+		startMining(target, pickaxe.enchanted ? ENCHANTED_MINE_MS : MINE_MS, event.pointerType === 'touch');
 	});
-	// 挖的時候手機長按不要跳出選單
-	document.addEventListener('contextmenu', (event) => {
-		if (event.target instanceof Element && event.target.closest(TARGETS) && holdingPickaxe()) event.preventDefault();
-	});
+	const onTarget = (event: Event): boolean =>
+		event.target instanceof Element && event.target.closest(TARGETS) !== null && holdingPickaxe() !== undefined;
+	// 手機長按：擋掉 touchstart，瀏覽器就不會選取文字、跳出連結選單或預覽（點擊改由上面自己送出）
+	document.addEventListener(
+		'touchstart',
+		(event) => {
+			if (onTarget(event)) event.preventDefault();
+		},
+		{ passive: false },
+	);
+	['contextmenu', 'selectstart', 'dragstart'].forEach((type) =>
+		document.addEventListener(type, (event) => {
+			if (onTarget(event)) event.preventDefault();
+		}),
+	);
 }
