@@ -6,3 +6,10 @@ export const TOOLTIP_REFRESH_EVENT = 'tooltip-refresh';
 export function refreshTooltip(): void {
 	document.dispatchEvent(new Event(TOOLTIP_REFRESH_EVENT));
 }
+
+export const TOOLTIP_SHOW_EVENT = 'tooltip-show';
+
+/** 觸控裝置沒有懸停：點一下時主動在元素上方顯示它的提示框，過幾秒自動收起 */
+export function showTooltipFor(target: HTMLElement): void {
+	document.dispatchEvent(new CustomEvent<HTMLElement>(TOOLTIP_SHOW_EVENT, { detail: target }));
+}

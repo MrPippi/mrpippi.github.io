@@ -4,6 +4,7 @@
  * 減少動態效果時只有聲音。
  */
 import { sparkOpacity, sparkPath, TICK_MS } from './firework';
+import { vibrate } from './haptics';
 import { playTotem } from './sound';
 import { tintedSprite } from './sprite-tint';
 import { TOTEM_TICKS, totemFrames, totemSpark } from './totem';
@@ -46,6 +47,7 @@ function particle(layer: HTMLElement, center: { x: number; y: number }): void {
 
 export function totemPop(): void {
 	playTotem();
+	vibrate('totem');
 	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 	const viewport = { width: window.innerWidth, height: window.innerHeight };
 	const center = { x: viewport.width / 2, y: viewport.height / 2 };

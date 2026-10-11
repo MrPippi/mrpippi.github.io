@@ -28,7 +28,7 @@ import {
 } from './inventory';
 import type { Point } from './item-drop';
 import { throwItem } from './item-drop-anim';
-import { refreshTooltip } from './tooltip';
+import { refreshTooltip, showTooltipFor } from './tooltip';
 import { useItem } from './item-use';
 import { playerName } from './player';
 import { playBreak, playLevelUp } from './sound';
@@ -161,6 +161,10 @@ function render(inventory: Inventory = loadInventory()): void {
 		renderSlot(slot, inventory[index] ?? null, index);
 	});
 	el.style.setProperty('--selected', String(selected));
+	// 讓 CSS 知道手上拿什麼（例如拿鑽石鎬時按鈕不能捲動、不跳出長按選單）
+	const held = inventory[selected]?.item;
+	if (held) document.documentElement.dataset.held = held;
+	else delete document.documentElement.dataset.held;
 	refreshTooltip();
 	const visible = !isEmpty(inventory) || Date.now() < incomingUntil;
 	el.classList.toggle('visible', visible);
@@ -387,8 +391,13 @@ function bindSlot(slot: HTMLButtonElement): void {
 			longPressed = false;
 			return;
 		}
-		if (selected === index && !enchanting) useSelected();
-		else select(index);
+		if (selected === index && !enchanting) {
+			useSelected();
+			return;
+		}
+		select(index);
+		// 手機沒有懸停：選到格子時順便顯示物品說明
+		if (pointerType === 'touch') showTooltipFor(slot);
 	});
 	// 右鍵使用；手機長按也會觸發 contextmenu，那時只擋掉選單
 	slot.addEventListener('contextmenu', (event) => {

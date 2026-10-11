@@ -71,6 +71,8 @@ test.describe('物品欄進階', () => {
 		await page.emulateMedia({ reducedMotion: 'reduce' });
 		await run(page, 'give @s diamond_pickaxe');
 		const banner = page.locator('a.banner[href="/about/"]');
+		// 手機長按時不捲動頁面
+		await expect(banner).toHaveCSS('touch-action', 'none');
 		const box = await banner.boundingBox();
 		if (!box) throw new Error('找不到按鈕');
 		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -85,6 +87,7 @@ test.describe('物品欄進階', () => {
 
 	test('沒拿鑽石鎬時按鈕照常可以點', async ({ page }) => {
 		await page.goto('/');
+		await expect(page.locator('a.banner[href="/about/"]')).not.toHaveCSS('touch-action', 'none');
 		await page.locator('a.banner[href="/about/"]').click();
 		await expect(page).toHaveURL(/\/about\/$/);
 	});
@@ -212,4 +215,56 @@ test('不死圖騰的動畫播完就消失，不會停在畫面中央', async ({
 	await expect(totem).toBeAttached();
 	// 40 刻 = 2 秒
 	await expect(totem).toHaveCount(0, { timeout: 2600 });
+});
+
+test.describe('觸控裝置', () => {
+	test.use({ hasTouch: true });
+
+	test('點一下格子：選取並顯示物品說明，再點一下才使用', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await run(page, 'give @s cake');
+		await run(page, 'give @s ender_pearl');
+		// 先選別格，點珍珠那格才是「選取」而不是「使用」
+		await page.keyboard.press('5');
+		await slot(page, 1).tap();
+		const tooltip = page.locator('[data-mc-tooltip]');
+		await expect(tooltip).toBeVisible();
+		await expect(tooltip).toContainText('終界珍珠');
+		await expect(tooltip).toContainText('傳送到隨機頁面');
+		// 提示框在格子上方，手指不會擋住
+		const [tip, cell] = await Promise.all([tooltip.boundingBox(), slot(page, 1).boundingBox()]);
+		expect(tip && cell && tip.y + tip.height <= cell.y).toBeTruthy();
+		await expect(tooltip).toBeHidden({ timeout: 5000 });
+	});
+});
+
+test.describe('傾斜手機看天空', () => {
+	test('陀螺儀角度改變時天空跟著平移', async ({ page }) => {
+		await page.goto('/');
+		const tiltAfterTurning = () =>
+			page.evaluate(async () => {
+				const fire = (beta: number, gamma: number) =>
+					window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { alpha: 0, beta, gamma }));
+				fire(40, 0);
+				fire(40, 20);
+				await new Promise((resolve) => setTimeout(resolve, 100));
+				const sky = document.querySelector('[data-sky]') as HTMLElement;
+				return Number.parseFloat(getComputedStyle(sky).getPropertyValue('--tilt-x'));
+			});
+		await expect.poll(tiltAfterTurning).toBeLessThan(-5);
+	});
+
+	test('減少動態效果時不動', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		await page.mouse.click(5, 5);
+		await page.evaluate(() => {
+			window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { alpha: 0, beta: 40, gamma: 0 }));
+			window.dispatchEvent(new DeviceOrientationEvent('deviceorientation', { alpha: 0, beta: 40, gamma: 20 }));
+		});
+		await page.waitForTimeout(300);
+		const value = await page.locator('[data-sky]').evaluate((el) => getComputedStyle(el).getPropertyValue('--tilt-x').trim());
+		expect(value).toBe('0px');
+	});
 });

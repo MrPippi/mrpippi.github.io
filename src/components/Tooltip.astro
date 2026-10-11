@@ -75,13 +75,16 @@
 </style>
 
 <script>
-	import { TOOLTIP_REFRESH_EVENT } from '../lib/tooltip';
+	import { TOOLTIP_REFRESH_EVENT, TOOLTIP_SHOW_EVENT } from '../lib/tooltip';
 
 	const OFFSET = 14;
+	/** 觸控點出來的提示框顯示多久 */
+	const TOUCH_MS = 3000;
 	const tooltip = document.querySelector<HTMLElement>('[data-mc-tooltip]');
 	const nameEl = tooltip?.querySelector<HTMLElement>('[data-tooltip-name]');
 	const bodyEl = tooltip?.querySelector<HTMLElement>('[data-tooltip-body]');
 	let current: HTMLElement | null = null;
+	let touchTimer = 0;
 
 	/** 第二行之後若以「+」開頭顯示綠色、「-」開頭顯示灰色（例如進度的達成狀態） */
 	function renderLine(text: string): HTMLParagraphElement {
@@ -109,6 +112,7 @@
 	}
 
 	function hide(): void {
+		window.clearTimeout(touchTimer);
 		current = null;
 		if (tooltip) tooltip.hidden = true;
 	}
@@ -122,6 +126,25 @@
 		tooltip.style.left = `${Math.max(8, left)}px`;
 		tooltip.style.top = `${top}px`;
 	}
+
+	/** 放在元素正上方置中（觸控用，手指會擋住下方） */
+	function moveAbove(target: HTMLElement): void {
+		if (!tooltip) return;
+		const box = target.getBoundingClientRect();
+		const { width, height } = tooltip.getBoundingClientRect();
+		const left = Math.min(Math.max(8, box.left + box.width / 2 - width / 2), window.innerWidth - width - 8);
+		tooltip.style.left = `${left}px`;
+		tooltip.style.top = `${Math.max(8, box.top - OFFSET - height)}px`;
+	}
+
+	document.addEventListener(TOOLTIP_SHOW_EVENT, (event) => {
+		const target = (event as CustomEvent<HTMLElement>).detail;
+		if (!target.dataset.tooltip) return;
+		show(target);
+		moveAbove(target);
+		window.clearTimeout(touchTimer);
+		touchTimer = window.setTimeout(hide, TOUCH_MS);
+	});
 
 	const targetOf = (node: EventTarget | null) =>
 		node instanceof Element ? node.closest<HTMLElement>('[data-tooltip]') : null;

@@ -13,6 +13,7 @@ import {
 	SHAKE_MS,
 	shakeKeyframes,
 } from './explosion';
+import { vibrate } from './haptics';
 import { playExplosion, playHiss, preloadSamples } from './sound';
 
 const FLASH_MS = 400;
@@ -82,6 +83,7 @@ export async function igniteCreeper(): Promise<boolean> {
 		playHiss(FUSE_MS);
 		await wait(FUSE_MS);
 		playExplosion();
+		vibrate('explosion');
 		if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 			flash();
 			shake();

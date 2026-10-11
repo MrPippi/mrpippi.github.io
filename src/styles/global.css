@@ -350,6 +350,14 @@ img {
 	pointer-events: none;
 }
 
+/* 拿著鑽石鎬時：手機長按按鈕是在挖，不要捲動頁面、選取文字或跳出連結選單 */
+:root[data-held='diamond_pickaxe'] :is(.banner, .mc-btn) {
+	touch-action: none;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
 /* 鑽石鎬挖按鈕（src/lib/mining.ts）：原版裂痕拼成的 canvas 蓋滿按鈕，碎掉時噴出碎屑 */
 .crack {
 	position: absolute;

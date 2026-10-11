@@ -5,6 +5,7 @@
  */
 import { CRACK_STAGES, CRACK_TEXTURE, type CrackLayout, crackLayout, crackStage } from './crack';
 import { type Spark, sparkOpacity, sparkPath, TICK_MS } from './firework';
+import { vibrate } from './haptics';
 import { damageHeld, heldStack } from './hotbar';
 import { playDig, playHit } from './sound';
 
@@ -140,11 +141,15 @@ function startMining(target: HTMLElement, total: number): void {
 			lastStage = stage;
 			drawCrack(crack, layout, img);
 			// 每換一個階段敲一下
-			if (stage % 2 === 0) playHit();
+			if (stage % 2 === 0) {
+				playHit();
+				vibrate('hit');
+			}
 		}
 		if (elapsed >= total) {
 			cleanup();
 			playDig();
+			vibrate('break');
 			shatter(target);
 			target.style.visibility = 'hidden';
 			target.setAttribute('aria-hidden', 'true');
