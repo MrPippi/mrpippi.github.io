@@ -190,6 +190,7 @@ export interface Dictionary {
 		readonly soundOff: string;
 		readonly music: string;
 		readonly language: string;
+		readonly chat: string;
 	};
 	readonly music: {
 		readonly nowPlaying: string;

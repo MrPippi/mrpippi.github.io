@@ -8,6 +8,7 @@ export const PIXEL_GLYPHS = {
 	soundOn: ['...X....', '..XX..X.', 'XXXX...X', 'XXXX.X.X', 'XXXX.X.X', 'XXXX...X', '..XX..X.', '...X....'],
 	music: ['..XXXXXX', '..XXXXXX', '..X....X', '..X....X', '..X....X', 'XXX..XXX', 'XXX..XXX', '........'],
 	soundOff:['...X....', '..XX....', 'XXXX.X.X', 'XXXX..X.', 'XXXX.X.X', 'XXXX....', '..XX....', '...X....'],
+	chat: ['XXXXXXXX', 'X......X', 'X.XXXX.X', 'X......X', 'X.XXX..X', 'X......X', 'XXXXXXXX', '.XX.....'],
 } as const satisfies Record<string, readonly string[]>;
 
 export type GlyphName = keyof typeof PIXEL_GLYPHS;

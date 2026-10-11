@@ -247,6 +247,7 @@ export const en: Dictionary = {
 		soundOff: 'Sounds: Off',
 		music: 'Music & Sounds',
 		language: '中文',
+		chat: 'Chat and commands',
 	},
 	music: {
 		nowPlaying: 'Now Playing',

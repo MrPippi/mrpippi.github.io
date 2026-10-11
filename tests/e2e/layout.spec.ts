@@ -92,3 +92,18 @@ test('電腦版標題畫面：右下角按鈕列在版權文字上方、不重�
 		}
 	}
 });
+
+test('聊天按鈕只在觸控裝置顯示，點了會打開聊天列', async ({ page }, testInfo) => {
+	await page.goto('/');
+	const toggle = page.locator('[data-chat-toggle]');
+	if (testInfo.project.name !== 'mobile') {
+		await expect(toggle).toBeHidden();
+		return;
+	}
+	await expect(toggle).toBeVisible();
+	await toggle.click();
+	await expect(page.locator('[data-chat-input]')).toBeFocused();
+	await page.locator('[data-chat-input]').fill('/give @s diamond');
+	await page.locator('[data-chat-input]').press('Enter');
+	await expect(page.locator('[data-hotbar]')).toHaveClass(/visible/);
+});

@@ -246,6 +246,7 @@ export const zhTW: Dictionary = {
 		soundOff: '音效：關',
 		music: '音樂與音效設定',
 		language: 'English',
+		chat: '聊天與指令',
 	},
 	music: {
 		nowPlaying: '正在播放',

@@ -1,0 +1,38 @@
+---
+import McButton from './McButton.astro';
+import PixelGlyph from './PixelGlyph.astro';
+---
+
+<!-- 聊天按鈕：只在不能懸停的觸控裝置（手機、平板）顯示；有鍵盤的裝置照原版按 T 或 / 開啟 -->
+<McButton size="square" class="chat-toggle" data-chat-toggle>
+	<PixelGlyph name="chat" size={20} />
+</McButton>
+
+<style is:global>
+	.mc-btn.chat-toggle {
+		display: none;
+	}
+
+	@media (hover: none) {
+		.mc-btn.chat-toggle {
+			display: inline-flex;
+		}
+	}
+</style>
+
+<script>
+	import { langFromDocument, t } from '../i18n';
+	import { openChat } from '../lib/chat';
+
+	const button = document.querySelector<HTMLButtonElement>('[data-chat-toggle]');
+
+	function syncLabel(): void {
+		if (!button) return;
+		const label = t(langFromDocument()).controls.chat;
+		button.setAttribute('aria-label', label);
+		button.dataset.tooltip = label;
+	}
+
+	button?.addEventListener('click', () => openChat());
+	document.addEventListener('astro:page-load', syncLabel);
+</script>
