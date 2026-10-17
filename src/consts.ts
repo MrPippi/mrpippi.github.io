@@ -87,6 +87,24 @@ export const PORTFOLIO = {
 				en: 'A self-hosted GitHub Actions bot that watches Claude Code releases, translates them with the Claude API into Chinese, Japanese and Korean, and posts them to Discord.',
 			},
 		},
+		{
+			repo: 'mcd2-wiki',
+			icon: '/mc/item/compass.png',
+			description: {
+				'zh-TW':
+					'粉絲製作的 Minecraft Dungeons II 維基，支援 16 種語言：武器、護甲、神器、護符、附魔、效果、怪物圖鑑、世界地圖與成就，資料直接取自遊戲。',
+				en: "A fan-made Minecraft Dungeons II wiki in 16 languages: weapons, armor, artifacts, talismans, enchantments, effects, bestiary, world map and achievements, straight from the game's data.",
+			},
+		},
+		{
+			repo: 'ModLangForge',
+			icon: '/mc/item/globe_banner_pattern.png',
+			description: {
+				'zh-TW':
+					'Minecraft 模組繁體中文翻譯站：搜尋模組、下載繁中資源包、把多個模組合併成一個資源包，也能上傳 jar 直接在瀏覽器內翻譯。',
+				en: 'A Traditional Chinese translation hub for Minecraft mods: search mods, download zh-TW resource packs, merge several mods into one pack, or upload a jar and translate it right in the browser.',
+			},
+		},
 	] satisfies readonly PortfolioItem[],
 } as const;
 
