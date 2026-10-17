@@ -114,7 +114,7 @@ export const PORTFOLIO = {
  * token 本來就會出現在公開網頁上，不是機密。留空表示不載入分析。
  */
 export const ANALYTICS = {
-	cloudflareToken: '',
+	cloudflareToken: 'fc8634adf5114e2f854cf573b8b81293',
 } as const;
 
 /**
